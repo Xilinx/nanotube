@@ -23,6 +23,7 @@
 #include "nanotube_api.h"
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
+#include "x3rx_bus.hpp"
 
 uint8_t* nanotube_packet_data(nanotube_packet_t* packet) {
   auto sec = ( packet->get_is_capsule()
@@ -166,11 +167,14 @@ void nanotube_packet::reset(enum nanotube_bus_id_t bus_type)
   m_is_capsule = false;
   m_port = 0;
   m_meta_size = 0;
+  m_data_eop_seen = false;
   m_contents.clear();
 }
 
 int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
 {
+  /* m_bus_type is the current type.  bus_type is the desired type */
+
   // Quick return if no conversion is necessary.
   if (m_bus_type == bus_type)
     return 0;
@@ -180,6 +184,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   case NANOTUBE_BUS_ID_ETH:
   case NANOTUBE_BUS_ID_SB:
   case NANOTUBE_BUS_ID_SHB:
+  case NANOTUBE_BUS_ID_X3RX:
     break;
 
   default:
@@ -187,7 +192,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     return EPROTONOSUPPORT;
   }
 
-  // Convert to Ethernet if necessary.
+  // Convert to Ethernet from current bus type (m_bus_type) if necessary.
   switch (m_bus_type) {
   case NANOTUBE_BUS_ID_ETH:
     // No conversion necessary.
@@ -217,13 +222,19 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     break;
   }
 
+  case NANOTUBE_BUS_ID_X3RX: {
+    // No header at the start of the packet
+    // TODO extract the port from sideband metadata
+    break;
+  }
+
   default:
     // Format not supported.
     return EPROTONOSUPPORT;
   }
 
-  // Convert from Ethernet if necessary.  Note: This cannot fail, so
-  // there is no need to update m_bus_type yet.
+  // Convert from Ethernet to desired bus type (bus_type) if necessary.
+  // Note: This cannot fail, so there is no need to update m_bus_type yet.
   switch (bus_type) {
   case NANOTUBE_BUS_ID_ETH:
     // No conversion necessary.
@@ -247,10 +258,17 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     break;
   }
 
+  case NANOTUBE_BUS_ID_X3RX: {
+    // No header at the front of the packet for X3RX 
+    // TODO set port in sideband metadata
+    break;
+  }
+
   default:
     assert(false);
   }
 
+  // Conversion complete: update current bus type
   m_bus_type = bus_type;
   return 0;
 }
@@ -365,6 +383,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
 
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
+    case NANOTUBE_BUS_ID_X3RX:
       // None.
       break;
 
@@ -393,6 +412,9 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
       offset += sizeof(softhub_bus::header);
       break;
 
+    case NANOTUBE_BUS_ID_X3RX:
+      break;
+
     default:
       std::cerr << "ERROR: Unsupported bus type " << m_bus_type
                 << " for payload resize, aborting!\n";
@@ -408,6 +430,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
 
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
+    case NANOTUBE_BUS_ID_X3RX:
       // Not supported yet.
     default:
       std::cerr << "ERROR: Unsupported bus type " << m_bus_type
@@ -507,6 +530,44 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
       memset(buffer+remaining, 0, softhub_bus::data_bytes-remaining);
     return false;
   }
+
+  case NANOTUBE_BUS_ID_X3RX: {
+    assert(buf_size == x3rx_bus::total_bytes);
+    size_t total_size = m_contents.size();
+
+    assert(offset < total_size);
+    size_t remaining = m_contents.size() - offset;
+    uint8_t *data = &(m_contents[offset]);
+
+    // Handle first word (which is also not the last)
+    if (offset == 0) {
+      assert(remaining > x3rx_bus::data_bytes);
+      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+                                 1, 0, x3rx_bus::data_bytes, 1, 0,
+                                 0 /* TODO port */);
+      memcpy(buffer, data, x3rx_bus::data_bytes);
+      *iter = offset + x3rx_bus::data_bytes;
+      return true;
+    }
+
+    // Handle middle word (not first, not last)
+    if (remaining > x3rx_bus::data_bytes) {
+      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+                                 0, 0, x3rx_bus::data_bytes, 0, 0, 0);
+      memcpy(buffer, data, x3rx_bus::data_bytes);
+      *iter = offset + x3rx_bus::data_bytes;
+      return true;
+    }
+
+    // Handle the final (potentially partial) word
+    assert(remaining > 0);
+    x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+                               0, 1, remaining, 0, 1, 0);
+    memcpy(buffer, data, remaining);
+    if (remaining < x3rx_bus::data_bytes)
+      memset(buffer+remaining, 0, x3rx_bus::data_bytes-remaining);
+    return false;
+  }
   }
 }
 
@@ -573,6 +634,61 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     // Indicate that this was the last word.
     return false;
   }
+
+  case NANOTUBE_BUS_ID_X3RX: {
+    assert(buf_size == x3rx_bus::total_bytes);
+
+    // Get a pointer to the start of the data/sideband.
+    x3rx_bus::byte_t *data = buffer+x3rx_bus::data_offset(0);
+    x3rx_bus::byte_t *sideband = buffer+x3rx_bus::sideband_offset(0);
+
+    size_t num_bytes = x3rx_bus::data_bytes;
+
+    // If data EOP is not set then just append the whole word.
+    if (!x3rx_bus::get_sideband_data_eop(sideband) && !m_data_eop_seen) {
+      m_contents.insert(m_contents.end(), data, data+num_bytes);
+      // Indicate that there are more words to come.
+      return true;
+    }
+    // If data EOP is set then append the available bytes
+    else if (x3rx_bus::get_sideband_data_eop(sideband)) {
+      m_data_eop_seen = true;
+
+      int valid = x3rx_bus::get_sideband_data_eop_valid(sideband);
+      switch( valid ) {
+        case 1:
+          num_bytes = 1;
+          break;
+        case 3:
+          num_bytes = 2;
+          break;
+        case 7:
+          num_bytes = 3;
+          break;
+        case 15:
+          num_bytes = 4;
+          break;
+        default:
+          assert(false);
+      }
+
+      m_contents.insert(m_contents.end(), data, data+num_bytes);
+    }
+    else if (m_data_eop_seen) {
+      // No data bytes after we've seen data EOP
+      num_bytes = 0;
+    }
+
+    // If we get here we've run out of packet data but have to keep going if not
+    // read all the metadata/sideband
+    if (x3rx_bus::get_sideband_meta_eop(sideband)) {
+      // We've reached the end of the packet
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
   }
 }
 
@@ -590,6 +706,9 @@ std::size_t nanotube_packet::get_meta_size() const
   case NANOTUBE_BUS_ID_SHB:
     assert(m_contents.size() >= sizeof(softhub_bus::header));
     return sizeof(softhub_bus::header);
+
+  case NANOTUBE_BUS_ID_X3RX:
+    return 0;
 
   default:
     std::cerr << "ERROR: Unsupported bus type " << m_bus_type

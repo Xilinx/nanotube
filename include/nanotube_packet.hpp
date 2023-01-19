@@ -190,6 +190,8 @@ private:
 
   /*! Byte offset to start of packet data in contents. */
   std::size_t m_meta_size;
+
+  bool m_data_eop_seen; // Only used for x3rx bus EOP tracking
 };
 
 typedef std::unique_ptr<struct nanotube_packet> nanotube_packet_ptr_t;

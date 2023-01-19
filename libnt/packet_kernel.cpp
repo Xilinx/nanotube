@@ -20,6 +20,7 @@
 
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
+#include "x3rx_bus.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -134,9 +135,17 @@ channel_packet_kernel::channel_packet_kernel(
     assert(packet_read_channel.get_elem_size() == softhub_bus::total_bytes);
     m_bus_type = NANOTUBE_BUS_ID_SHB;
     break;
+  case NANOTUBE_CHANNEL_TYPE_X3RX_PACKET:
+    assert(packet_read_channel.get_read_export_type() ==
+           NANOTUBE_CHANNEL_TYPE_X3RX_PACKET);
+    assert(packet_write_channel.get_elem_size() == x3rx_bus::total_bytes);
+    assert(packet_read_channel.get_elem_size() == x3rx_bus::total_bytes);
+    m_bus_type = NANOTUBE_BUS_ID_X3RX;
+    break;
   default:
     assert(write_export_type == NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET ||
-           write_export_type == NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET);
+           write_export_type == NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET ||
+           write_export_type == NANOTUBE_CHANNEL_TYPE_X3RX_PACKET);
   }
 
   m_read_packet.reset(m_bus_type);
@@ -156,6 +165,10 @@ void channel_packet_kernel::process(nanotube_packet_t *packet)
 
   case NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET:
     write_softhub_packet(packet);
+    break;
+
+  case NANOTUBE_CHANNEL_TYPE_X3RX_PACKET:
+    write_x3rx_packet(packet);
     break;
   }
 }
@@ -218,6 +231,28 @@ channel_packet_kernel::write_softhub_packet(nanotube_packet_t *packet)
   }
 }
 
+
+void
+channel_packet_kernel::write_x3rx_packet(nanotube_packet_t *packet)
+{
+  // Make sure the correct metadata is present.
+  packet->convert_bus_type(NANOTUBE_BUS_ID_X3RX);
+
+  x3rx_bus::word w = {0};
+  size_t iter = 0;
+
+  assert(m_packet_write_channel.get_elem_size() == x3rx_bus::total_bytes);
+
+  bool more = true;
+  while (more) {
+    // Get a word from the packet
+    more = packet->get_bus_word(w.bytes, x3rx_bus::total_bytes, &iter);
+
+    // Write it to the channel
+    write_word(w.bytes, x3rx_bus::total_bytes);
+  } 
+}
+
 void
 channel_packet_kernel::write_word(const uint8_t *data,
                                   size_t data_size)
@@ -250,9 +285,13 @@ bool channel_packet_kernel::try_read_word()
   case NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET:
     return try_read_softhub_word();
     break;
+  case NANOTUBE_CHANNEL_TYPE_X3RX_PACKET:
+    return try_read_x3rx_word();
+    break;
   default:
     assert(read_export_type == NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET ||
-           read_export_type == NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET);
+           read_export_type == NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET ||
+           read_export_type == NANOTUBE_CHANNEL_TYPE_X3RX_PACKET);
   }
   return false;
 }
@@ -316,6 +355,37 @@ bool channel_packet_kernel::try_read_softhub_word()
   // Indicate that a word was read.
   return true;
 }
+
+
+bool channel_packet_kernel::try_read_x3rx_word()
+{
+  x3rx_bus::word word_read_buffer;
+
+  // Try to read a word from the channel.
+  bool success = m_packet_read_channel.try_read(
+    word_read_buffer.bytes, x3rx_bus::total_bytes);
+  if (!success)
+    return false;
+
+  bool more = m_read_packet.add_bus_word(word_read_buffer.bytes,
+                                         x3rx_bus::total_bytes);
+  if (more)
+    // Indicate that a word was read.
+    return true;
+
+  // Convert the packet to Ethernet.
+  m_read_packet.convert_bus_type(NANOTUBE_BUS_ID_ETH);
+
+  // Process the packet.
+  m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
+
+  // Clear the buffer for the next packet.
+  m_read_packet.reset(m_bus_type);
+
+  // Indicate that a word was read.
+  return true;
+}
+
 
 void channel_packet_kernel::flush()
 {

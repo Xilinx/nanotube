@@ -137,6 +137,7 @@ private:
   // Write a packet on a simple packet interface.
   void write_simple_packet(nanotube_packet_t *packet);
   void write_softhub_packet(nanotube_packet_t *packet);
+  void write_x3rx_packet(nanotube_packet_t *packet);
 
   // Write a word to m_packets_in.
   void write_word(const uint8_t *data, size_t data_size);
@@ -145,6 +146,7 @@ private:
   bool try_read_word();
   bool try_read_simple_word();
   bool try_read_softhub_word();
+  bool try_read_x3rx_word();
 
   nanotube_channel &m_packet_write_channel;
   nanotube_channel &m_packet_read_channel;
