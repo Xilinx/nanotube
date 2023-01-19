@@ -47,9 +47,9 @@ src_combo_list = [
     ["converge03.c",              "", converge_combo ],
     ["converge03.multi_exit.ll",  "", converge_combo ],
 
-    [ "xdp_trivial.c",            "-bus=1", ["ebpf2nt:hls"] ],
+    [ "xdp_trivial.c",            "-bus=shb", ["ebpf2nt:hls"] ],
 
-    [ "ip_tunnel.xdp.cc",         "-bus=1", ["ebpf2nt:hls",
+    [ "ip_tunnel.xdp.cc",         "-bus=shb", ["ebpf2nt:hls",
                                              "ebpf2nt:optreq,flatten"] ],
     [ "ip_tunnel.cc",             "", ["mem2req:inline_opt",
                                        "mem2req:platform,converge",
@@ -74,7 +74,7 @@ src_combo_list = [
     #[ "pipeline_maps.cc",         "", ["pipeline"] ],
     [ "pipeline_maps.cc",         "", ["inline"] ],
     [ "length_resize_pipeline.cc", "", ["pipeline"] ],
-    [ "length_resize_pipeline_shb.cc", "-bus=1", ["pipeline"] ],
+    [ "length_resize_pipeline_shb.cc", "-bus=shb", ["pipeline"] ],
 
     #[ "pipeline_phi_maps.cc",      "", ["pipeline"] ],
     [ "pipeline_phi_maps.cc",      "", ["inline"] ],
