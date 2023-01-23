@@ -168,7 +168,7 @@ private:
   enum nanotube_bus_id_t m_bus_type;
 
   /*! The contents of the packet. Contains metadata prefixed to packet data. */
-  std::vector<uint8_t> contents;
+  std::vector<uint8_t> m_contents;
 
   /*! The current destination port of the packet. */
   nanotube_packet_port_t m_port;

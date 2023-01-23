@@ -143,7 +143,7 @@ void nanotube_packet::reset(enum nanotube_bus_id_t bus_type)
   m_bus_type = bus_type;
   m_port = 0;
   m_meta_size = 0;
-  contents.clear();
+  m_contents.clear();
 }
 
 int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
@@ -237,9 +237,9 @@ nanotube_packet::begin(nanotube_packet_section_t sec)
 {
   // We only support metadata & payload for now.
   if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_METADATA)
-    return &(contents.front());
+    return &(m_contents.front());
   else if (sec == NANOTUBE_SECTION_PAYLOAD)
-    return &(contents.front()) + m_meta_size;
+    return &(m_contents.front()) + m_meta_size;
   else {
     std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
     abort();
@@ -250,9 +250,9 @@ uint8_t *nanotube_packet::end(nanotube_packet_section_t sec)
 {
   // We only support metadata & payload for now.
   if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_PAYLOAD)
-    return &(contents.front()) + contents.size();
+    return &(m_contents.front()) + m_contents.size();
   else if (sec == NANOTUBE_SECTION_METADATA)
-    return &(contents.front()) + m_meta_size;
+    return &(m_contents.front()) + m_meta_size;
   else {
     std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
     abort();
@@ -291,7 +291,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
 {
   // TODO support other sections.
   assert(sec == NANOTUBE_SECTION_WHOLE);
-  contents.resize(size);
+  m_contents.resize(size);
 }
 
 void nanotube_packet::resize(nanotube_packet_section_t sec,
@@ -306,12 +306,12 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
   else if (sec == NANOTUBE_SECTION_METADATA)
     m_meta_size += adjustment;
   if (adjustment > 0) {
-    contents.insert(contents.begin() + offset, adjustment, 0);
+    m_contents.insert(m_contents.begin() + offset, adjustment, 0);
   } else if (adjustment < 0) {
-    if (contents.size() - offset < (std::size_t)-adjustment)
-      adjustment = -(contents.size() - offset);
-    contents.erase(contents.begin() + offset,
-                   contents.begin() + offset - adjustment);
+    if (m_contents.size() - offset < (std::size_t)-adjustment)
+      adjustment = -(m_contents.size() - offset);
+    m_contents.erase(m_contents.begin() + offset,
+                     m_contents.begin() + offset - adjustment);
   }
 }
 
@@ -345,11 +345,11 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
 
   case NANOTUBE_BUS_ID_SB: {
     assert(buf_size == simple_bus::total_bytes);
-    size_t total_size = contents.size();
+    size_t total_size = m_contents.size();
 
     assert(offset < total_size);
-    size_t remaining = contents.size() - offset;
-    uint8_t *data = &(contents[offset]);
+    size_t remaining = m_contents.size() - offset;
+    uint8_t *data = &(m_contents[offset]);
 
     // Handle a word which is not the last.
     if (remaining > simple_bus::data_bytes) {
@@ -373,11 +373,11 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
 
   case NANOTUBE_BUS_ID_SHB: {
     assert(buf_size == softhub_bus::total_bytes);
-    size_t total_size = contents.size();
+    size_t total_size = m_contents.size();
 
     assert(offset < total_size);
-    size_t remaining = contents.size() - offset;
-    uint8_t *data = &(contents[offset]);
+    size_t remaining = m_contents.size() - offset;
+    uint8_t *data = &(m_contents[offset]);
 
     // Handle a word which is not the last.
     if (remaining > softhub_bus::data_bytes) {
@@ -413,7 +413,7 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     // If EOP is not set then just append the whole word.
     auto control = buffer[simple_bus::control_offset()];
     if ((control & simple_bus::control_eop) == 0) {
-      contents.insert(contents.end(), data, data+num_bytes);
+      m_contents.insert(m_contents.end(), data, data+num_bytes);
       // Indicate that there are more words to come.
       return true;
     }
@@ -422,7 +422,7 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     std::size_t empty = simple_bus::get_control_empty(control);
     assert(empty < num_bytes);
     num_bytes -= empty;
-    contents.insert(contents.end(), data, data+num_bytes);
+    m_contents.insert(m_contents.end(), data, data+num_bytes);
 
     // Indicate that this is the last word.
     return false;
@@ -435,14 +435,14 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     std::size_t num_bytes = softhub_bus::data_bytes;
 
     // Insert the bytes into the packet.
-    contents.insert(contents.end(), data, data+num_bytes);
+    m_contents.insert(m_contents.end(), data, data+num_bytes);
 
     // Check whether we reached the end of the packet.  The header is
     // already present because the first word has been read.
     static_assert(sizeof(softhub_bus::header) <= softhub_bus::total_bytes);
 
-    uint8_t *p_data = &(contents.front());
-    auto sec_len = contents.size();
+    uint8_t *p_data = &(m_contents.front());
+    auto sec_len = m_contents.size();
     auto cap_len = softhub_bus::get_ch_length_raw(p_data);
 
     // Indicate that there is more to come if the packet is not
@@ -453,7 +453,7 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
 
     // Otherwise end of packet reached so strip the excess bytes.
     if (cap_len < sec_len) {
-      contents.resize(cap_len);
+      m_contents.resize(cap_len);
     }
 
     // Indicate that this was the last word.
