@@ -232,8 +232,8 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   return 0;
 }
 
-const uint8_t *
-nanotube_packet::begin(nanotube_packet_section_t sec) const
+uint8_t *
+nanotube_packet::begin(nanotube_packet_section_t sec)
 {
   // We only support metadata & payload for now.
   if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_METADATA)
@@ -246,34 +246,9 @@ nanotube_packet::begin(nanotube_packet_section_t sec) const
   }
 }
 
-uint8_t *
-nanotube_packet::begin(nanotube_packet_section_t sec)
-{
-  if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_METADATA)
-    return &(contents.front());
-  else if (sec == NANOTUBE_SECTION_PAYLOAD)
-    return &(contents.front()) + m_meta_size;
-  else {
-    std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
-    abort();
-  }
-}
-
-const uint8_t *
-nanotube_packet::end(nanotube_packet_section_t sec) const
-{
-  if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_PAYLOAD)
-    return &(contents.front()) + contents.size();
-  else if (sec == NANOTUBE_SECTION_METADATA)
-    return &(contents.front()) + m_meta_size;
-  else {
-    std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
-    abort();
-  }
-}
-
 uint8_t *nanotube_packet::end(nanotube_packet_section_t sec)
 {
+  // We only support metadata & payload for now.
   if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_PAYLOAD)
     return &(contents.front()) + contents.size();
   else if (sec == NANOTUBE_SECTION_METADATA)

@@ -76,13 +76,25 @@ public:
   int convert_bus_type(enum nanotube_bus_id_t bus_type);
 
   /*! Get a pointer to the beginning of a section. */
-  const uint8_t *begin(nanotube_packet_section_t sec) const;
+  const uint8_t *begin(nanotube_packet_section_t sec) const {
+    /* Call the non-const method and cast the result.  Use of a
+     * non-const temporary makes it clear that this method isn't
+     * calling itself recursively. */
+    uint8_t *res = const_cast<nanotube_packet *>(this)->begin(sec);
+    return res;
+  }
 
   /*! Get a pointer to the beginning of a section. */
   uint8_t *begin(nanotube_packet_section_t sec);
 
   /*! Get a pointer to the end of a section. */
-  const uint8_t *end(nanotube_packet_section_t sec) const;
+  const uint8_t *end(nanotube_packet_section_t sec) const {
+    /* Call the non-const method and cast the result.  Use of a
+     * non-const temporary makes it clear that this method isn't
+     * calling itself recursively. */
+    uint8_t *res = const_cast<nanotube_packet *>(this)->end(sec);
+    return res;
+  }
 
   /*! Get a pointer to the end of a section. */
   uint8_t *end(nanotube_packet_section_t sec);
