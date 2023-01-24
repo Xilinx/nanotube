@@ -56,11 +56,15 @@ struct nanotube_tap_packet_length_state {
 
   /*! A flag which indicates that the response has been generated. */
   uint8_t done;
+
+  /*! A flag which indicates that we've seen the DATA_EOP bit set for 
+   *  this packet (only used by x3rx_bus) */
+  uint8_t data_eop_seen;
 };
 
 /*! The initial state to pass to the packet length tap. */
 static const nanotube_tap_packet_length_state
-  nanotube_tap_packet_length_state_init = { 0, 0, 0 };
+  nanotube_tap_packet_length_state_init = { 0, 0, 0, 0 };
 
 /*! Determine the length of the packet, upto the specified maximum.
 **
@@ -140,11 +144,15 @@ struct nanotube_tap_packet_read_state {
 
   /*! A flag which indicates that the response has been produced. */
   uint8_t  done;
+
+  /*! A flag which indicates that we've seen the DATA_EOP bit set for 
+   *  this packet (only used by x3rx_bus) */
+  uint8_t data_eop_seen;
 };
 
 /*! The initial state to pass to the packet read tap. */
 static const nanotube_tap_packet_read_state
-  nanotube_tap_packet_read_state_init = { 0, 0, 0, 0, 0 };
+  nanotube_tap_packet_read_state_init = { 0, 0, 0, 0, 0, 0 };
 
 /*! Read a series of bytes from a packet.
 **
@@ -224,11 +232,15 @@ struct nanotube_tap_packet_write_state {
 
   /*! A flag which indicates that the response has been produced. */
   uint8_t  done;
+
+  /*! A flag which indicates that we've seen the DATA_EOP bit set for 
+   *  this packet (only used by x3rx_bus) */
+  uint8_t data_eop_seen;
 };
 
 /*! The initial state to pass to the packet write tap. */
 static const nanotube_tap_packet_write_state
-  nanotube_tap_packet_write_state_init = { 0, 0, 0, 0, 0 };
+  nanotube_tap_packet_write_state_init = { 0, 0, 0, 0, 0, 0 };
 
 /*! Write a series of bytes to a packet with masking.
 **
@@ -383,6 +395,10 @@ struct nanotube_tap_packet_resize_ingress_state_t
   /*! The number of bytes carried out of the shifted region into the
    *  next word. */
   nanotube_tap_offset_t shifted_carried_len;
+
+  /*! A flag which indicates that we've seen the DATA_EOP bit set for 
+   *  this packet (only used by x3rx_bus) */
+  uint8_t data_eop_seen;
 };
 
 

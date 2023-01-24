@@ -7,8 +7,8 @@ target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
 %struct.nanotube_tap_packet_eop_state = type { i16, i16 }
-%struct.nanotube_tap_packet_read_state = type { i16, i16, i16, i16, i8 }
-%struct.nanotube_tap_packet_write_state = type { i16, i16, i16, i16, i8 }
+%struct.nanotube_tap_packet_read_state = type { i16, i16, i16, i16, i8, i8 }
+%struct.nanotube_tap_packet_write_state = type { i16, i16, i16, i16, i8, i8 }
 %struct.nanotube_packet = type opaque
 %struct.nanotube_channel = type opaque
 %struct.nanotube_context = type opaque

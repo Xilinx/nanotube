@@ -29,6 +29,7 @@ low_level_sources = (
     'nanotube_packet_taps_core.cpp',
     'nanotube_packet_taps_sb.cpp',
     'nanotube_packet_taps_shb.cpp',
+    'nanotube_packet_taps_x3rx.cpp',
     'nanotube_packet_taps_bus.cpp',
 )
 lib_sources = high_level_sources + low_level_sources + (

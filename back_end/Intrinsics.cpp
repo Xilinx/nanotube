@@ -1380,12 +1380,13 @@ StructType* get_nt_tap_packet_read_state_ty(Module& m) {
     return ty;
 
   LLVMContext& c = m.getContext();
-  std::array<Type*, 5>  elements = {
+  std::array<Type*, 6>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt16Ty(c),   /* packet_offset */
     IntegerType::getInt16Ty(c),   /* rotate_amount */
     IntegerType::getInt16Ty(c),   /* result_offset */
     IntegerType::getInt8Ty(c),    /* done */
+    IntegerType::getInt8Ty(c),    /* data_eop_seen */
   };
   return StructType::create(c, elements, name);
 }
@@ -1444,12 +1445,13 @@ StructType* get_nt_tap_packet_write_state_ty(Module& m) {
     return ty;
 
   LLVMContext& c = m.getContext();
-  std::array<Type*, 5>  elements = {
+  std::array<Type*, 6>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt16Ty(c),   /* packet_offset */
     IntegerType::getInt16Ty(c),   /* rotate_amount */
     IntegerType::getInt16Ty(c),   /* result_offset */
     IntegerType::getInt8Ty(c),    /* done */
+    IntegerType::getInt8Ty(c),    /* data_eop_seen */
   };
   return StructType::create(c, elements, name);
 }
@@ -1523,10 +1525,11 @@ StructType* get_nt_tap_packet_length_state_ty(Module& m) {
     return ty;
 
   LLVMContext& c = m.getContext();
-  std::array<Type*, 3>  elements = {
+  std::array<Type*, 4>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_offset */
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt8Ty(c),    /* done */
+    IntegerType::getInt8Ty(c),    /* data_eop_seen */
   };
   return StructType::create(c, elements, name);
 }
@@ -1603,7 +1606,7 @@ StructType* get_nt_tap_packet_resize_ingress_state_ty(Module& m) {
     return ty;
 
   LLVMContext& c = m.getContext();
-  std::array<Type*, 11>  elements = {
+  std::array<Type*, 12>  elements = {
     IntegerType::getInt8Ty(c),    /* new_req */
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt16Ty(c),   /* packet_offset */
@@ -1615,6 +1618,7 @@ StructType* get_nt_tap_packet_resize_ingress_state_ty(Module& m) {
     get_nt_tap_offset_ty(m),      /* edit_carried_len */
     IntegerType::getInt8Ty(c),    /* shifted_started */
     get_nt_tap_offset_ty(m),      /* shifted_carried_len */
+    IntegerType::getInt8Ty(c),    /* data_eop_seen */
   };
   return StructType::create(c, elements, name);
 }

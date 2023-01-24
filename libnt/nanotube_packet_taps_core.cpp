@@ -1213,6 +1213,7 @@ void nanotube_tap_packet_resize_ingress_state_init(
   state->edit_carried_len = 0;
   state->shifted_started = true;
   state->shifted_carried_len = 0;
+  state->data_eop_seen = 0;
 }
 
 void nanotube_tap_packet_resize_ingress_core(
