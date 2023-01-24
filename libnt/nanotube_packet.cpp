@@ -133,6 +133,7 @@ int32_t nanotube_packet_meta_resize(nanotube_packet_t *packet, size_t offset,
 void nanotube_packet_drop(nanotube_packet_t *packet,
                           int32_t drop)
 {
+  assert(false);
   if( drop ) {
     packet->resize(NANOTUBE_SECTION_WHOLE, 0);
   }
