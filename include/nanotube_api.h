@@ -94,6 +94,8 @@ typedef enum {
   NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET = 1,
   /*! Indicates a softhub packet interface. */
   NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET = 2,
+  /*! Indicates a X3RX packet interface */
+  NANOTUBE_CHANNEL_TYPE_X3RX_PACKET = 3,
 } nanotube_channel_type_t;
 
 /* The following attributes control how the channel is represented by

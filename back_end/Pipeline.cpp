@@ -3536,9 +3536,12 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
     packet_chs[n] = ch;
   }
 
-  auto channel_type = (get_bus_type() == NANOTUBE_BUS_ID_SHB) ?
-    NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET :
-    NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET;
+  nanotube_channel_type_t channel_type;
+  switch( get_bus_type() ) {
+    case NANOTUBE_BUS_ID_SHB:  channel_type = NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET; break;
+    case NANOTUBE_BUS_ID_X3RX: channel_type = NANOTUBE_CHANNEL_TYPE_X3RX_PACKET; break;
+    default:                   channel_type = NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET;
+  }
 
   /* Export the overall packet in / out channels */
   channel_export(packet_chs[0], channel_type,

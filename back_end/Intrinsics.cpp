@@ -652,12 +652,14 @@ nanotube::get_enum_name(nanotube_channel_type_t t)
     none_name = "NANOTUBE_CHANNEL_TYPE_NONE",
     sp_name = "NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET",
     sh_name = "NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET",
+    x3rx_name = "NANOTUBE_CHANNEL_TYPE_X3RX_PACKET",
     null_name = "";
 
   switch(t) {
   case NANOTUBE_CHANNEL_TYPE_NONE:           return none_name;
   case NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET:  return sp_name;
   case NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET: return sh_name;
+  case NANOTUBE_CHANNEL_TYPE_X3RX_PACKET:    return x3rx_name;
   default: return null_name;
   }
 }
