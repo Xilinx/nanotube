@@ -23,6 +23,7 @@ high_level_sources = (
     'misc_inline.cpp',
     'nanotube_packet_metadata_sb.cpp',
     'nanotube_packet_metadata_shb.cpp',
+    'nanotube_packet_metadata_x3rx.cpp',
 )
 low_level_sources = (
     'nanotube_map_taps.cpp',
