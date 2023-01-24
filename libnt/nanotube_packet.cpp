@@ -200,7 +200,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     this->m_port = sb_header.port;
 
     // Remove the header.
-    resize(NANOTUBE_SECTION_WHOLE, 0, -(ssize_t)sizeof(sb_header));
+    resize(NANOTUBE_SECTION_WHOLE, 0, -(ptrdiff_t)sizeof(sb_header));
     break;
   }
 
@@ -212,7 +212,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     m_port = softhub_bus::get_ch_route_raw((uint8_t*)&shb_header);
 
     // Remove the header.
-    resize(NANOTUBE_SECTION_WHOLE, 0, -(ssize_t)sizeof(shb_header));
+    resize(NANOTUBE_SECTION_WHOLE, 0, -(ptrdiff_t)sizeof(shb_header));
     break;
   }
 
