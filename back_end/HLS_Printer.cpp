@@ -421,16 +421,17 @@ void top_writer::check_channel_data_widths()
     auto sideband_size = channel.get_sideband_size();
     auto sideband_signals_size = channel.get_sideband_signals_size();
     auto data_width = (elem_size - sideband_size - sideband_signals_size);
+    auto exp_sideband_signals_size = ((data_width + 7) / 8) * 2 + 1;
 
     if (sideband_size >= elem_size) {
       report_fatal_errorv("Sideband size {0} is larger than the element size {1}",
                           sideband_size, elem_size);
     }
-    if (!(sideband_signals_size == 0 ||
-          sideband_signals_size == ((data_width)/8) * 2 + 1)) {
+    if (sideband_signals_size != 0 &&
+        sideband_signals_size != exp_sideband_signals_size) {
       report_fatal_errorv("Sideband signals size {0} for data width {1} should "
                           "be zero or {2}", sideband_signals_size, data_width,
-                          ((data_width)/8) * 2 + 1);
+                          exp_sideband_signals_size);
     }
   }
 }
