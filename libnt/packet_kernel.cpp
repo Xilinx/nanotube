@@ -94,8 +94,14 @@ void func_packet_kernel::process(nanotube_packet_t *packet)
   int err = packet->convert_bus_type(m_bus_type);
   assert(err == 0);
 
+  /* Initialize the capsule flag. */
+  packet->set_is_capsule(m_capsules);
+
   /* Call the application kernel */
   rc = m_kernel(contexts->begin()->get(), packet);
+
+  /* Reset the capsule flag. */
+  packet->set_is_capsule(false);
 
   err = packet->convert_bus_type(NANOTUBE_BUS_ID_ETH);
   assert(err == 0);

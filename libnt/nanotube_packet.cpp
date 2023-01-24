@@ -24,20 +24,30 @@
 #include "softhub_bus.hpp"
 
 uint8_t* nanotube_packet_data(nanotube_packet_t* packet) {
-  return packet->begin(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  return packet->begin(sec);
 }
 
 uint8_t* nanotube_packet_end(nanotube_packet_t* packet) {
-  return packet->end(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  return packet->end(sec);
 }
 
 uint8_t* nanotube_packet_meta(nanotube_packet_t* packet) {
+  assert(!packet->get_is_capsule());
   return packet->begin(NANOTUBE_SECTION_METADATA);
 }
 
 size_t nanotube_packet_bounded_length(nanotube_packet_t* packet,
                                       size_t max) {
-  auto pkt_len = packet->size(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  auto pkt_len = packet->size(sec);
   return std::min(pkt_len, max);
 }
 
@@ -66,7 +76,10 @@ size_t nanotube_packet_read(nanotube_packet_t* packet, uint8_t* buffer,
   if( buffer == nullptr || packet == nullptr )
     return 0;
 
-  auto pkt_len = packet->size(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  auto pkt_len = packet->size(sec);
   if( offset > pkt_len )
     return 0;
 
@@ -88,7 +101,10 @@ size_t nanotube_packet_write_masked(nanotube_packet_t* packet,
   if( data_in == nullptr || mask == nullptr || packet == nullptr)
     return 0;
 
-  auto pkt_len = packet->size(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  auto pkt_len = packet->size(sec);
   if( offset > pkt_len )
     return 0;
 
@@ -111,17 +127,21 @@ size_t nanotube_packet_write_masked(nanotube_packet_t* packet,
 int32_t nanotube_packet_resize(nanotube_packet_t *packet, size_t offset,
                                int32_t adjust)
 {
-  auto pkt_len = packet->size(NANOTUBE_SECTION_PAYLOAD);
+  auto sec = ( packet->get_is_capsule()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
+  auto pkt_len = packet->size(sec);
   if (offset > pkt_len)
     return 0;
 
-  packet->resize(NANOTUBE_SECTION_PAYLOAD, offset, adjust);
+  packet->resize(sec, offset, adjust);
   return 1;
 }
 
 int32_t nanotube_packet_meta_resize(nanotube_packet_t *packet, size_t offset,
                                int32_t adjust)
 {
+  assert(!packet->get_is_capsule());
   auto pkt_len = packet->size(NANOTUBE_SECTION_METADATA);
   if (offset > pkt_len)
     return 0;
@@ -142,6 +162,7 @@ void nanotube_packet_drop(nanotube_packet_t *packet,
 void nanotube_packet::reset(enum nanotube_bus_id_t bus_type)
 {
   m_bus_type = bus_type;
+  m_is_capsule = false;
   m_port = 0;
   m_meta_size = 0;
   m_contents.clear();

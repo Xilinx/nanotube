@@ -68,6 +68,14 @@ public:
     return m_bus_type;
   }
 
+  /*! Get the flag indicating whether the packet should be treated as
+   *  a capsule. */
+  bool get_is_capsule() const { return m_is_capsule; }
+
+  /*! Set the flag indicating whether the packet should be treated as
+   *  a capsule. */
+  void set_is_capsule(bool val) { m_is_capsule = val; }
+
   /*! Convert the packet to a different bus type.
    *
    * \param bus_type The target bus type.
@@ -166,6 +174,10 @@ public:
 private:
   /*! The bus type used to represent the packet. */
   enum nanotube_bus_id_t m_bus_type;
+
+  /*! A flag indicating whether the packet should be treated as a
+   *  capsule.  This is only used for the C API. */
+  bool m_is_capsule;
 
   /*! The contents of the packet. Contains metadata prefixed to packet data. */
   std::vector<uint8_t> m_contents;
