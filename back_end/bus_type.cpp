@@ -15,6 +15,7 @@
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
 #include "utils.h"
+#include "x3rx_bus.hpp"
 
 #include "llvm/Support/CommandLine.h"
 
@@ -32,9 +33,11 @@ std::unordered_map<std::string, enum nanotube_bus_id_t> bus_types = {
   // For compatibility.
   { "0", NANOTUBE_BUS_ID_SB },
   { "1", NANOTUBE_BUS_ID_SHB },
+  { "3", NANOTUBE_BUS_ID_X3RX },
   // Recommended names.
   { "sb", NANOTUBE_BUS_ID_SB },
   { "shb", NANOTUBE_BUS_ID_SHB },
+  { "x3rx", NANOTUBE_BUS_ID_X3RX },
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -56,6 +59,7 @@ const char* nanotube::get_bus_suffix(enum nanotube_bus_id_t type) {
     "_sb",
     "_shb",
     "_eth",
+    "_x3rx",
   };
 
   /* Make sure that the array here matches what is defined in the enum in
@@ -78,6 +82,7 @@ nanotube_tap_offset_t nanotube::get_bus_word_size() {
     sizeof(simple_bus::word),
     sizeof(softhub_bus::word),
     0,
+    sizeof(x3rx_bus::word),
   };
 
   auto type = get_bus_type();
@@ -98,6 +103,7 @@ nanotube_packet_size_t nanotube::get_bus_md_size()
     sizeof(simple_bus::header),
     sizeof(softhub_bus::header),
     0,
+    sizeof(x3rx_bus::header),
   };
 
   auto type = get_bus_type();
@@ -118,6 +124,7 @@ nanotube_packet_size_t nanotube::get_bus_sb_size()
     simple_bus::sideband_bytes,
     softhub_bus::sideband_bytes,
     0,
+    x3rx_bus::sideband_bytes,
   };
 
   auto type = get_bus_type();
@@ -138,6 +145,7 @@ nanotube_packet_size_t nanotube::get_bus_sb_signals_size()
     simple_bus::sideband_signals_bytes,
     softhub_bus::sideband_signals_bytes,
     0,
+    x3rx_bus::sideband_signals_bytes,
   };
 
   auto type = get_bus_type();
