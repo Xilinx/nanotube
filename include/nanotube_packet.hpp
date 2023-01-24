@@ -172,6 +172,9 @@ public:
   bool add_bus_word(uint8_t *buffer, std::size_t buf_size);
 
 private:
+  /*! Get the size of the metadata header. */
+  std::size_t get_meta_size() const;
+
   /*! The bus type used to represent the packet. */
   enum nanotube_bus_id_t m_bus_type;
 

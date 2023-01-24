@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 
 #include "nanotube_packet.hpp"
@@ -257,12 +258,17 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
 uint8_t *
 nanotube_packet::begin(nanotube_packet_section_t sec)
 {
-  // We only support metadata & payload for now.
-  if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_METADATA)
+  // We only support metadata, payload and whole for now.
+  switch (sec) {
+  case NANOTUBE_SECTION_WHOLE:
+  case NANOTUBE_SECTION_METADATA:
     return &(m_contents.front());
-  else if (sec == NANOTUBE_SECTION_PAYLOAD)
-    return &(m_contents.front()) + m_meta_size;
-  else {
+
+  case NANOTUBE_SECTION_PAYLOAD:
+    assert(get_meta_size() == m_meta_size);
+    return &(m_contents[get_meta_size()]);
+
+  default:
     std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
     abort();
   }
@@ -270,12 +276,17 @@ nanotube_packet::begin(nanotube_packet_section_t sec)
 
 uint8_t *nanotube_packet::end(nanotube_packet_section_t sec)
 {
-  // We only support metadata & payload for now.
-  if (sec == NANOTUBE_SECTION_WHOLE || sec == NANOTUBE_SECTION_PAYLOAD)
+  // We only support metadata, payload and whole for now.
+  switch (sec) {
+  case NANOTUBE_SECTION_WHOLE:
+  case NANOTUBE_SECTION_PAYLOAD:
     return &(m_contents.front()) + m_contents.size();
-  else if (sec == NANOTUBE_SECTION_METADATA)
-    return &(m_contents.front()) + m_meta_size;
-  else {
+
+  case NANOTUBE_SECTION_METADATA:
+    assert(get_meta_size() == m_meta_size);
+    return &(m_contents[get_meta_size()]);
+
+  default:
     std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
     abort();
   }
@@ -309,29 +320,110 @@ void nanotube_packet::write(nanotube_packet_section_t sec,
 }
 
 void nanotube_packet::resize(nanotube_packet_section_t sec,
-                             std::size_t size)
+                             std::size_t new_size)
 {
-  // TODO support other sections.
-  assert(sec == NANOTUBE_SECTION_WHOLE);
-  m_contents.resize(size);
+  std::size_t old_size = size(sec);
+  int32_t adjustment = int32_t(new_size) - int32_t(old_size);
+  resize(sec, old_size, adjustment);
 }
 
 void nanotube_packet::resize(nanotube_packet_section_t sec,
                              std::size_t offset,
                              int32_t adjustment)
 {
-  assert(sec == NANOTUBE_SECTION_WHOLE
-      || sec == NANOTUBE_SECTION_METADATA
-      || sec == NANOTUBE_SECTION_PAYLOAD);
-  if (sec == NANOTUBE_SECTION_PAYLOAD)
-    offset += m_meta_size;
-  else if (sec == NANOTUBE_SECTION_METADATA)
-    m_meta_size += adjustment;
+  static const std::ptrdiff_t MAX_SSIZE =
+    std::numeric_limits<std::ptrdiff_t>::max();
+
+  // Check the offset and sizes.
+  std::size_t old_size = size(sec);
+  assert(old_size <= std::size_t(MAX_SSIZE));
+  assert(offset <= old_size);
+
+  // The amount the packet can grow.
+  std::ptrdiff_t space = MAX_SSIZE - m_contents.size();
+  assert(std::ptrdiff_t(adjustment) <= space);
+
+  // The number of bytes after the adjustment point.
+  std::ptrdiff_t tail = std::ptrdiff_t(old_size - offset);
+  if (adjustment < -tail)
+    adjustment = -tail;
+
+  // The new size of the section.
+  std::size_t new_size = old_size + adjustment;
+
+  // Update the offset to be relative to the start of the contents.
+  // Also update any internal metadata.
+  switch (sec) {
+  case NANOTUBE_SECTION_WHOLE:
+    // No offset update needed.  Just update any internal metadata.
+    switch (m_bus_type) {
+    case NANOTUBE_BUS_ID_ETH:
+      // Update the metadata size if it has been truncated.
+      if (m_meta_size > new_size)
+        m_meta_size = new_size;
+      break;
+
+    case NANOTUBE_BUS_ID_SB:
+    case NANOTUBE_BUS_ID_SHB:
+      // None.
+      break;
+
+    default:
+      std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+                << " for whole resize, aborting!\n";
+      break;
+    }
+    break;
+
+  case NANOTUBE_SECTION_PAYLOAD:
+    // Resize the payload and update the metadata if necessary.
+    switch (m_bus_type) {
+    case NANOTUBE_BUS_ID_ETH:
+      assert(m_contents.size() >= m_meta_size);
+      offset += m_meta_size;
+      break;
+
+    case NANOTUBE_BUS_ID_SB:
+      assert(m_contents.size() >= sizeof(simple_bus::header));
+      offset += sizeof(simple_bus::header);
+      break;
+
+    case NANOTUBE_BUS_ID_SHB:
+      assert(m_contents.size() >= sizeof(softhub_bus::header));
+      offset += sizeof(softhub_bus::header);
+      break;
+
+    default:
+      std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+                << " for payload resize, aborting!\n";
+      abort();
+    }
+    break;
+
+  case NANOTUBE_SECTION_METADATA:
+    switch (m_bus_type) {
+    case NANOTUBE_BUS_ID_ETH:
+      m_meta_size = new_size;
+      break;
+
+    case NANOTUBE_BUS_ID_SB:
+    case NANOTUBE_BUS_ID_SHB:
+      // Not supported yet.
+    default:
+      std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+                << " for metadata resize, aborting!\n";
+      abort();
+    }
+    break;
+
+  default:
+    std::cerr << "ERROR: Unsupported section " << sec << ", aborting!\n";
+    abort();
+  }
+
   if (adjustment > 0) {
     m_contents.insert(m_contents.begin() + offset, adjustment, 0);
   } else if (adjustment < 0) {
-    if (m_contents.size() - offset < (std::size_t)-adjustment)
-      adjustment = -(m_contents.size() - offset);
     m_contents.erase(m_contents.begin() + offset,
                      m_contents.begin() + offset - adjustment);
   }
@@ -481,6 +573,28 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     // Indicate that this was the last word.
     return false;
   }
+  }
+}
+
+std::size_t nanotube_packet::get_meta_size() const
+{
+  switch (m_bus_type) {
+  case NANOTUBE_BUS_ID_ETH:
+    assert(m_contents.size() >= m_meta_size);
+    return m_meta_size;
+
+  case NANOTUBE_BUS_ID_SB:
+    assert(m_contents.size() >= sizeof(simple_bus::header));
+    return sizeof(simple_bus::header);
+
+  case NANOTUBE_BUS_ID_SHB:
+    assert(m_contents.size() >= sizeof(softhub_bus::header));
+    return sizeof(softhub_bus::header);
+
+  default:
+    std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+              << ", aborting!\n";
+    abort();
   }
 }
 
