@@ -30,10 +30,6 @@ opt_bus("bus", llvm::cl::desc("Which bus format to use"),
         llvm::cl::init("sb"));
 
 std::unordered_map<std::string, enum nanotube_bus_id_t> bus_types = {
-  // For compatibility.
-  { "0", NANOTUBE_BUS_ID_SB },
-  { "1", NANOTUBE_BUS_ID_SHB },
-  { "3", NANOTUBE_BUS_ID_X3RX },
   // Recommended names.
   { "sb", NANOTUBE_BUS_ID_SB },
   { "shb", NANOTUBE_BUS_ID_SHB },
