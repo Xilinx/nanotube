@@ -104,9 +104,6 @@ void func_packet_kernel::process(nanotube_packet_t *packet)
   /* Reset the capsule flag. */
   packet->set_is_capsule(false);
 
-  err = packet->convert_bus_type(NANOTUBE_BUS_ID_ETH);
-  assert(err == 0);
-
   m_system.receive_packet(packet, rc);
 }
 
@@ -313,9 +310,6 @@ bool channel_packet_kernel::try_read_simple_word()
     // Indicate that a word was read.
     return true;
 
-  // Convert the packet to Ethernet.
-  m_read_packet.convert_bus_type(NANOTUBE_BUS_ID_ETH);
-
   // Process the packet.
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
 
@@ -342,9 +336,6 @@ bool channel_packet_kernel::try_read_softhub_word()
   if (more)
     // Indicate that a word was read.
     return true;
-
-  // Convert the packet to Ethernet.
-  m_read_packet.convert_bus_type(NANOTUBE_BUS_ID_ETH);
 
   // Process the packet.
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
