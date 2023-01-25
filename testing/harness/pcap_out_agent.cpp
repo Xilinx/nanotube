@@ -26,7 +26,8 @@ pcap_out_agent::pcap_out_agent(test_harness* harness,
 
 void pcap_out_agent::start_test()
 {
-  // https://stackoverflow.com/a/40441240
+  // Use rfind with pos=0 to only look for a match at the start of the
+  // string.  (From https://stackoverflow.com/a/40441240)
   bool with_meta = m_filename.rfind("capsule:", 0) == 0;
   if (with_meta)
     m_filename.erase(0, 8);
