@@ -38,13 +38,6 @@ void pcap_in_agent::start_test()
     m_packets.push_back(std::move(p));
   }
   std::cout << "Read " << m_packets.size() << " packets\n";
-
-  /* Add a single dummy packet in case we did not read a packet */
-  if (m_packets.size() == 0) {
-    nanotube_packet_ptr_t p(new nanotube_packet());
-    p->resize(NANOTUBE_SECTION_WHOLE, 1530);
-    m_packets.push_back(std::move(p));
-  }
 }
 
 void pcap_in_agent::test_kernel(packet_kernel* kernel)

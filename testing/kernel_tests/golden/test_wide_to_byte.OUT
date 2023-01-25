@@ -1,5 +1,5 @@
 Reading maps
-Read 0 packets
+Read 1 packets
 Expecting 1 packets.
 Testing kernel wide_to_byte
 8: 42 16: cafe 32: feedbacc 64: 600dface2badfee7

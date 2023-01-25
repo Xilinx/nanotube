@@ -1,6 +1,6 @@
 Reading maps
   Map 0
-Read 0 packets
+Read 1 packets
 Expecting 1 packets.
 Testing kernel map_read_test
 8 bit off: 1 data: aa
