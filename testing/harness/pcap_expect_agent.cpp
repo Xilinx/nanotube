@@ -49,10 +49,11 @@ void pcap_expect_agent::start_test()
   m_packet_iter = m_packets.begin();
 }
 
-static void dump_packet(nanotube_packet_t* packet)
+static void dump_packet(nanotube_packet_t* packet,
+                        nanotube_packet_section_t section)
 {
-  uint32_t packet_length = packet->size(NANOTUBE_SECTION_WHOLE);
-  uint8_t *data = packet->begin(NANOTUBE_SECTION_WHOLE);
+  uint32_t packet_length = packet->size(section);
+  uint8_t *data = packet->begin(section);
   std::cout << std::hex << std::setfill('0');
   for (uint32_t i=0; i<packet_length; i+=16) {
     std::cout << "  " << std::setw(4) << i << std::setw(0) << ':';
@@ -67,9 +68,9 @@ static void dump_packet(nanotube_packet_t* packet)
 }
 
 static void dump_packet_compare(nanotube_packet_t* left,
-                                nanotube_packet_t* right)
+                                nanotube_packet_t* right,
+                                nanotube_packet_section_t sec)
 {
-  auto sec = NANOTUBE_SECTION_WHOLE;
   uint32_t left_length = left->size(sec);
   uint32_t right_length = right->size(sec);
   uint32_t full_length = std::max(right_length, left_length);
@@ -122,7 +123,7 @@ void pcap_expect_agent::receive_packet(nanotube_packet_t* packet,
   // Report unexpected packets.
   if (m_packet_iter == m_packets.end()) {
     std::cout << "Received unexpected packet " << packet_index << ":\n";
-    dump_packet(packet);
+    dump_packet(packet, NANOTUBE_SECTION_WHOLE);
     std::cout << '\n';
     get_harness()->set_test_failure();
     return;
@@ -130,7 +131,9 @@ void pcap_expect_agent::receive_packet(nanotube_packet_t* packet,
 
   nanotube_packet_t* expected = m_packet_iter->get();
 
-  auto sec = NANOTUBE_SECTION_WHOLE;
+  auto sec = ( expected->get_metadata_specified()
+               ? NANOTUBE_SECTION_WHOLE
+               : NANOTUBE_SECTION_PAYLOAD );
   uint32_t packet_length = packet->size(sec);
   uint32_t expected_length = expected->size(sec);
   uint8_t *packet_data = packet->begin(sec);
@@ -141,7 +144,7 @@ void pcap_expect_agent::receive_packet(nanotube_packet_t* packet,
     std::cout << "Mismatch at packet " << packet_index
               << " (expected " << expected_length << " bytes and got "
               << packet_length << " bytes):\n";
-    dump_packet_compare(expected, packet);
+    dump_packet_compare(expected, packet, sec);
     std::cout << '\n';
     get_harness()->set_test_failure();
   }
@@ -155,7 +158,11 @@ void pcap_expect_agent::end_test()
   while (m_packet_iter != m_packets.end()) {
     unsigned index = m_packet_iter - m_packets.begin();
     std::cout << "Missing packet " << index << " at end of test:\n";
-    dump_packet(m_packet_iter->get());
+    nanotube_packet_t* packet = m_packet_iter->get();
+    auto sec = ( packet->get_metadata_specified()
+                 ? NANOTUBE_SECTION_WHOLE
+                 : NANOTUBE_SECTION_PAYLOAD );
+    dump_packet(packet, sec);
     std::cout << '\n';
     get_harness()->set_test_failure();
     m_packet_iter++;
