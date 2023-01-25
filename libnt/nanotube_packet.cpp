@@ -294,7 +294,6 @@ nanotube_packet::begin(nanotube_packet_section_t sec)
     return &(m_contents.front());
 
   case NANOTUBE_SECTION_PAYLOAD:
-    assert(get_meta_size() == m_meta_size);
     return &(m_contents[get_meta_size()]);
 
   default:
@@ -312,7 +311,6 @@ uint8_t *nanotube_packet::end(nanotube_packet_section_t sec)
     return &(m_contents.front()) + m_contents.size();
 
   case NANOTUBE_SECTION_METADATA:
-    assert(get_meta_size() == m_meta_size);
     return &(m_contents[get_meta_size()]);
 
   default:
