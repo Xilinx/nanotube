@@ -53,16 +53,46 @@ typedef enum {
 */
 class nanotube_packet {
 public:
-  /*! Construct a packet. */
-  nanotube_packet(enum nanotube_bus_id_t bus_type = NANOTUBE_BUS_ID_ETH) {
-    reset(bus_type);
+  /*! Construct a packet.
+   *
+   * \param bus_type The new bus type of the packet.
+   * \param empty_metadata True if metadata should not be added.
+   *
+   * By default the constructor will add the default metadata for the
+   * specified bus type.  If the empty_metadata flag is true then the
+   * packet will be created without any metadata and the caller must
+   * add any required metadata before the packet is valid.
+   */
+  nanotube_packet(enum nanotube_bus_id_t bus_type = NANOTUBE_BUS_ID_ETH,
+                  bool empty_metadata = false) {
+    reset(bus_type, empty_metadata);
   }
 
-  /*! Reset the packet contents with the specified bus type. */
-  void reset(enum nanotube_bus_id_t bus_type);
+  /*! Reset the packet contents with the specified bus type.
+   *
+   * \param bus_type The new bus type of the packet.
+   * \param empty_metadata True if metadata should not be added.
+   *
+   * By default this method will add the default metadata for the
+   * specified bus type.  If the empty_metadata flag is true then the
+   * packet will be created without any metadata and the caller must
+   * add any required metadata before the packet is valid.
+   */
+  void reset(enum nanotube_bus_id_t bus_type,
+             bool empty_metadata = false);
 
-  /*! Reset the packet contents without changing the bus type. */
-  void reset() { reset(m_bus_type); }
+  /*! Reset the packet contents without changing the bus type.
+    *
+   * \param empty_metadata True if metadata should not be added.
+   *
+   * By default this method will add the default metadata for the
+   * specified bus type.  If the empty_metadata flag is true then the
+   * packet will be created without any metadata and the caller must
+   * add any required metadata before the packet is valid.
+   */
+  void reset(bool empty_metadata = false) {
+    reset(m_bus_type, empty_metadata);
+  }
 
   enum nanotube_bus_id_t get_bus_type() const {
     return m_bus_type;

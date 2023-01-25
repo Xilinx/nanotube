@@ -148,7 +148,7 @@ channel_packet_kernel::channel_packet_kernel(
            write_export_type == NANOTUBE_CHANNEL_TYPE_X3RX_PACKET);
   }
 
-  m_read_packet.reset(m_bus_type);
+  m_read_packet.reset(m_bus_type, true);
 }
 
 void channel_packet_kernel::process(nanotube_packet_t *packet)
@@ -320,7 +320,7 @@ bool channel_packet_kernel::try_read_simple_word()
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
 
   // Clear the buffer for the next packet.
-  m_read_packet.reset(m_bus_type);
+  m_read_packet.reset(m_bus_type, true);
 
   // Indicate that a word was read.
   return true;
@@ -350,7 +350,7 @@ bool channel_packet_kernel::try_read_softhub_word()
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
 
   // Clear the buffer for the next packet.
-  m_read_packet.reset(m_bus_type);
+  m_read_packet.reset(m_bus_type, true);
 
   // Indicate that a word was read.
   return true;

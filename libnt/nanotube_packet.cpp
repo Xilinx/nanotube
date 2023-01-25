@@ -161,14 +161,25 @@ void nanotube_packet_drop(nanotube_packet_t *packet,
   }
 }
 
-void nanotube_packet::reset(enum nanotube_bus_id_t bus_type)
+void nanotube_packet::reset(enum nanotube_bus_id_t bus_type,
+                            bool empty_metadata)
 {
-  m_bus_type = bus_type;
   m_is_capsule = false;
   m_port = 0;
   m_meta_size = 0;
   m_data_eop_seen = false;
   m_contents.clear();
+
+  if (empty_metadata) {
+    // The caller wants to add metadata explicitly, so leave the
+    // contents empty.
+    m_bus_type = bus_type;
+  } else {
+    // Converting the packet from Ethernet will add the default
+    // metadata as requested.
+    m_bus_type = NANOTUBE_BUS_ID_ETH;
+    convert_bus_type(bus_type);
+  }
 }
 
 int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
