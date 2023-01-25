@@ -35,7 +35,7 @@ void verbose_agent::receive_packet(nanotube_packet_t* packet,
   if (res >= 0x80)
     res -= 0x100;
 
-  auto sec = NANOTUBE_SECTION_WHOLE;
+  auto sec = NANOTUBE_SECTION_PAYLOAD;
   std::cout << "  Packet " << packet_index
             << " Length " << packet->size(sec)
             << " Result " << res << '\n';
