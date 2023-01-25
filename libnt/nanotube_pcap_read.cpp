@@ -46,7 +46,7 @@ nanotube_packet_ptr_t nanotube_pcap_read::read_next(void)
 
   nanotube_packet_ptr_t p(new nanotube_packet_t);
   if (pcap_datalink(pcap) == DLT_EN10MB) { // Raw ethernet frames
-    p->insert(NANOTUBE_SECTION_WHOLE, pcap_data, 0, hdr.caplen);
+    p->insert(NANOTUBE_SECTION_PAYLOAD, pcap_data, 0, hdr.caplen);
   }
   else if (pcap_datalink(pcap) == DLT_PPI) { // PPI-encapsulated frames
     // Ensure the 12-byte PPI header is 32-bit aligned so the loads below are valid.
