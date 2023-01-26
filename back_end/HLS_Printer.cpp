@@ -166,7 +166,8 @@ public:
   top_writer(hls_printer &printer, Module &m, setup_func &s);
   hls_printer &get_printer() { return m_printer; }
 
-  void set_thread_of_var(const Value &var, thread_id_t thread_id);
+  void set_thread_of_var(const Value &var, thread_id_t thread_id,
+                         bool is_write);
 
   void check_channel_data_widths();
 
@@ -398,10 +399,11 @@ top_writer::top_writer(hls_printer &printer, Module &m, setup_func &s):
 }
 
 void top_writer::set_thread_of_var(const Value &var,
-                                   thread_id_t thread_id)
+                                   thread_id_t thread_id,
+                                   bool is_write)
 {
   auto ins = m_thread_of_var.insert(std::make_pair(&var, thread_id));
-  if (!ins.second) {
+  if (ins.first->second != thread_id) {
     thread_id_t old_thread_id = ins.first->second;
     thread_info &old_thread = m_setup_func.get_thread_info(old_thread_id);
     thread_info &new_thread = m_setup_func.get_thread_info(thread_id);
@@ -1099,10 +1101,6 @@ void stage_writer::write_state_for_operand(Value *pointer)
     std::make_pair(base, m_static_var_ids.size()));
   if (!ins.second)
     return;
-
-  // Assign the variable to this thread so it cannot be used by
-  // multiple threads.
-  m_top.set_thread_of_var(*base, m_thread_id);
 
   // Write the variable.
   global_var_writer(&m_data_layout, &m_setup_func, &m_out)
@@ -2180,6 +2178,10 @@ void stage_writer::check_mem_access(const Instruction *insn,
 
   auto glb_var = dyn_cast<GlobalVariable>(base);
   if (glb_var != nullptr) {
+    // Assign the variable to this thread so it cannot be used by
+    // multiple threads.
+    m_top.set_thread_of_var(*base, m_thread_id, is_write);
+
     auto var_type = glb_var->getValueType();
     auto var_size = m_data_layout.getTypeStoreSize(var_type);
     auto max_size = var_size - offset;
