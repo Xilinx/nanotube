@@ -473,12 +473,55 @@ void nanotube_packet::insert(nanotube_packet_section_t sec,
 
 nanotube_packet_port_t nanotube_packet::get_port() const
 {
-  return m_port;
+  switch (m_bus_type) {
+  case NANOTUBE_BUS_ID_ETH:
+  case NANOTUBE_BUS_ID_X3RX:
+    return m_port;
+
+  case NANOTUBE_BUS_ID_SB: {
+    assert(m_contents.size() >= sizeof(simple_bus::header));
+    auto *hdr = (simple_bus::header*)&(m_contents.front());
+    return hdr->port;
+  }
+
+  case NANOTUBE_BUS_ID_SHB: {
+    const uint8_t *data = &(m_contents.front());
+    return softhub_bus::get_ch_route_raw(data);
+  }
+
+  default:
+    std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+              << " for get_port, aborting!\n";
+    assert(false);
+  }
 }
 
 void nanotube_packet::set_port(nanotube_packet_port_t port)
 {
-  m_port = port;
+  switch (m_bus_type) {
+  case NANOTUBE_BUS_ID_ETH:
+  case NANOTUBE_BUS_ID_X3RX:
+    m_port = port;
+    break;
+
+  case NANOTUBE_BUS_ID_SB: {
+    assert(m_contents.size() >= sizeof(simple_bus::header));
+    auto *hdr = (simple_bus::header*)&(m_contents.front());
+    hdr->port = port;
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_SHB: {
+    uint8_t *data = &(m_contents.front());
+    softhub_bus::set_ch_route_raw(data, port);
+    break;
+  }
+
+  default:
+    std::cerr << "ERROR: Unsupported bus type " << m_bus_type
+              << " for set_port, aborting!\n";
+    assert(false);
+  }
 }
 
 bool
