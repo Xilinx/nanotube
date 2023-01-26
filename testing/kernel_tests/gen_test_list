@@ -47,7 +47,7 @@ src_combo_list = [
     ["converge03.c",              "", converge_combo ],
     ["converge03.multi_exit.ll",  "", converge_combo ],
 
-    [ "xdp_trivial.c",            "-bus=shb", ["ebpf2nt:hls"] ],
+    [ "xdp_trivial.c",            "-bus=x3rx", ["ebpf2nt:hls"] ],
 
     [ "ip_tunnel.xdp.cc",         "-bus=shb", ["ebpf2nt:hls",
                                              "ebpf2nt:optreq,flatten"] ],
