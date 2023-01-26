@@ -165,6 +165,7 @@ void nanotube_packet::reset(enum nanotube_bus_id_t bus_type,
                             bool empty_metadata)
 {
   m_is_capsule = false;
+  m_metadata_specified = false;
   m_port = 0;
   m_meta_size = 0;
   m_data_eop_seen = false;

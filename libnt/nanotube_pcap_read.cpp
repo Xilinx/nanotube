@@ -45,6 +45,7 @@ nanotube_packet_ptr_t nanotube_pcap_read::read_next(void)
     return nanotube_packet_ptr_t();
 
   nanotube_packet_ptr_t p(new nanotube_packet_t);
+  p->set_metadata_specified(false);
   if (pcap_datalink(pcap) == DLT_EN10MB) { // Raw ethernet frames
     p->insert(NANOTUBE_SECTION_PAYLOAD, pcap_data, 0, hdr.caplen);
   }
@@ -73,6 +74,7 @@ nanotube_packet_ptr_t nanotube_pcap_read::read_next(void)
       // FIXME: the spec supports more than one field header, but we don't for now.
       assert(pph_len == pfh_datalen + 12); // 12 = 8B pph + 4B pfh
       p->insert(NANOTUBE_SECTION_METADATA, md_ptr, 0, pfh_datalen);
+      p->set_metadata_specified(true);
     }
     p->insert(NANOTUBE_SECTION_PAYLOAD, &pcap_data[pph_len], 0, hdr.caplen - pph_len);
   }

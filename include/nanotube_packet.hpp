@@ -106,6 +106,16 @@ public:
    *  a capsule. */
   void set_is_capsule(bool val) { m_is_capsule = val; }
 
+  /*! Get the flag indicating whether metadata was specified.  The
+   *  pcap reader sets this flag for packets which had metadata. */
+  bool get_metadata_specified() const { return m_metadata_specified; }
+
+  /*! Set the flag indicating whether metadata was specified.  The
+   *  pcap reader sets this flag for packets which had metadata. */
+  void set_metadata_specified(bool val = true) {
+    m_metadata_specified = val;
+  }
+
   /*! Convert the packet to a different bus type.
    *
    * \param bus_type The target bus type.
@@ -211,6 +221,11 @@ private:
   /*! A flag indicating whether the packet should be treated as a
    *  capsule.  This is only used for the C API. */
   bool m_is_capsule;
+
+  /*! A flag indicating whether the metadata has been specified.  Used
+   *  by the pcap reader to indicate whether there was a metadata
+   *  header. */
+  bool m_metadata_specified;
 
   /*! The contents of the packet. Contains metadata prefixed to packet data. */
   std::vector<uint8_t> m_contents;
