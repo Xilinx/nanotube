@@ -268,11 +268,11 @@ public:
                      enum hls_type expected_type = HLS_TYPE_INTEGER);
   void write_operand_base(const Instruction &insn, const Value &val);
   void check_mem_access(const Instruction *insn, const Value *base,
-                        uint64_t size);
+                        uint64_t size, bool is_write);
   void check_mem_access(const Instruction *insn, const Value *base,
-                        const Value *size);
+                        const Value *size, bool is_write);
   void check_mem_access(const Instruction *insn, const Value *base,
-                        APInt size);
+                        APInt size, bool is_write);
 
 private:
   // The top writer keeps track of global state.
@@ -1600,7 +1600,10 @@ stage_writer::write_channel_call(const CallBase &insn, bool is_read)
                         elem_size, args.data_size,
                         is_read ? "read" : "write", insn);
 
-  check_mem_access(&insn, args.data, args.data_size);
+  // A channel read will write to the buffer.  A channel write will
+  // read from the buffer.
+  bool buf_is_written = is_read;
+  check_mem_access(&insn, args.data, args.data_size, buf_is_written);
 
   /* This converts between the ap_axiu structured data type and our
    * internal flat byte array as follows:
@@ -1719,7 +1722,7 @@ stage_writer::write_trace_buffer_call(const CallBase &insn)
   const Value *buffer = insn.getArgOperand(1);
   const Value *size = insn.getArgOperand(2);
 
-  check_mem_access(&insn, buffer, size);
+  check_mem_access(&insn, buffer, size, false);
 
   m_out << "  nanotube_trace_buffer(";
   write_operand(insn, *id);
@@ -1885,7 +1888,7 @@ void stage_writer::write_load(const LoadInst &insn)
   unsigned num_bytes = m_data_layout.getTypeStoreSize(type);
   bool is_big_endian = m_data_layout.isBigEndian();
   const Value *ptr = insn.getPointerOperand();
-  check_mem_access(&insn, ptr, num_bytes);
+  check_mem_access(&insn, ptr, num_bytes, false);
   for (unsigned i=0; i<num_bytes; i++) {
     unsigned shift = i*8;
     if (is_big_endian)
@@ -1913,8 +1916,8 @@ void stage_writer::write_memcpy(const CallBase &insn)
   if (!is_volatile_const->isZeroValue())
     report_fatal_errorv("Volatile memcpy is not supported: {0}", insn);
 
-  check_mem_access(&insn, dest, size);
-  check_mem_access(&insn, src, size);
+  check_mem_access(&insn, dest, size, true);
+  check_mem_access(&insn, src, size, false);
 
   m_out << "  nanotube_memcpy(";
   write_operand(insn, *dest, HLS_TYPE_POINTER);
@@ -1939,7 +1942,7 @@ void stage_writer::write_memset(const CallBase &insn)
   if (!is_volatile_const->isZeroValue())
     report_fatal_errorv("Volatile memset is not supported: {0}", insn);
 
-  check_mem_access(&insn, dest, size);
+  check_mem_access(&insn, dest, size, true);
 
   m_out << "  memset(";
   write_operand(insn, *dest, HLS_TYPE_POINTER);
@@ -1957,8 +1960,8 @@ void stage_writer::write_memcmp(const CallBase &insn)
   const Value *y = insn.getArgOperand(1);
   const Value *size = insn.getArgOperand(2);
 
-  check_mem_access(&insn, x, size);
-  check_mem_access(&insn, y, size);
+  check_mem_access(&insn, x, size, false);
+  check_mem_access(&insn, y, size, false);
 
   m_out << "  ";
   write_operand(insn, insn, HLS_TYPE_INTEGER);
@@ -1998,7 +2001,7 @@ void stage_writer::write_store(const StoreInst &insn)
   bool is_big_endian = m_data_layout.isBigEndian();
 
   const Value *ptr = insn.getPointerOperand();
-  check_mem_access(&insn, ptr, num_bytes);
+  check_mem_access(&insn, ptr, num_bytes, true);
   for (unsigned i=0; i<num_bytes; i++) {
     unsigned shift = i*8;
     if (is_big_endian)
@@ -2143,26 +2146,27 @@ void stage_writer::write_operand_base(const Instruction &insn,
 }
 
 void stage_writer::check_mem_access(const Instruction *insn, const Value *base,
-                                    uint64_t size)
+                                    uint64_t size, bool is_write)
 {
   auto pointer_type = base->getType();
   auto pointer_bits = m_data_layout.getTypeSizeInBits(pointer_type);
-  check_mem_access(insn, base, APInt(pointer_bits, size));
+  check_mem_access(insn, base, APInt(pointer_bits, size), is_write);
 }
 
 void stage_writer::check_mem_access(const Instruction *insn, const Value *base,
-                                    const Value *size)
+                                    const Value *size, bool is_write)
 {
   auto size_const = dyn_cast<ConstantInt>(size);
   if (size_const == nullptr) {
     errs() << "Unknown size in " << *insn << "\n";
     return;
   }
-  check_mem_access(insn, base, size_const->getValue());
+  check_mem_access(insn, base, size_const->getValue(), is_write);
 }
 
 void stage_writer::check_mem_access(const Instruction *insn,
-                                    const Value *base, APInt access_size)
+                                    const Value *base, APInt access_size,
+                                    bool is_write)
 {
   auto offset = APInt(access_size.getBitWidth(), 0);
   base = base->stripAndAccumulateInBoundsConstantOffsets
