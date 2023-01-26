@@ -160,6 +160,52 @@ enum hls_type
 
 ///////////////////////////////////////////////////////////////////////////
 
+// A class which hold information about a static variable.  This is
+// used to track how many threads access the variable and whether any
+// of them write to it.
+class static_var_info
+{
+public:
+  // A struct which holds information about an access.
+  struct access {
+    thread_id_t thread_id;
+    const Instruction *insn;
+  };
+
+  // Construct an instance.
+  static_var_info();
+
+  // Add an access to the ones being tracked.
+  void add_access(thread_id_t thread_id, const Instruction *insn,
+                  bool is_write);
+
+  // Check whether a conflict has occurred.
+  bool check_conflict() const;
+
+  // Get a pointer to a write access.  Only call if check_conflict
+  // returned true.
+  const access *get_write_access() const;
+
+  // Get a pointer to an access which conflicts with the write access.
+  const access *get_other_access() const;
+
+private:
+  // The number of accesses in the array.
+  static const int NUM_ACCESSES = 2;
+
+  // An array of accesses.
+  access m_accesses[NUM_ACCESSES];
+
+  // The number of accesses in the array.
+  int m_num_accesses;
+
+  // The index into the array of the access which performs a write.
+  int m_write_index;
+};
+
+
+///////////////////////////////////////////////////////////////////////////
+
 class top_writer
 {
 public:
@@ -195,9 +241,9 @@ private:
   // The DataLayout for the module.
   const DataLayout &m_data_layout;
 
-  // A mapping from GlobalVariable to the thread which accesses it.
-  // Used to report errors.
-  DenseMap<const Value *, thread_id_t> m_thread_of_var;
+  // A mapping from GlobalVariable to information about the threads
+  // which accesses it.  Used to report errors.
+  DenseMap<const Value *, static_var_info> m_static_var_infos;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -391,6 +437,76 @@ bool hls_printer::runOnModule(Module &m)
 
 ///////////////////////////////////////////////////////////////////////////
 
+static_var_info::static_var_info():
+  m_num_accesses(0),
+  m_write_index(-1)
+{
+}
+
+void static_var_info::add_access(thread_id_t thread_id,
+                                 const Instruction *insn,
+                                 bool is_write)
+{
+  // Look through the array for a matching access.
+  int index;
+  for (index=0; index<m_num_accesses; index++) {
+    if (m_accesses[index].thread_id == thread_id)
+      break;
+  }
+
+  // Consider adding an entry if there was no match.
+  if (index >= m_num_accesses) {
+    // Check whether the array is full.
+    if (index >= NUM_ACCESSES) {
+      // The array is full.  Overwrite the last entry.
+      index = NUM_ACCESSES - 1;
+
+      // Do nothing if there is already a conflict.
+      if (m_write_index >= 0)
+        return;
+    } else {
+      // There is space in the array.  Allocate a new slot.
+      m_num_accesses = index + 1;
+    }
+
+    // There was no match so write a new entry.
+    m_accesses[index].thread_id = thread_id;
+    m_accesses[index].insn = insn;
+  }
+
+  // Mark the index as a write if it was written.
+  if (is_write)
+    m_write_index = index;
+}
+
+bool static_var_info::check_conflict() const
+{
+  return (m_num_accesses >= 2 && m_write_index >= 0);
+}
+
+const static_var_info::access *static_var_info::get_write_access() const
+{
+  assert(m_write_index >= 0);
+  assert(m_write_index < NUM_ACCESSES);
+  assert(m_write_index < m_num_accesses);
+
+  return m_accesses + m_write_index;
+}
+
+const static_var_info::access *static_var_info::get_other_access() const
+{
+  assert(m_write_index >= 0);
+
+  int other_index = (m_write_index == 0 ? 1 : 0);
+
+  assert(other_index < NUM_ACCESSES);
+  assert(other_index < m_num_accesses);
+
+  return m_accesses + other_index;
+}
+
+///////////////////////////////////////////////////////////////////////////
+
 top_writer::top_writer(hls_printer &printer, Module &m, setup_func &s):
   m_printer(printer),
   m_setup_func(s),
@@ -402,15 +518,24 @@ void top_writer::set_thread_of_var(const Value &var,
                                    thread_id_t thread_id,
                                    bool is_write)
 {
-  auto ins = m_thread_of_var.insert(std::make_pair(&var, thread_id));
-  if (ins.first->second != thread_id) {
-    thread_id_t old_thread_id = ins.first->second;
-    thread_info &old_thread = m_setup_func.get_thread_info(old_thread_id);
-    thread_info &new_thread = m_setup_func.get_thread_info(thread_id);
+  auto ins = m_static_var_infos.insert(std::make_pair(&var, static_var_info()));
+  auto it = ins.first;
+  assert(it != m_static_var_infos.end());
+  auto *info = &(it->second);
+
+  info->add_access(thread_id, nullptr, is_write);
+  if (info->check_conflict()) {
+    auto *write_access = info->get_write_access();
+    auto *other_access = info->get_other_access();
+
+    thread_id_t write_thread_id = write_access->thread_id;
+    thread_id_t other_thread_id = other_access->thread_id;
+    thread_info &write_thread = m_setup_func.get_thread_info(write_thread_id);
+    thread_info &other_thread = m_setup_func.get_thread_info(other_thread_id);
     report_fatal_errorv("State variable {0} used by thread '{1}' and"
                         " thread '{2}'.", var,
-                        old_thread.args().name,
-                        new_thread.args().name);
+                        write_thread.args().name,
+                        other_thread.args().name);
   }
 }
 
