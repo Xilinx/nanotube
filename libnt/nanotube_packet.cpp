@@ -595,7 +595,7 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
     // Handle first word (which is also not the last)
     if (offset == 0) {
       assert(remaining > x3rx_bus::data_bytes);
-      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::sideband_offset(0),
                                  1, 0, x3rx_bus::data_bytes, 1, 0,
                                  0 /* TODO port */);
       memcpy(buffer, data, x3rx_bus::data_bytes);
@@ -605,7 +605,7 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
 
     // Handle middle word (not first, not last)
     if (remaining > x3rx_bus::data_bytes) {
-      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+      x3rx_bus::set_sideband_raw(buffer+x3rx_bus::sideband_offset(0),
                                  0, 0, x3rx_bus::data_bytes, 0, 0, 0);
       memcpy(buffer, data, x3rx_bus::data_bytes);
       *iter = offset + x3rx_bus::data_bytes;
@@ -614,7 +614,7 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
 
     // Handle the final (potentially partial) word
     assert(remaining > 0);
-    x3rx_bus::set_sideband_raw(buffer+x3rx_bus::data_bytes,
+    x3rx_bus::set_sideband_raw(buffer+x3rx_bus::sideband_offset(0),
                                0, 1, remaining, 0, 1, 0);
     memcpy(buffer, data, remaining);
     if (remaining < x3rx_bus::data_bytes)
