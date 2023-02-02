@@ -235,8 +235,13 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   }
 
   case NANOTUBE_BUS_ID_X3RX: {
-    // No header at the start of the packet
-    // TODO extract the port from sideband metadata
+    x3rx_bus::header x3rx_header = {0};
+    read(NANOTUBE_SECTION_WHOLE, (uint8_t*)&x3rx_header,
+         0, sizeof(x3rx_header));
+    this->m_port = x3rx_header.port;
+
+    // Remove the header.
+    resize(NANOTUBE_SECTION_WHOLE, 0, -(ptrdiff_t)sizeof(x3rx_header));
     break;
   }
 
@@ -271,8 +276,11 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   }
 
   case NANOTUBE_BUS_ID_X3RX: {
-    // No header at the front of the packet for X3RX 
-    // TODO set port in sideband metadata
+    // Insert the header at the front of the packet.
+    x3rx_bus::header x3rx_header = {0};
+    x3rx_header.port = this->m_port;
+    insert(NANOTUBE_SECTION_WHOLE, (uint8_t*)&x3rx_header,
+           0, sizeof(x3rx_header));
     break;
   }
 
@@ -423,6 +431,8 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
       break;
 
     case NANOTUBE_BUS_ID_X3RX:
+      assert(m_contents.size() >= sizeof(x3rx_bus::header));
+      offset += sizeof(x3rx_bus::header);
       break;
 
     default:
@@ -474,7 +484,6 @@ nanotube_packet_port_t nanotube_packet::get_port() const
 {
   switch (m_bus_type) {
   case NANOTUBE_BUS_ID_ETH:
-  case NANOTUBE_BUS_ID_X3RX:
     return m_port;
 
   case NANOTUBE_BUS_ID_SB: {
@@ -488,6 +497,12 @@ nanotube_packet_port_t nanotube_packet::get_port() const
     return softhub_bus::get_ch_route_raw(data);
   }
 
+  case NANOTUBE_BUS_ID_X3RX: {
+    assert(m_contents.size() >= sizeof(x3rx_bus::header));
+    auto *hdr = (x3rx_bus::header*)&(m_contents.front());
+    return hdr->port;
+  }
+
   default:
     std::cerr << "ERROR: Unsupported bus type " << m_bus_type
               << " for get_port, aborting!\n";
@@ -499,7 +514,6 @@ void nanotube_packet::set_port(nanotube_packet_port_t port)
 {
   switch (m_bus_type) {
   case NANOTUBE_BUS_ID_ETH:
-  case NANOTUBE_BUS_ID_X3RX:
     m_port = port;
     break;
 
@@ -513,6 +527,13 @@ void nanotube_packet::set_port(nanotube_packet_port_t port)
   case NANOTUBE_BUS_ID_SHB: {
     uint8_t *data = &(m_contents.front());
     softhub_bus::set_ch_route_raw(data, port);
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_X3RX: {
+    assert(m_contents.size() >= sizeof(x3rx_bus::header));
+    auto *hdr = (x3rx_bus::header*)&(m_contents.front());
+    hdr->port = port;
     break;
   }
 
@@ -761,7 +782,8 @@ std::size_t nanotube_packet::get_meta_size() const
     return sizeof(softhub_bus::header);
 
   case NANOTUBE_BUS_ID_X3RX:
-    return 0;
+    assert(m_contents.size() >= sizeof(x3rx_bus::header));
+    return sizeof(x3rx_bus::header);
 
   default:
     std::cerr << "ERROR: Unsupported bus type " << m_bus_type

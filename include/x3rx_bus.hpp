@@ -27,11 +27,9 @@ namespace x3rx_bus
   static inline unsigned data_offset(unsigned index) { return 0+index; }
   static inline unsigned sideband_offset(unsigned index) { return data_bytes+index; }
 
-  /* No header on X3 RX yet
-   * May need to follow simple_bus's example for storing port
-   */
   struct header {
-    byte_t hdr_data[0];
+    /* Track the destination port */
+    byte_t port;
   };
 
   /* Metadata format is as follows:
@@ -84,6 +82,10 @@ namespace x3rx_bus
   }
   static inline int get_sideband_ulp_meta(const byte_t *sideband) {
     return (sideband[ULP_META_BYTE_INDEX] & ULP_META_BIT_MASK) >> ULP_META_OFFSET;
+  }
+
+  static inline void set_sideband_ulp_meta(byte_t *sideband, int ulp_meta) {
+    sideband[ULP_META_BYTE_INDEX] |= (ulp_meta & ULP_META_BIT_MASK) << ULP_META_OFFSET;
   }
 
   /* NB this is incomplete, exists mainly to support test harness,

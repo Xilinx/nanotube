@@ -22,6 +22,10 @@ void
 nanotube_packet_set_port_x3rx(nanotube_packet_t* packet,
                               nanotube_packet_port_t port)
 {
-  //TODO somehow set the relevant sideband bytes to store the port
-  //e.g. by calling x3rx_bus::set_sideband()
+  static_assert(sizeof(x3rx_bus::header::port) == 1,
+                "port field size is incorrect");
+  uint8_t buffer[1] = {port};
+  static const uint8_t mask[1] = { 0xff };
+  unsigned offset = offsetof(x3rx_bus::header, port);
+  nanotube_packet_write_masked(packet, buffer, mask, offset, 1);
 }
