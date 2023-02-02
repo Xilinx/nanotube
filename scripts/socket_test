@@ -1,0 +1,935 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+import argparse
+import fcntl
+import os.path
+import re
+import selectors
+import shlex
+import signal
+import socket
+import struct
+import subprocess
+import sys
+import time
+
+LISTEN = "listen"
+CONNECT = "connect"
+
+timestamp_re = re.compile(r'\d+-\d+-\d+ ')
+data_re = re.compile(r'([0-9a-fA-F]+)((?:\s+[0-9a-fA-F]+)*)\Z')
+blank_re = re.compile(r'\s*(#|\Z)')
+
+timeout_re = re.compile(r'((?:\d+|\d+\.\d*|\.\d+)(?:[eE][-+]\d+)?)'
+                        r'([mun]?s)')
+
+time_unit_map = { "s": 1e0, "ms": 1e-3, "us": 1e-6, "ns": 1e-9 }
+
+def dump_packet(fh, prefix, pkt):
+  for i in range(0, len(pkt)-1, 16):
+    end = min(i+16, len(pkt))
+    data_str = " ".join("%02x" % b for b in pkt[i:end])
+    fh.write("%s%04x %s\n" % (prefix, i, data_str))
+
+class HexReader:
+  """Provides an iterator over the packets in a list of files.
+
+  The constructor accepts a list of filenames as an argument.  The
+  iter_packets method returns an iterator over the packets.  Each
+  packet is represented as a bytearray containing the bytes of the
+  packet.
+  """
+
+  def __init__(self, files, verbosity=0):
+    self.__buffer = bytearray()
+    self.__files = files
+    self.__verbosity = verbosity
+
+  def iter_packets(self):
+    for f_name in self.__files:
+      for p in self.__iter_file(f_name):
+        if self.__verbosity >= 1:
+          dump_packet(sys.stderr, f_name+": ", p)
+        yield p
+
+  def __iter_file(self, f_name):
+    fh = open(f_name, "r")
+    for l_num, line in enumerate(fh):
+      line = line.rstrip("\r\n")
+      if self.__verbosity >= 1:
+        sys.stderr.write("%s read: %r\n" % (f_name, line))
+
+      m = blank_re.match(line)
+      if m is not None:
+        continue
+
+      m = timestamp_re.match(line)
+      if m is not None:
+        if len(self.__buffer) != 0:
+          yield self.__buffer
+          self.__buffer = bytearray()
+        continue
+
+      m = data_re.match(line)
+      if m is not None:
+        line_offset = int(m.group(1), 16)
+        line_byte_str = m.group(2)
+        if line_offset == 0 and len(self.__buffer) != 0:
+          yield self.__buffer
+          self.__buffer = bytearray()
+        if line_offset != len(self.__buffer):
+          sys.stderr.write("%s:%d: Expected offset 0x%x but got 0x%x.\n" %
+                           (f_name, l_num, len(self.__buffer), line_offset))
+          sys.exit(1)
+
+        if line_byte_str != "":
+          line_bytes = line_byte_str.split()
+          self.__buffer.extend(int(b,16) for b in line_bytes)
+
+    # Flush out the final packet.
+    if len(self.__buffer) != 0:
+      yield self.__buffer
+      self.__buffer = bytearray()
+
+class Socket:
+  """A QEMU socket for transferring packets.
+
+  The socket constructor has parameters which specify the hostname,
+  port number and connection mode (listen/connect).  The actual
+  hostname and port number may differ from the specifications, so
+  there are methods to get those.
+
+  There is a method to complete the connection.  The fileno method
+  returns the file descriptor, allowing the socket to be used directly
+  with a Selector.
+
+  There are separate methods for sending and receiving data which will
+  be called when the socket is ready for reading/writing.  The receive
+  method will be able to return multiple packets.  The send method
+  will indicate whether it is ready to accept the next packet.
+  """
+
+  def __init__(self, *, hostname, port, mode, mtu, timeout, verbosity):
+    self.__mode = mode
+    self.__mtu = mtu
+    self.__timeout = timeout
+    self.__verbosity = verbosity
+
+    # A list of buffers to send.
+    self.__send_buffers = []
+
+    # The current offset into the first send buffer.
+    self.__send_offset = 0
+
+    # A buffer to receive bytes into.
+    self.__recv_buffer = bytearray(4096)
+
+    # The current packet being received, or None
+    self.__recv_packet = None
+
+    # The offset into the current packet being received, including the
+    # QEMU socket header.
+    self.__recv_offset = 0
+
+    # A flag indicating whether the socket is connected.
+    self.__connected = False
+
+    family = socket.AF_INET
+    proto = socket.IPPROTO_TCP
+    addr = (hostname, port)
+
+    # Create a socket.
+    self.__socket = socket.socket(family=family, proto=proto)
+    self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    if mode == LISTEN:
+      # Bind the socket and start listening.
+      self.__socket.bind(addr)
+      self.__socket.listen(1)
+
+      # Capture the hostname and port produced by the bind operation.
+      (hostname,port) = self.__socket.getsockname()
+
+    else:
+      assert(mode == CONNECT)
+
+      # Allocate a port number if necessary.
+      if port == 0:
+        self.__socket.bind(addr)
+        (hostname,port) = self.__socket.getsockname()
+        self.__socket.close()
+        self.__socket = socket.socket(family=family, proto=proto)
+        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    self.__hostname = hostname
+    self.__port = port
+    self.__socket.setblocking(False)
+
+  def get_hostname(self):
+    return self.__hostname
+
+  def get_port(self):
+    return self.__port
+
+  def try_connect(self):
+    if self.__mode == CONNECT:
+      addr = (self.__hostname, self.__port)
+      try:
+        self.__socket.connect(addr)
+        self.__connected = True
+        return True
+      except BlockingIOError:
+        return False
+      except ConnectionRefusedError:
+        return False
+      except ConnectionResetError:
+        return False
+
+    else:
+      try:
+        conn, addr = self.__socket.accept()
+        self.__socket = conn
+        self.__connected = True
+        return True
+
+      except BlockingIOError:
+        return False
+
+      except TimeoutError:
+        return False
+
+  def fileno(self):
+    return self.__socket.fileno()
+
+  def send(self, packet=None):
+    """Send some packet data.
+
+    Either send a new packet or continue sending a previous packet.
+    The first call to this method should pass a packet as an argument.
+    Subsequent calls for the same packet should not provide an
+    argument.  The method will return a flag indicating whether it is
+    ready to accept the next packet.  If it returns false then the
+    caller should keep calling the method with no argument when the
+    socket is writable.  If it returns true then the caller may call
+    the method again with another packet to send.
+    """
+
+    assert(self.__connected)
+
+    # Handle a new packet, if any.
+    if packet is not None:
+      if self.__verbosity >= 1:
+        sys.stderr.write("Sending packet length %r.\n" % (len(packet),))
+
+      assert(len(self.__send_buffers) == 0)
+      header = struct.pack("!I", len(packet))
+      self.__send_buffers.append(header)
+      self.__send_buffers.append(packet)
+      self.__send_offset = 0
+
+    else:
+      if self.__verbosity >= 1:
+        sys.stderr.write("Continuing send.\n")
+
+    # Perform the send.
+    assert(len(self.__send_buffers) != 0)
+    view = memoryview(self.__send_buffers[0])[self.__send_offset:]
+    buffers = [view] + self.__send_buffers[1:]
+
+    num_bytes = self.__socket.sendmsg(buffers)
+    if self.__verbosity >= 1:
+      sys.stderr.write("Send returned %r.\n" % (num_bytes,))
+
+    # Add the number of bytes sent previously.
+    num_bytes += self.__send_offset
+
+    # Remove fully sent buffers.
+    while num_bytes >= len(self.__send_buffers[0]):
+      if self.__verbosity >= 1:
+        sys.stderr.write("Completed buffer length %r.\n" %
+                         (len(self.__send_buffers[0]),))
+
+      # Take account of this buffer being sent.
+      num_bytes -= len(self.__send_buffers[0])
+
+      # Move on to the next buffer if any.
+      self.__send_offset = 0
+      self.__send_buffers.pop(0)
+
+      # Ready for the next packet?
+      if len(self.__send_buffers) == 0:
+        if self.__verbosity >= 1:
+          sys.stderr.write("Ready to send next packet.\n")
+        return True
+
+    # There is a buffer which has not been fully sent.
+    self.__send_offset = num_bytes
+    if self.__verbosity >= 1:
+      sys.stderr.write("Have sent %d bytes.\n" % (num_bytes,))
+    return False
+
+  def receive(self):
+    """Receive some packet data.
+
+    Called when data can be read from the socket.  Returns an
+    interator over received packets.  Each packet is represented as a
+    bytearray.  If the iterator yields None then EOF has been reached
+    and the receive method should not be called again.
+    """
+
+    assert(self.__connected)
+
+    # Receive some bytes.  The earliest bytes go into a partial packet
+    # if there is one.  The remaining bytes go into the receive buffer.
+    if self.__recv_packet is None:
+      assert(self.__recv_buffer is not None)
+      assert(self.__recv_offset < 4)
+      view = memoryview(self.__recv_buffer)
+      buffers = [view[self.__recv_offset:]]
+    else:
+      assert(self.__recv_offset >= 4)
+      view = memoryview(self.__recv_packet)
+      buffers = [view[self.__recv_offset - 4:], self.__recv_buffer]
+
+    result = self.__socket.recvmsg_into(buffers)
+    num_bytes = result[0]
+
+    if self.__verbosity >= 1:
+      if self.__recv_packet is None:
+        sys.stderr.write("Receive at offset %d returned %r.\n" %
+                         (self.__recv_offset, result))
+      else:
+        sys.stderr.write("Receive at offset %d of %d returned %r.\n" %
+                         (self.__recv_offset,
+                          4 + len(self.__recv_packet), result))
+
+    # Handle EOF.
+    if num_bytes == 0:
+      yield None
+      # Make sure the method is not called again.
+      self.__recv_buffer = None
+      self.__recv_packet = None
+      return
+
+    # Include any previous bytes.
+    num_bytes += self.__recv_offset
+
+    # Handle a partial packet if there is one.
+    if self.__recv_packet is not None:
+      pkt_total_len = 4 + len(self.__recv_packet)
+      if num_bytes < pkt_total_len:
+        self.__recv_offset = num_bytes
+        return
+
+      yield self.__recv_packet
+      num_bytes -= pkt_total_len
+      self.__recv_packet = None
+
+    # Handle any completed packets in the buffer.
+    buf = self.__recv_buffer
+    offset = 0
+    while num_bytes >= 4:
+      # Process the header.
+      pkt_len = struct.unpack("!I", buf[offset:offset+4])[0]
+      pkt_total_len = 4 + pkt_len
+
+      if pkt_len > self.__mtu:
+          sys.stderr.write("%s: Packet length %d exceeds MTU %d.\n" %
+                           (sys.argv[0], pkt_len, self.__mtu))
+          sys.exit(1)
+
+      # Stop if the packet is incomplete.
+      if num_bytes < pkt_total_len:
+        self.__recv_offset = num_bytes
+        self.__recv_packet = bytearray(pkt_len)
+        self.__recv_packet[:num_bytes-4] = buf[offset+4:offset+num_bytes]
+        return
+
+      # Process a complete packet.
+      yield buf[offset+4:offset+pkt_total_len]
+      num_bytes -= pkt_total_len
+      offset += pkt_total_len
+
+    # Move the received bytes to the start of the buffer.
+    old_len = len(buf)
+    buf[:num_bytes] = buf[offset:offset+num_bytes]
+    assert(len(buf) == old_len)
+    self.__recv_offset = num_bytes
+    return
+
+class App:
+  def __init__(self, argv):
+    # The handle for the child process if any.
+    self.__proc = None
+
+    # The socket object.
+    self.__socket = None
+
+    # The selector object.
+    self.__sel = selectors.DefaultSelector()
+
+    # The input packet reader object.
+    self.__in_reader = None
+
+    # An iterator over input packets.
+    self.__in_iter = None
+
+    # The expected packet reader object.
+    self.__exp_reader = None
+
+    # An iterator over expected packets.
+    self.__exp_iter = None
+
+    # The next packet to expect, if any.  The packet needs to be taken
+    # from the iterator to work out whether the last packet has
+    # arrived.  It needs to be stored so that it can be matched when
+    # the next packet does arrive.
+    self.__exp_packet = None
+
+    # The index of the next packet.
+    self.__exp_index = 0
+
+    # The current log line from the program.
+    self.__log_line = ""
+
+    # A flag indicating whether the test has failed.
+    self.__test_failed = False
+
+    # True if the process exited.
+    self.__proc_exited = False
+
+    # Set if all packets have been sent.
+    self.__send_done = False
+
+    # Set if an EOF has been received from the socket.  This means we
+    # should not call the receive method on the socket.
+    self.__recv_eop = False
+
+    # Set if excess packets were received.
+    self.__recv_excess = False
+
+    # Set if a packet mismatch occurred.
+    self.__recv_mismatch = False
+
+    # Set if the test timed out.
+    self.__timed_out = False
+
+    # Set if the main part of the test is complete and we are waiting
+    # for extra packets.
+    self.__waiting = False
+
+    # Set when the test is complete.
+    self.__complete = False
+
+    # True if the selector is enabled.
+    self.__sel_enabled = False
+
+    p = argparse.ArgumentParser()
+
+    p.add_argument("program", type=str, default=None, nargs='?',
+                   help="The program to run.")
+
+    p.add_argument("args", metavar="arg", default=[], nargs="*",
+                   help="Extra program arguments.")
+                   
+    p.add_argument("--input", "-i",
+                   action="append", default=[],
+                   help="Add an input file to process.")
+
+    p.add_argument("--expect", "-e",
+                   action="append", default=[],
+                   help="Add an expected output file to process.")
+
+    p.add_argument("--host", "-H",
+                   action="store", default="127.0.0.1", type=str,
+                   help="Set the hostname for the socket.")
+
+    p.add_argument("--port", "-p",
+                   action="store", default=0, type=int,
+                   help="Set the port number for the socket.")
+
+    p.add_argument("--connect", "-c", dest="mode", default=CONNECT,
+                   action="store_const", const=CONNECT,
+                   help="Operate the socket in connect mode.")
+
+    p.add_argument("--listen", "-l", dest="mode",
+                   action="store_const", const=LISTEN,
+                   help="Operate the socket in listen mode.")
+
+    p.add_argument("--standalone", "-s", action="store_true",
+                   help="Enable stand-alone mode.")
+
+    p.add_argument("--timeout", "-t", dest="timeout", default="100ms",
+                   action="store", type=str,
+                   help="Set the timeout (ns/us/ms/s).")
+
+    p.add_argument("--wait-time", "-w", dest="wait_time", default=None,
+                   action="store", type=str,
+                   help="Set the wait time (ns/us/ms/s).")
+
+    p.add_argument("--mtu", "-m", default=10240,
+                   action="store", type=int,
+                   help="Set the MTU.")
+
+    p.add_argument("--quiet", "-q", action="count", default=0,
+                   help="Produce less output.")
+
+    p.add_argument("--verbose", "-v", action="count", default=0,
+                   help="Produce verbose output.")
+
+    self.__args = p.parse_args(argv)
+
+    self.__verbosity = self.__args.verbose - self.__args.quiet
+    self.__timeout = self.parse_time(self.__args.timeout)
+    self.__wait_time = self.parse_time(self.__args.wait_time)
+    if self.__wait_time is None:
+      self.__wait_time = self.__timeout / 10
+
+    if self.__args.standalone:
+      if self.__args.program is not None:
+        sys.stderr.write("%s: error: Program name was specified with"
+                         " --standalone.  Use --help for help.\n" %
+                         (sys.argv[0],))
+        sys.exit(1)
+    else:
+      if self.__args.program is None:
+        sys.stderr.write("%s: error: no program name was specified."
+                         "  Use --help for help.\n" %
+                         (sys.argv[0],))
+        sys.exit(1)
+
+      if not os.path.exists(self.__args.program):
+        sys.stderr.write("%s: error: Program %r does not exists.\n" %
+                         (sys.argv[0], self.__args.program))
+        sys.exit(1)
+
+  def parse_time(self, time_str):
+    if time_str == None:
+      return None
+
+    m = timeout_re.match(time_str)
+    if not m:
+      sys.stderr.write("%s: Invalid time specification %r.\n" %
+                       (sys.argv[0], time_str))
+      sys.exit(1)
+
+    timeout_val = float(m.group(1))
+    return timeout_val * time_unit_map[m.group(2)]
+
+  def get_time(self):
+    return time.clock_gettime(time.CLOCK_MONOTONIC)
+
+  def create_iterators(self):
+    verbosity = self.__verbosity - 3
+    self.__in_reader = HexReader(self.__args.input, verbosity=verbosity)
+    self.__in_iter = self.__in_reader.iter_packets()
+    self.__exp_reader = HexReader(self.__args.expect, verbosity=verbosity)
+    self.__exp_iter = self.__exp_reader.iter_packets()
+    self.__exp_packet = next(self.__exp_iter, None)
+    self.__exp_index = 0
+
+  def create_socket(self):
+    verbosity = self.__verbosity - 1
+    self.__socket = Socket(hostname=self.__args.host,
+                           port=self.__args.port,
+                           mode=self.__args.mode,
+                           mtu=self.__args.mtu,
+                           timeout=self.__timeout,
+                           verbosity=verbosity)
+
+    if self.__verbosity >= 1:
+      if self.__args.mode == LISTEN:
+        host = self.__socket.get_hostname()
+        port = self.__socket.get_port()
+        sys.stderr.write("Listening on %s port %d.\n" % (host, port))
+
+  def start_test(self):
+    time_now = self.get_time()
+    self.__start_time = time_now
+    self.__end_time = time_now + self.__timeout
+
+    if self.__verbosity >= 1:
+      sys.stderr.write("Starting at time %s seconds.\n" % time_now)
+
+  def invoke_program(self):
+    if self.__args.standalone:
+      return
+
+    mode_map = { LISTEN:CONNECT, CONNECT:LISTEN }
+    prog_mode = mode_map[self.__args.mode]
+    host = self.__socket.get_hostname()
+    port = self.__socket.get_port()
+    args = [
+      self.__args.program,
+      "--socket",
+      "%s:%s:%s" % (prog_mode, host, port)
+    ] + self.__args.args
+    if self.__verbosity >= 0:
+      sys.stderr.write("Invoking: %s\n" %
+            (" ".join(shlex.quote(s) for s in args)))
+    self.__proc = subprocess.Popen(args,
+                                   universal_newlines=True,
+                                   bufsize=0,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+
+    # Make the pipe for process stdout non-blocking.
+    os.set_blocking(self.__proc.stdout.fileno(), False)
+
+    # Register the file descriptor for reading.
+    events = selectors.EVENT_READ
+    self.__sel.register(self.__proc.stdout, events)
+
+  def wait_proc(self, timeout=0):
+    if self.__proc_exited:
+      return
+
+    if self.__proc is None:
+      return
+
+    try:
+      rc = self.__proc.wait(timeout)
+      if self.__verbosity >= 4:
+        sys.stderr.write("__proc.wait() returned %r.\n" % rc)
+    except subprocess.TimeoutExpired:
+      if self.__verbosity >= 4:
+        sys.stderr.write("__proc.wait() timed out.\n")
+      return
+
+    self.__proc_exited = True
+
+    failed = rc != 0 or not self.__complete
+
+    if failed or self.__verbosity >= 1:
+      sys.stderr.write("%s: Program exited with code %d.\n" %
+                       (sys.argv[0], rc))
+
+    if failed:
+      self.__test_failed = True
+
+  def poll_connect(self):
+    if not self.__socket.try_connect():
+      if self.__verbosity >= 4:
+        sys.stderr.write("__socket.try_connect() failed.\n")
+      return False
+
+    if self.__verbosity >= 4:
+      sys.stderr.write("__socket.try_connect() succeeded.\n")
+
+    host = self.__socket.get_hostname()
+    port = self.__socket.get_port()
+
+    if self.__verbosity >= 1:
+      if self.__args.mode == CONNECT:
+        sys.stderr.write("Connected to %s port %d.\n" % (host, port))
+      else:
+        sys.stderr.write("Accepted connection.\n")
+
+    self.__sel_enabled = True
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    self.__sel.register(self.__socket, events)
+
+    return True
+
+  def connect_socket(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Waiting to complete the connection.\n")
+
+    while True:
+      time_now = self.get_time()
+      self.wait_proc()
+      if self.__proc_exited:
+        return
+
+      if self.poll_connect():
+        return
+
+      if time_now > self.__end_time:
+        host = self.__socket.get_hostname()
+        port = self.__socket.get_port()
+        sys.stderr.write("%s: Failed to establish connection to "
+                         "%s port %d.\n" %
+                         (sys.argv[0], host, port))
+        self.__test_failed = True
+        return
+
+      elapsed = time_now - self.__start_time
+      if elapsed > 0:
+        time.sleep(min(elapsed/4, 1))
+
+  def handle_recv_closed(self):
+    self.__recv_eop = True
+    self.__test_failed = True
+
+    if self.__send_done:
+      self.__sel_enabled = False
+    else:
+      events = selectors.EVENT_WRITE
+      self.__sel.modify(self.__socket, events)
+
+  def compare_packets(self, index, exp_p, recv_p):
+    if exp_p == recv_p:
+      return
+
+    if self.__recv_mismatch:
+      return
+
+    sys.stderr.write("%s: Mismatch at packet index %d.\n" %
+                     (sys.argv[0], index))
+    dump_packet(sys.stderr, "exp:  ", exp_p)
+    dump_packet(sys.stderr, "recv: ", recv_p)
+    self.__recv_mismatch = True
+    self.__test_failed = True
+
+  def handle_recv_packet(self, p):
+    if self.__exp_packet is None:
+      if not self.__recv_excess:
+        sys.stderr.write("%s: Too many packets received.\n" %
+                         sys.argv[0])
+        self.__recv_excess = True
+        self.__test_failed = True
+      return
+
+    self.compare_packets(self.__exp_index, self.__exp_packet, p)
+
+    self.__exp_packet = next(self.__exp_iter, None)
+    self.__exp_index += 1
+
+  def do_socket_recv(self):
+    # Receive a batch of packets and process each one.
+    for p in self.__socket.receive():
+      if p == None:
+        sys.stderr.write("%s: EOF from socket.\n" % sys.argv[0])
+        self.handle_recv_closed()
+        return
+
+      if self.__verbosity >= 3:
+        sys.stderr.write("Received packet length %d.\n" % len(p))
+        dump_packet(sys.stderr, "received: ", p)
+      self.handle_recv_packet(p)
+
+  def handle_send_done(self):
+    self.__send_done = True
+    if self.__recv_eop:
+      self.__sel_enabled = False
+    else:
+      events = selectors.EVENT_READ
+      self.__sel.modify(self.__socket, events)
+
+  def do_socket_send(self, p=None):
+    # Send more packets while ready.
+    while True:
+      # Continue sending the current packet.
+      if self.__verbosity >= 3:
+        if p is not None:
+          dump_packet(sys.stderr, "sending: ", p)
+      try:
+        if not self.__socket.send(p):
+          return
+      except BrokenPipeError:
+        sys.stderr.write("%s: Send failed with a broken pipe.\n" %
+                         sys.argv[0])
+        self.__sel_enabled = False
+        self.__test_failed = True
+        return
+
+      p = next(self.__in_iter, None)
+      if p == None:
+        self.handle_send_done()
+        return
+
+  def start_packets(self):
+    # Send the first packet, if any.
+    p = next(self.__in_iter, None)
+    if p is not None and self.__sel_enabled:
+      self.do_socket_send(p)
+
+  def handle_socket_events(self, events):
+    if (events & selectors.EVENT_READ) != 0:
+      try:
+        self.do_socket_recv()
+
+      except ConnectionResetError:
+        sys.stderr.write("%s: Connection reset by peer.\n" % sys.argv[0])
+        self.handle_recv_closed()
+
+    if (events & selectors.EVENT_WRITE) != 0:
+      self.do_socket_send()
+
+  def add_log_data(self, data):
+    line = self.__log_line + data
+    pos = 0
+    while True:
+      idx = line.find("\n", pos)
+      if idx == -1:
+        break
+      if self.__verbosity >= 0:
+        sys.stderr.write("> %s\n" % line[pos:idx])
+      pos = idx+1
+    self.__log_line = line[pos:]
+
+  def handle_log_event(self, events):
+    assert(events == selectors.EVENT_READ)
+    data = self.__proc.stdout.read(1024)
+    self.add_log_data(data)
+
+  def poll_selector(self):
+    timeout = self.__end_time - self.__time_now
+    results = self.__sel.select(max(timeout, 0))
+    for key,events in results:
+      if key.fileobj is self.__socket:
+        self.handle_socket_events(events)
+      if ( self.__proc is not None and
+           key.fileobj is self.__proc.stdout ):
+        self.handle_log_event(events)
+
+  def check_running_done(self):
+    if ( (self.__exp_packet is None or self.__recv_eop) and
+         self.__send_done ):
+      return True
+
+    if self.__time_now > self.__end_time:
+      if not self.__send_done:
+        if self.__exp_packet is not None:
+          oper = "Send and receive"
+        else:
+          oper = "Send"
+      else:
+        if self.__exp_packet is not None:
+          oper = "Receive"
+        else:
+          oper = "Test"
+
+      sys.stderr.write("%s: %s timed out after %ssec.\n" %
+                       (sys.argv[0], oper,
+                        self.__time_now - self.__start_time))
+      self.__timed_out = True
+      self.__test_failed = True
+      return True
+
+    if self.__proc_exited:
+      return True
+
+    return False
+
+  def check_waiting_done(self):
+    if self.__recv_eop:
+      return True
+
+    if self.__time_now > self.__end_time:
+      return True
+
+    if self.__proc_exited:
+      return True
+
+    return False
+
+  def check_done(self):
+    if not self.__sel_enabled:
+      return True
+
+    if not self.__waiting:
+      if not self.check_running_done():
+        return False
+
+      self.__waiting = True
+      self.__time_now = self.get_time()
+      self.__end_time = self.__time_now + self.__wait_time
+
+      if self.__verbosity >= 1:
+        sys.stderr.write("Started waiting at time %s seconds.\n" %
+                         self.__time_now)
+    
+    if not self.check_waiting_done():
+      return False
+
+    self.__time_now = self.get_time()
+
+    if self.__verbosity >= 1:
+      sys.stderr.write("Finished waiting at time %s seconds.\n" %
+                       self.__time_now)
+
+    return True
+
+
+  def main_loop(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Running the main loop.\n")
+
+    while self.__sel_enabled:
+      self.__time_now = self.get_time()
+      self.poll_selector()
+      self.wait_proc()
+      if self.check_done():
+        return
+
+  def end_program(self):
+    # Check whether the process has already exited.
+    self.wait_proc()
+    if self.__proc_exited:
+      return
+
+    # Indicate that the process is allowed to exit without an error.
+    self.__complete = True
+
+    if self.__proc is None:
+      return
+
+    # Try to terminate the process.
+    if self.__test_failed:
+      if self.__verbosity >= 1:
+        sys.stderr.write("Sending terminate signal.\n")
+      self.__proc.terminate()
+    else:
+      if self.__verbosity >= 1:
+        sys.stderr.write("Sending interrupt signal.\n")
+      self.__proc.send_signal(signal.SIGINT)
+    self.wait_proc(self.__wait_time)
+    if self.__proc_exited:
+      return
+
+    # Kill the process and wait for it to exit.
+    sys.stderr.write("Sending kill signal.\n")
+    self.__proc.kill()
+    self.wait_proc(None)
+    assert(self.__proc_exited)
+
+  def flush_log(self):
+    if self.__proc is None:
+      return
+
+    # Read remaining data.
+    while True:
+      data = self.__proc.stdout.read(1024)
+      if len(data) == 0:
+        break
+      self.add_log_data(data)
+
+  def report_results(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Finished test at time %s seconds.\n" %
+                       self.get_time())
+
+    if self.__test_failed:
+      print("Test failed.")
+      sys.exit(1)
+
+    print("Test passed!")
+    sys.exit(0)
+
+  def run(self):
+    self.create_iterators()
+    self.create_socket()
+    self.start_test()
+    self.invoke_program()
+    self.connect_socket()
+    self.start_packets()
+    self.main_loop()
+    self.end_program()
+    self.flush_log()
+    self.report_results()
+
+App(sys.argv[1:]).run()
