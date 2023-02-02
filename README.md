@@ -77,6 +77,10 @@ To install the require packages, run these commands as root:
       apt-get install -y libboost-dev libboost-doc libboost-program-options-dev
       apt-get install -y python-is-python2 libxml2-dev libboost-system-dev
 
+Note that the python-is-python2 package changes the /usr/bin/python
+symlink to point to Python2, so it may affect other programs or
+projects.  It is required for LLVM to work correctly.
+
 ### Installing packages on Ubuntu 18.04
 
 To install the require packages, run these commands as root:
