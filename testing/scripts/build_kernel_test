@@ -76,6 +76,7 @@ class app(object):
             '-I'+os.path.join(top_dir, "testing/support/include"),
             '-I'+self.__config.get('XILINX_VITIS_HLS')+'/include',
         ] + project_defs.CCFLAGS + project_defs.CXXFLAGS + [
+            '-DDISABLE_MAX_HLS_STREAM_DEPTH_PRINT',
             '-Wno-unknown-pragmas',
             '-Wno-maybe-uninitialized',
             '-Wno-unused-but-set-variable',
