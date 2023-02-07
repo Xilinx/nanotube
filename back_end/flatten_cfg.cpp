@@ -38,6 +38,10 @@
  */
 #include "flatten_cfg.hpp"
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -46,6 +50,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/MathExtras.h"
 
@@ -56,13 +61,15 @@
 #include "setup_func.hpp"
 #include "unify_function_returns.hpp"
 
-#include <string>
-#include <utility>
-#include <vector>
 
 #define DEBUG_TYPE "flatten-cfg"
 using namespace llvm;
 using namespace nanotube;
+
+cl::opt<bool> spec_reads("flatten-spec-reads", cl::desc("Allow the "\
+                         "flatten-cfg pass to speculatively execute "\
+                         "packet and map reads rather than predicating "\
+                         "them."));
 
 const bool inline_helpers = true;
 
@@ -521,7 +528,14 @@ predicate_packet_access(nt_api_call* pkt_op, Instruction* ip, Value* pred) {
   int idx = -1;
   Value* new_arg = nullptr;
 
+  bool hoist_read = spec_reads && pkt_op->is_read();
   if( pkt_op->is_access() ) {
+    /* Execute reads speculatively if that is okay */
+    if( hoist_read ) {
+      call->moveBefore(ip);
+      return;
+    }
+
     /* For packet accesses, set the length to zero */
     idx = pkt_op->get_data_size_arg_idx();
     if( idx < 0 ) {
@@ -574,6 +588,13 @@ predicate_map_access(nt_api_call* map_acc, Instruction* ip, Value* pred) {
   }
   auto* op = call->getArgOperand(idx);
 
+  /* If it is a map read and allowed, execute it speculatively. */
+  auto* op_const = dyn_cast<ConstantInt>(op);
+  if( spec_reads && (op_const != nullptr) &&
+      (op_const->getZExtValue() == NANOTUBE_MAP_READ) ) {
+    call->moveBefore(ip);
+    return;
+  }
   /* Replace the operand with a either the orignal op or no-op */
   IRBuilder<> ir(ip);
   auto* nop    = ConstantInt::get(op->getType(), NANOTUBE_MAP_NOP);
