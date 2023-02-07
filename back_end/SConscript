@@ -56,6 +56,7 @@ sources = [
     'setup_func.cpp',
     'setup_func_builder.cpp',
     'thread_const.cpp',
+    'unify_function_returns.cpp',
 ]
 
 lib_nanotube_env = env.Clone()

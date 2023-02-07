@@ -54,6 +54,7 @@
 #include "Dep_Aware_Converter.h"
 #include "printing_helpers.h"
 #include "setup_func.hpp"
+#include "unify_function_returns.hpp"
 
 #include <string>
 #include <utility>
@@ -779,7 +780,8 @@ flatten_function(Function& f, DominatorTree* dt, PostDominatorTree* pdt) {
   auto& bb_entry = f.getEntryBlock();
   auto* ip = bb_entry.getTerminator();
 
-  LLVM_DEBUG(dbgs() << "Flattening function " << f.getName() << '\n');
+  LLVM_DEBUG(dbgs() << "Flattening function " << f.getName() << '\n'
+                    << "Insertion point " << *ip << '\n');
 
   /* Record for each BB a boolean whether that block was executed */
   block_to_val_t      bb_preds;
@@ -830,11 +832,13 @@ bool flatten_cfg::runOnModule(Module& m) {
   for( auto& thread : setup.threads() ) {
     auto& f = *thread.args().func;
     get_all_analysis_results(f);
+    changes |= unify_function_returns(f, dt, pdt);
     changes |= flatten_function(f, dt, pdt);
   }
   for( auto& kernel : setup.kernels() ) {
     auto& f = *kernel.args().kernel;
     get_all_analysis_results(f);
+    changes |= unify_function_returns(f, dt, pdt);
     changes |= flatten_function(f, dt, pdt);
   }
   return changes;
