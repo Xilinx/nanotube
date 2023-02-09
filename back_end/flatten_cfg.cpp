@@ -659,6 +659,8 @@ flatten_side_effect(Instruction* inst, Instruction* ip, Value* bb_pred) {
   /* If the basic block will always be executed, no problem */
   auto* pred_const = dyn_cast<ConstantInt>(bb_pred);
   if( (pred_const != nullptr) && (pred_const->isOne()) ) {
+    LLVM_DEBUG(dbgs() << "Moving unconditional side-effect " << *inst
+                      << '\n');
     inst->moveBefore(ip);
     return;
   }
@@ -670,6 +672,10 @@ flatten_side_effect(Instruction* inst, Instruction* ip, Value* bb_pred) {
     return;
   }
 
+  /* Calls need handling per function called:
+     - they either need to be known to have no side effects -> move them
+     - or we know how to predicate them -> do that
+     - otherwise, complain to the user */
   auto* call = dyn_cast<CallInst>(inst);
   if( call != nullptr ) {
     nt_api_call ntc(call);
@@ -687,8 +693,10 @@ flatten_side_effect(Instruction* inst, Instruction* ip, Value* bb_pred) {
       remove_stacksave_and_restores(&ntc);
       return;
     } else {
-      errs() << "ERROR: Unhandled call " << *call
-             << " when flattening.\nAborting!\n";
+      errs() << "ERROR: Trying to move conditional call " << *call
+             << " executed with condition " << *bb_pred
+	     << " but it's not known to be side-effect free and unknown "
+             << "how to predicate.\nAborting!\n";
       abort();
     }
   }
