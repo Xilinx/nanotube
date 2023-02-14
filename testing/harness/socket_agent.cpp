@@ -207,7 +207,7 @@ namespace {
                                 connection_ptr_t self);
 
     // Finish an async receive operation.
-    void finish_receive(async_recv &&recv_op,
+    void finish_receive(const async_recv *recv_op,
                         const boost::system::error_code *error,
                         std::size_t bytes_read);
 
@@ -455,7 +455,7 @@ async_recv::async_recv(impl_ptr_t the_impl,
 void async_recv::operator() (const boost::system::error_code& error,
                              std::size_t bytes_read)
 {
-  m_connection->finish_receive(std::move(*this), &error, bytes_read);
+  m_connection->finish_receive(this, &error, bytes_read);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -525,21 +525,21 @@ void connection::start_receive_r_locked(impl_ptr_t impl,
   }
 }
 
-void connection::finish_receive(async_recv &&recv_op,
+void connection::finish_receive(const async_recv *recv_op,
                                 const boost::system::error_code *error,
                                 std::size_t bytes_read)
 {
-  lock_guard rg(recv_op.m_impl->m_recv_mutex);
+  lock_guard rg(recv_op->m_impl->m_recv_mutex);
 
   if (!*error) {
 #if SOCKET_DEBUG
     std::cerr << "socket_agent: Received " << bytes_read
               << " byte(s) at offset " << m_rx_offset << "\n";
 #endif
-    bool succ = process_rx_data_r_locked(recv_op.m_impl.get(), bytes_read);
+    bool succ = process_rx_data_r_locked(recv_op->m_impl.get(), bytes_read);
     if (succ) {
-      start_receive_r_locked(std::move(recv_op.m_impl),
-                             std::move(recv_op.m_connection));
+      start_receive_r_locked(recv_op->m_impl,
+                             recv_op->m_connection);
       return;
     }
 
@@ -557,7 +557,7 @@ void connection::finish_receive(async_recv &&recv_op,
     std::cerr << "socket_agent: Receive error: " << *error << "\n";
   }
 
-  recv_op.m_impl->remove_connection_r_locked(&(recv_op.m_connection));
+  recv_op->m_impl->remove_connection_r_locked(&(recv_op->m_connection));
 }
 
 bool connection::process_rx_data_r_locked(impl *the_impl,
