@@ -41,7 +41,7 @@ namespace po = boost::program_options;
 ///////////////////////////////////////////////////////////////////////////
 
 test_harness::test_harness():
-  m_signal_set(m_asio_context, SIGINT),
+  m_signal_set(m_asio_context, SIGINT, SIGTERM),
   m_test_failed(false),
   // Use a 10 second timeout to handle NFS problems.
   m_timeout_ns(10*uint64_t(1000*1000*1000)),
@@ -272,7 +272,9 @@ void test_harness::handle_signal(const boost::system::error_code &error,
                                  int sig_num)
 {
   if (!error) {
-    assert(sig_num == SIGINT);
+    assert(sig_num == SIGINT || sig_num == SIGTERM);
+    if (sig_num == SIGTERM)
+      m_test_failed = true;
     handle_quit();
     return;
   }

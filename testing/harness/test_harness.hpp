@@ -19,6 +19,9 @@
 
 #include "processing_system.hpp"
 
+#include <atomic>
+#include <cstdint>
+
 #include "boost/asio/version.hpp"
 
 // io_service was renamed to io_context somewhere between 100803 and
@@ -126,7 +129,7 @@ private:
   std::unique_ptr<nanotube_thread> m_io_thread;
 
   // Indicates whether the test failed.
-  bool m_test_failed;
+  std::atomic<bool> m_test_failed;
 
   // The test timeout in nanoseconds.
   uint64_t m_timeout_ns;
