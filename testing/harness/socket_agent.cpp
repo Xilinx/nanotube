@@ -631,7 +631,9 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
            frag_len);
 #if SOCKET_DEBUG
      std::cerr << "socket_agent: Copied " << frag_len
-               << " byte(s) from buffer offset " << m_rx_offset << ".\n";
+               << " of " << pkt_len
+               << " byte(s) from buffer offset " << m_rx_offset
+               << ".\n";
 #endif
     m_rx_offset += frag_len;
     num_bytes -= frag_len;
@@ -654,7 +656,7 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
   memmove(m_rx_buffer, m_rx_buffer+m_rx_offset, num_bytes);
 #if SOCKET_DEBUG
   std::cerr << "socket_agent: Moved " << num_bytes
-            << " byte(s) from buffer offset " << m_rx_offset << ".\n";
+            << " byte(s) from RX buffer offset " << m_rx_offset << ".\n";
 #endif
   m_rx_offset = num_bytes;
   return true;
