@@ -318,7 +318,7 @@ public:
   void start_accept_rs_locked(const impl_ptr_t *self);
 
   // Finish an accept operation.
-  void finish_accept(impl_ptr_t self,
+  void finish_accept(const impl_ptr_t &self,
                      const boost::system::error_code *error);
 
   // Add a new connection.
@@ -694,7 +694,7 @@ async_accept::async_accept(impl_ptr_t impl_ptr):
 
 void async_accept::operator() (const boost::system::error_code &error)
 {
-  m_impl->finish_accept(std::move(m_impl), &error);
+  m_impl->finish_accept(m_impl, &error);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -808,7 +808,7 @@ impl::start_accept_rs_locked(const impl_ptr_t *self)
 }
 
 void
-impl::finish_accept(impl_ptr_t self,
+impl::finish_accept(const impl_ptr_t &self,
                     const boost::system::error_code *error)
 {
   if (!*error) {
