@@ -360,7 +360,11 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
 {
   std::size_t old_size = size(sec);
   int32_t adjustment = int32_t(new_size) - int32_t(old_size);
-  resize(sec, old_size, adjustment);
+  if (adjustment >= 0) {
+    resize(sec, old_size, adjustment);
+  } else {
+    resize(sec, old_size+adjustment, adjustment);
+  }
 }
 
 void nanotube_packet::resize(nanotube_packet_section_t sec,
