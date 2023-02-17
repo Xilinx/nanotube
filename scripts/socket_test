@@ -901,6 +901,10 @@ class App:
     if self.__proc is None:
       return
 
+    # The read method is being called without select indicating that
+    # the FD is ready, so re-enable blocking.
+    os.set_blocking(self.__proc.stdout.fileno(), True)
+
     # Read remaining data.
     while True:
       data = self.__proc.stdout.read(1024)
