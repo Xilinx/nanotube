@@ -531,6 +531,11 @@ void connection::finish_receive(const async_recv *recv_op,
 {
   lock_guard rg(recv_op->m_impl->m_recv_mutex);
 
+  // Ignore the result of the operation if this connection has been
+  // stopped.
+  if (!m_active)
+    return;
+
   if (!*error) {
 #if SOCKET_DEBUG
     std::cerr << "socket_agent: Received " << bytes_read
