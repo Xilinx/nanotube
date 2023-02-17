@@ -393,7 +393,7 @@ class App:
     self.__exp_index = 0
 
     # The current log line from the program.
-    self.__log_line = ""
+    self.__log_line = b""
 
     # A flag indicating whether the test has failed.
     self.__test_failed = False
@@ -571,8 +571,6 @@ class App:
       sys.stderr.write("Invoking: %s\n" %
             (" ".join(shlex.quote(s) for s in args)))
     self.__proc = subprocess.Popen(args,
-                                   universal_newlines=True,
-                                   bufsize=0,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
 
@@ -763,11 +761,12 @@ class App:
     line = self.__log_line + data
     pos = 0
     while True:
-      idx = line.find("\n", pos)
+      idx = line.find(b"\n", pos)
       if idx == -1:
         break
       if self.__verbosity >= 0:
-        sys.stderr.write("> %s\n" % line[pos:idx])
+        log_str = line[pos:idx].decode('utf-8', errors='replace')
+        sys.stderr.write("> %s\n" % log_str)
       pos = idx+1
     self.__log_line = line[pos:]
 
