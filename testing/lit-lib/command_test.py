@@ -18,6 +18,17 @@ except ImportError:
 class command_test(FileBasedTest):
   """command_test is a format which invokes an external command on each
   test file.
+
+  It is used by setting config.test_format to a command_test object in
+  lit.local.cfg.
+
+  The constructor is called with a string containing a path to the
+  executable to run or a tuple containing the initial arguments of the
+  command to run.
+
+  If the current source directory contains a file called gen_test_list
+  then it is executed to produce a list of test names.  Otherwise, the
+  normal lit file search procedure (getTestsInDirectory) is used.
   """
 
   def __init__(self, prefix):
