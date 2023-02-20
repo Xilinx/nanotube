@@ -1,0 +1,16 @@
+#!/bin/bash
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+TEST="$1"
+TEST_SCRIPT_DIR=$(dirname "$0")
+
+. "${TEST_SCRIPT_DIR}/functions.sh"
+
+init_test "${TEST}"
+
+exec /bin/bash "$1" \
+  "$SRC_TOP" \
+  "$SRC_TESTING" \
+  "$BUILD_TESTING"
