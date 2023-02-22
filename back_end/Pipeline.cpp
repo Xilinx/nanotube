@@ -815,7 +815,7 @@ Pipeline::get_stage(Instruction* start, Instruction** end, unsigned id, Type* in
            << " don't dominate each other; did you converge"
            << " (-converge_mapa)?\n";
     errs() << "ERROR: Control flow is not converged. Aborting!\n";
-    abort();
+    exit(1);
   }
 
   /**
@@ -1287,7 +1287,7 @@ clone_instruction(Function* func, std::string& stage_name,
       errs() << "ERROR: Unexpected pointer-phi " << *prod
              << " in BB " << *prod->getParent() << " missing in "
              << *func << "\nAborting!\n";
-      abort();
+      exit(1);
 #endif
 #ifndef SAVESTACK_SORTED
       /* handle obvious PHIs of dead memory */
@@ -1296,8 +1296,7 @@ clone_instruction(Function* func, std::string& stage_name,
         errs() << "ERROR: Unable to handle PHI node " << *phi
                << "which is not constant-undef.  This needs "
                << "handling elsewhere.  Aborting!\n";
-        abort();
-        return;
+        exit(1);
       }
       Instruction* phi_val = nullptr;
       for( auto& v : phi->incoming_values() ) {
@@ -1329,7 +1328,7 @@ clone_instruction(Function* func, std::string& stage_name,
       errs() << "ERROR: Unrecognised instruction in chain for "
              << "non-live memory location: " << *prod
              << " Aborting!\n";
-      abort();
+      exit(1);
   }
 
   /* We have a pointer instruction that is used in this function, but
@@ -2143,7 +2142,7 @@ void stage_function_t::set_nt_call(Instruction* call, Intrinsics::ID intr) {
     errs() << "ERROR: Multiple Nanotube calls per pipeline stage are "
            << "not yet supported.  First call: " << *nt_call
            << " Second call: " << *call << " Aborting!\n";
-    abort();
+    exit(1);
   }
   nt_call = call;
   set_nt_id(intr);
@@ -2214,7 +2213,7 @@ void stage_function_t::scan_nanotube_accesses(setup_func* setup) {
         default:
           errs() << "ERROR: Unknown Nanotube call " << *call
                  << " in function " << func->getName() << ".  Aborting.\n";
-          abort();
+          exit(1);
       };
     } // instructions
   } // basic blocks
@@ -2289,7 +2288,7 @@ void stage_function_t::convert_packet_read(Value* packet_word, BasicBlock* bypas
     } else {
       errs() << "ERROR: Expecting packet_read length to be a constant or "
              << "parsed successfully. " << *pra.length <<" Handle it!\n";
-      abort();
+      exit(1);
     }
   }
   assert(n < 65536);
@@ -2395,7 +2394,7 @@ Value* stage_function_t::convert_packet_write(Value* packet_word) {
     } else {
       errs() << "ERROR: Expecting packet_write length to be a constant or "
              << "parsed successfully. " << *pwa.length <<" Handle it!\n";
-      abort();
+      exit(1);
     }
   }
 

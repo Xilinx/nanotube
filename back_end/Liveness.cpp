@@ -541,7 +541,7 @@ bool liveness_info_t::ignore_function(CallBase* call) {
     errs() << "ERROR: Unknown callee in call\n" << *call
            << "\nContaining BB: " << *call->getParent()
            << "\nAborting!\n";
-    abort();
+    exit(1);
   }
   StringRef name = callee->getName();
   if( name.equals("printf") ||

@@ -1564,7 +1564,7 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
     errs() << "ERROR: Used long-range simple PHI " << *phi
            << " defined in " << phi->getParent()->getName()
            << "\nThese must be cleaned up before converging!\n";
-    abort();
+    exit(1);
   }
 
   /* NOTE: We ignore other, potentially long-range phi nodes here.  They
@@ -1682,7 +1682,7 @@ bool converged_access_block::remove_pointer_phis() {
            << "\nto call\n  " << *call.get_call()
            << "\nis not the normal packet argument. "
            << "Please repair the application code.\n";
-    abort();
+    exit(1);
   }
 
   /* Ensure that none of the arguments are phi-of-ptrs anymore */
@@ -1694,7 +1694,7 @@ bool converged_access_block::remove_pointer_phis() {
     if( !cast<PHINode>(arg)->hasConstantOrUndefValue() ) {
       errs() << "ERROR: Unexpected PHI node pointer argument " << *arg
              << " left in call " << *call.get_call() <<'\n';
-      abort();
+      exit(1);
     }
   }
   return found;

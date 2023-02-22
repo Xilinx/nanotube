@@ -170,7 +170,7 @@ static Value* get_condition(BasicBlock* bb) {
   /* Everything else we don't handle, so complain ;) */
   errs() << "FIXME: Unhandled basic block exit " << *term << " in "
          << __FILE__ << ":" << __LINE__ << " Aborting.\n";
-  abort();
+  exit(1);
 }
 
 /**
@@ -799,7 +799,7 @@ bool ignore_function(CallBase* call) {
     errs() << "ERROR: Unknown callee in call\n" << *call
            << "\nContaining BB: " << *call->getParent()
            << "\nAborting!\n";
-    abort();
+    exit(1);
   }
   StringRef name = callee->getName();
   if( name.equals("printf") ||
@@ -978,7 +978,7 @@ check_inst_mloc(Instruction& inst, const MemoryLocation& mloc,
       errs() << "ERROR: Uninitialised read " << inst
              << " from location " << mloc << '\n'
              << "Aborting!\n";
-      abort();
+      exit(1);
     } else if( last_writes->size() > 1 ) {
       errs() << "WARNING: Read " << inst
              << "reads from multiple stores:\n";
@@ -1130,7 +1130,7 @@ compute_data_deps(Function& f, dep_map_t* data_dep) {
       errs() << "IMPLEMENT ME: Unknown operand " << *v
              << " in instruction " << inst
              << "\nAborting.\n";
-      abort();
+      exit(1);
     }
   }
 }
@@ -1541,7 +1541,7 @@ flatten_trace(Function* f, bb_cost_func_t* cost) {
       if( sw == nullptr ) {
         errs() << "ERROR: Unrecognised terminator " << *t
                << " in basic block " << bb->getName() << " Aborting!\n";
-        abort();
+        exit(1);
       }
       record_condition(sw, sw->getCondition());
     }

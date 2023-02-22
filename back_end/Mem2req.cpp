@@ -1194,7 +1194,7 @@ bool propagates_map_packet_ptr(Instruction* inst) {
              << "\ncalling: "
              << cast<CallInst>(inst)->getCalledFunction()->getName()
              << ".  Please inline / special case their handling.\n";
-      abort();
+      exit(1);
     }
 
     /* Casts and pointer arithmetic that results in pointers keeps the map
@@ -1226,7 +1226,7 @@ bool propagates_map_packet_ptr(Instruction* inst) {
     default:
       errs() << "ERROR: Unkown map/pkt propagation for generic instruction"
              << *inst <<'\n';
-      abort();
+      exit(1);
   }
   return false;
 }

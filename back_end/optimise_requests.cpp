@@ -1986,7 +1986,7 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
              << " has uses which we do not support here:\n";
       for( auto* u : inst->users() )
         errs() << "  " << *u << '\n';
-      abort();
+      exit(1);
     }
     inst->eraseFromParent();
   }
@@ -2055,7 +2055,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
              << " has uses which we do not support here:\n";
       for( auto* u : inst->users() )
         errs() << "  " << *u << '\n';
-      abort();
+      exit(1);
     }
     inst->eraseFromParent();
   }

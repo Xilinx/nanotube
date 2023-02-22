@@ -243,7 +243,7 @@ struct ebpf_to_NT : public ModulePass {
              << "definition of " << g << " but instead got: ";
       di->print(errs());
       errs() << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     return cast<T>(di);
   }
@@ -268,7 +268,7 @@ struct ebpf_to_NT : public ModulePass {
     if( sz == 0 ) {
       errs() << "ERROR: Unsized key / value type for map " << g
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     return (sz + 7) / 8;
   }
@@ -287,7 +287,7 @@ struct ebpf_to_NT : public ModulePass {
       errs() << "ERROR: Expecting a constant array size for ";
       di_arrty->print(errs());
       errs() << " in map " << g << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     return sz.get<ConstantInt*>()->getZExtValue();
   }
@@ -345,7 +345,7 @@ struct ebpf_to_NT : public ModulePass {
           if( have_key_sz && (nt_entry->key_sz != sz) ) {
             errs() << "ERROR: Incompatible key sizes (" << nt_entry->key_sz
                    << " vs " << sz << ") for map " << g << "\nAborting!\n";
-            abort();
+            exit(1);
           }
           nt_entry->key_sz = sz;
           have_key_sz = true;
@@ -364,7 +364,7 @@ struct ebpf_to_NT : public ModulePass {
           if( have_val_sz && (nt_entry->value_sz != sz) ) {
             errs() << "ERROR: Incompatible value sizes (" << nt_entry->value_sz
                    << " vs " << sz << ") for map " << g << "\nAborting!\n";
-            abort();
+            exit(1);
           }
           nt_entry->value_sz = sz;
           have_val_sz = true;
@@ -416,7 +416,7 @@ struct ebpf_to_NT : public ModulePass {
       errs() << "ERROR: Empty debug info for BTF-style map " << g
              << " but that is needed to parse the map defintion.\n"
              << "Aborting!\n";
-      abort();
+      exit(1);
     }
 
     if( !have_key_sz || !have_val_sz || !have_type ) {
@@ -428,7 +428,7 @@ struct ebpf_to_NT : public ModulePass {
              << " max_entries: " << have_max_entries
              << " flags: " << have_flags
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     return true;
   }
@@ -451,7 +451,7 @@ struct ebpf_to_NT : public ModulePass {
 
     errs() << "ERROR: Map definition " << g << " is neither classic nor "
            << " BTF.  Aborting!\n";
-    abort();
+    exit(1);
   }
 
   std::pair<bool,unsigned> get_int_casted_to_pointer(Constant* c) {
@@ -799,7 +799,7 @@ struct ebpf_to_NT : public ModulePass {
         continue;
       errs() << "ERROR: Could not convert " << *call
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
 
     Constant* ml = create_nt_map_lookup(*M);
@@ -826,7 +826,7 @@ struct ebpf_to_NT : public ModulePass {
       errs() << "ERROR: Could not parse map description in call\n"
              << *call
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     unsigned count = data_sz->getZExtValue();
     auto* null_ptr = Constant::getNullValue(Type::getInt8PtrTy(C));
@@ -861,7 +861,7 @@ struct ebpf_to_NT : public ModulePass {
         continue;
       errs() << "ERROR: Could not convert " << *call
              << "\nAborting!\n";
-      abort();
+      exit(1);
       return nullptr;
     }
 
@@ -993,7 +993,7 @@ struct ebpf_to_NT : public ModulePass {
              << "conversion:\n" << call
              << "\nContained in BB:" << *call.getParent()
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
   }
 
@@ -1127,7 +1127,7 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
       if( !success ) {
         errs() << "ERROR: GEP " << *gep << " must have constant offset."
                << "\nAborting!\n";
-        abort();
+        exit(1);
       }
       auto it = val_to_offset.find(gep->getPointerOperand());
       assert(it != val_to_offset.end());
@@ -1173,7 +1173,7 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
     for( auto* u : xdp_ctx->users() )
       errs() << "  " << *u << '\n';
     errs() << "Aborting!\n";
-    abort();
+    exit(1);
   }
 
   /* Replace return statements XDP_{DROP,PASS,...} with a call to a
@@ -1228,7 +1228,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
     errs() << "ERROR: Unknown xdp_ctx offset " << offset
            << " in load " << *ld << "; not converting!\n";
     errs() << "Aborting!\n";
-    abort();
+    exit(1);
   }
 
   std::vector<Use*> todo;
@@ -1259,7 +1259,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
       errs() << "IMPLEMENT ME: Unknown user " << *v
              << " of context offset " << offset
              << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     /* Continue following the data flow */
     for( auto& u : v->uses() )
@@ -1358,7 +1358,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
         /* Check that this is a plain ebpf ctx! */
         errs() << "ERROR: Unknown use of EBPF ctx " << *ctx << " in "
                << *call << "\nABorting!\n";
-        abort();
+        exit(1);
       }
       repl_f = cast<Function>(create_packet_adjust_head_adapter(*m));
       args.emplace_back(nt_packet);
@@ -1371,7 +1371,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
         /* Check that this is a plain ebpf ctx! */
         errs() << "ERROR: Unknown use of EBPF ctx " << *ctx << " in "
                << *call << "\nABorting!\n";
-        abort();
+        exit(1);
       }
       repl_f = cast<Function>(create_packet_adjust_meta_adapter(*m));
       args.emplace_back(nt_packet);
@@ -1380,7 +1380,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
     default:
       errs() << "ERROR: Unhandled call " << *call << " to EBPF function "
              << id << "\nAborting!\n";
-      abort();
+      exit(1);
   }
 
   /* Call the equivalent NT function */
