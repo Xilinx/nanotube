@@ -541,7 +541,7 @@ predicate_packet_access(nt_api_call* pkt_op, Instruction* ip, Value* pred) {
     if( idx < 0 ) {
       errs() << "ERROR: Could not find the size argument of packet access "
              << *call << "\nAborting!\n";
-      abort();
+      exit(1);
     }
     auto* sz = call->getArgOperand(idx);
 
@@ -558,7 +558,7 @@ predicate_packet_access(nt_api_call* pkt_op, Instruction* ip, Value* pred) {
   } else {
     errs() << "ERROR: Unhandled packet op " << *call
            << " when flattening.\nAborting!\n";
-    abort();
+    exit(1);
   }
 
   assert(idx >= 0);
@@ -584,7 +584,7 @@ predicate_map_access(nt_api_call* map_acc, Instruction* ip, Value* pred) {
   if( idx < 0 ) {
     errs() << "ERROR: Could not find the op argument of map access "
            << *call << "\nAborting!\n";
-    abort();
+    exit(1);
   }
   auto* op = call->getArgOperand(idx);
 
@@ -697,13 +697,13 @@ flatten_side_effect(Instruction* inst, Instruction* ip, Value* bb_pred) {
              << " executed with condition " << *bb_pred
 	     << " but it's not known to be side-effect free and unknown "
              << "how to predicate.\nAborting!\n";
-      abort();
+      exit(1);
     }
   }
 
   dbgs() << "IMPLEMENT ME: flatten_side_effect(" << *inst << ", " << *ip <<
     ")\n";
-  abort();
+  exit(1);
 }
 
 /**
@@ -750,7 +750,7 @@ flatten_instruction(BasicBlock::iterator it, Value* pred, Instruction* ip,
     default:
       if( !isSafeToSpeculativelyExecute(inst) ) {
         errs() << "ERROR: Unsafe move of instruction " << *inst << '\n';
-        abort();
+        exit(1);
       }
       inst->moveBefore(ip);
   }
