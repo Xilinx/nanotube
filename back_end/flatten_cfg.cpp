@@ -555,6 +555,10 @@ predicate_packet_access(nt_api_call* pkt_op, Instruction* ip, Value* pred) {
 
     auto* zero = Constant::getNullValue(adj->getType());
     new_arg = ir.CreateSelect(pred, adj, zero);
+  } else if( pkt_op->get_intrinsic() == Intrinsics::packet_bounded_length ) {
+    /* Can always hoist a length call */
+    call->moveBefore(ip);
+    return;
   } else {
     errs() << "ERROR: Unhandled packet op " << *call
            << " when flattening.\nAborting!\n";
@@ -608,26 +612,46 @@ predicate_map_access(nt_api_call* map_acc, Instruction* ip, Value* pred) {
 }
 
 /**
- * Predicate a memcpy operation by adjusting the length.
+ * Predicate a call to a function by making a length argument zero when the
+ * predicate is false.
  */
 static void
-predicate_memcpy(nt_api_call* nac, Instruction* ip, Value* pred) {
-  assert(nac->get_intrinsic() == Intrinsics::llvm_memcpy);
+predicate_length(nt_api_call* nac, Instruction* ip, Value* pred,
+                 unsigned arg_id) {
   auto* call = nac->get_call();
 
-  const unsigned LLVM_MEMCPY_LEN = 2;
-  auto* len = call->getArgOperand(LLVM_MEMCPY_LEN);
+  auto* len = call->getArgOperand(arg_id);
 
   /* Replace the operand with a either the orignal op or no-op */
   IRBuilder<> ir(ip);
   auto* zero = ConstantInt::get(len->getType(), 0);
   auto* select = ir.CreateSelect(pred, len, zero);
-  call->setArgOperand(LLVM_MEMCPY_LEN, select);
+  call->setArgOperand(arg_id, select);
 
   /* Move the instruction and pick the right meta-data */
   call->moveBefore(ip);
   if( isa<Instruction>(select) )
     cast<Instruction>(select)->copyMetadata(*call);
+}
+
+/**
+ * Predicate a memcpy operation by adjusting the length.
+ */
+static void
+predicate_memcpy(nt_api_call* nac, Instruction* ip, Value* pred) {
+  assert(nac->get_intrinsic() == Intrinsics::llvm_memcpy);
+  const unsigned LLVM_MEMCPY_LEN = 2;
+  predicate_length(nac, ip, pred, LLVM_MEMCPY_LEN);
+}
+
+/**
+ * Predicate a memset operation by adjusting the length.
+ */
+static void
+predicate_memset(nt_api_call* nac, Instruction* ip, Value* pred) {
+  assert(nac->get_intrinsic() == Intrinsics::llvm_memset);
+  const unsigned LLVM_MEMSET_LEN = 2;
+  predicate_length(nac, ip, pred, LLVM_MEMSET_LEN);
 }
 
 /**
@@ -688,6 +712,9 @@ flatten_side_effect(Instruction* inst, Instruction* ip, Value* bb_pred) {
       return;
     } else if( ntc.get_intrinsic() == Intrinsics::llvm_memcpy ) {
       predicate_memcpy(&ntc, ip, bb_pred);
+      return;
+    } else if( ntc.get_intrinsic() == Intrinsics::llvm_memset ) {
+      predicate_memset(&ntc, ip, bb_pred);
       return;
     } else if( ntc.get_intrinsic() == Intrinsics::llvm_stacksave ) {
       remove_stacksave_and_restores(&ntc);
