@@ -1,0 +1,127 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Testing kernel packets_in
+# Maps after packet 0
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 1
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 2
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 3
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 4
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 5
+nanotube_map: 0 0 4 4
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 6
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 7
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 8
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 9
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+end
+
+# Maps after packet 10
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+key: fe ed ba cc
+value: 18 17 16 15
+end
+
+# Maps after packet 11
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+key: fe ed ba cc
+value: 18 17 16 15
+end
+
+# Maps after packet 12
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+key: fe ed ba cc
+value: 18 17 16 15
+end
+
+# Maps after packet 13
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: 08 07 06 05
+end
+
+nanotube_map: 1 0 4 4
+key: fe ed ba cc
+value: 18 17 16 15
+end
+

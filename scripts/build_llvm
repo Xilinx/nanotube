@@ -1,0 +1,146 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+import optparse
+import os
+import os.path
+import shlex
+import shutil
+import subprocess
+import sys
+
+if hasattr(shlex, "quote"):
+    sh_quote = shlex.quote
+else:
+    import pipes
+    sh_quote = pipes.quote
+
+def check_directory(path):
+    try:
+        os.stat(path)
+        return True
+    except OSError as e:
+        sys.stderr.write("%s: Failed to stat source directory.\n"
+                         "%s: %s (rc=%d)\n" %
+                         (sys.argv[0], path, e.strerror, e.errno))
+        sys.exit(1)
+
+def make_directories(path):
+    try:
+        os.stat(path)
+        return
+    except OSError as e:
+        pass
+
+    os.makedirs(path)
+
+def clean_directories(opts):
+    dirs = [ "%s/build" % opts.top_dir,
+             "%s/install" % opts.top_dir ]
+    for d in dirs:
+        if os.path.exists(d):
+            shutil.rmtree(d)
+
+def invoke_cmake(opts):
+    if os.path.exists("/usr/bin/cmake3"):
+        cmake = "/usr/bin/cmake3"
+    else:
+        cmake = "/usr/bin/cmake"
+
+    defs = {
+        "CMAKE_INSTALL_PREFIX": "%s/install" % opts.top_dir,
+
+        # Build clang by default.
+        "LLVM_ENABLE_PROJECTS": "clang",
+
+        # We may use ARM for Zynq chips and boards with ARM modules.
+        # We use BPF for generating input to the front-end.  We use
+        # X86 for building native executables.
+        "LLVM_TARGETS_TO_BUILD": "ARM;BPF;X86",
+
+        # Build as shared libraries to reduce memory usage while
+        # linking the final executables.  With this option, the
+        # linker uses about 7x less memory and takes 1000x less
+        # time.
+        "BUILD_SHARED_LIBS": "ON",
+
+        # Turning on optimisations makes Clang about 12 times faster.
+        "CMAKE_C_FLAGS": "-O2",
+        "CMAKE_CXX_FLAGS": "-O2",
+    }
+
+    defs.update(s.split("=",1) for s in opts.defines)
+
+    args = [ cmake, "Unix Makefiles", ]
+    args.extend("-D%s=%s" % x for x in sorted(defs.items()))
+
+    args.append("%s/llvm" % opts.top_dir)
+
+    print("Invoking cmake: %s" % (" ".join(sh_quote(x) for x in args)))
+    sys.stdout.flush()
+
+    if opts.no_act:
+        return
+
+    rc = subprocess.call(args, cwd="%s/build" % opts.top_dir)
+    print
+    if rc != 0:
+        sys.stderr.write("%s: Running cmake failed, rc=%d\n" %
+                         (sys.argv[0], rc))
+        sys.exit(1)
+
+def invoke_make(opts):
+    args = [ "make", "-j%d" % opts.num_jobs ]
+    
+    print("Invoking make: %s" % (" ".join(sh_quote(x) for x in args)))
+    sys.stdout.flush()
+
+    if opts.no_act:
+        return
+
+    rc = subprocess.call(args, cwd="%s/build" % opts.top_dir)
+    print
+    if rc != 0:
+        sys.stderr.write("%s: Running make failed, rc=%d\n" %
+                         (sys.argv[0], rc))
+        sys.exit(1)
+
+def main():
+    p = optparse.OptionParser()
+
+    p.add_option("-C" ,"--clean", dest="clean", default=False,
+                 action="store_true",
+                 help="Clean the build directory.")
+    p.add_option("-D", "--define", dest="defines", default=[],
+                 action="append",
+                 help="Define a cmake variable.")
+    p.add_option("-j", "--jobs", dest="num_jobs", default=1,
+                 action="store", type="int",
+                 help="Set the number of parallel jobs.")
+    p.add_option("-n", "--no-act", dest="no_act", default=False,
+                 action="store_true",
+                 help="Do not build anything.")
+
+    opts, args = p.parse_args()
+
+    if len(args) != 1:
+        sys.stderr.write("Usage: %s <src-dir>\n" % sys.argv[0])
+        return 1
+
+    opts.top_dir = os.path.abspath(args[0])
+
+    check_directory(opts.top_dir)
+
+    if opts.clean:
+        clean_directories(opts)
+        return 0
+
+    make_directories("%s/build" % opts.top_dir)
+    invoke_cmake(opts)
+    invoke_make(opts)
+
+    return 0
+
+sys.exit(main())

@@ -1,0 +1,18 @@
+Reading maps
+  Map 0
+  Map 1
+  Map 2
+  Map 3
+Read 4 packets
+Expecting 8 packets.
+Testing kernel cycle_switch_map_test
+  Packet 0 Length 43 Result 0
+  Packet 1 Length 43 Result 0
+  Packet 2 Length 43 Result 0
+  Packet 3 Length 43 Result 0
+Testing kernel dag_switch_test
+  Packet 0 Length 43 Result 0
+  Packet 1 Length 43 Result 0
+  Packet 2 Length 43 Result 0
+  Packet 3 Length 43 Result 0
+Test passed!

@@ -1,0 +1,7 @@
+Case 0: No call to rotate_down.
+Case 1: 8 byte input, 8 byte rot_buf, 8 byte output, rotate by 0.
+Case 2: 8 byte input, 8 byte rot_buf, 8 byte output, rotate by 5.
+Case 3: 13 byte input, 13 byte rot_buf, 13 byte output, rotate by 11.
+Case 4: 21 byte input, 21 byte rot_buf, 13 byte output, rotate by 10.
+Case 5: 21 byte input, 25 byte rot_buf, 25 byte output, rotate by 10.
+Test passed.

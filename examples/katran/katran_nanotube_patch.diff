@@ -1,0 +1,137 @@
+diff --git a/build_bpf_modules_opensource.sh b/build_bpf_modules_opensource.sh
+index 8873c5a..8c7da42 100755
+--- a/build_bpf_modules_opensource.sh
++++ b/build_bpf_modules_opensource.sh
+@@ -62,7 +62,7 @@ if [ -z "${SRC_DIR-}" ] ; then
+ fi
+ 
+ 
+-CLANG_PATH="${BUILD_DIR}/deps/clang/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04"
++echo ${CLANG_PATH:="${BUILD_DIR}/deps/clang/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04"}
+ if [ -f /etc/redhat-release ]; then
+   CLANG_PATH=/usr
+ fi
+diff --git a/katran/lib/KatranLb.cpp b/katran/lib/KatranLb.cpp
+index 2ddb7ef..548a244 100644
+--- a/katran/lib/KatranLb.cpp
++++ b/katran/lib/KatranLb.cpp
+@@ -219,6 +219,7 @@ void KatranLb::initialSanityChecking() {
+   }
+ }
+ 
++#ifndef NANOTUBE_SIMPLE
+ int KatranLb::createLruMap(int size, int flags, int numaNode) {
+   return bpfAdapter_.createNamedBpfMap(
+       "katran_lru",
+@@ -313,6 +314,7 @@ void KatranLb::attachLrus() {
+     }
+   }
+ }
++#endif //!NANOTUBE_SIMPLE
+ 
+ void KatranLb::setupGueEnvironment() {
+   if (config_.katranSrcV4.empty() && config_.katranSrcV6.empty()) {
+@@ -471,7 +473,9 @@ void KatranLb::loadBpfProgs() {
+   int res;
+ 
+   if (!config_.disableForwarding) {
++#ifndef NANOTUBE_SIMPLE
+     initLrus();
++#endif //!NANOTUBE_SIMPLE
+     res = bpfAdapter_.loadBpfProg(config_.balancerProgPath);
+     if (res) {
+       throw std::invalid_argument("can't load main bpf program");
+@@ -541,9 +545,11 @@ void KatranLb::loadBpfProgs() {
+     startIntrospectionRoutines();
+   }
+ 
++#ifndef NANOTUBE_SIMPLE
+   if (!config_.disableForwarding) {
+     attachLrus();
+   }
++#endif //!NANOTUBE_SIMPLE
+ }
+ 
+ void KatranLb::attachBpfProgs() {
+diff --git a/katran/lib/Makefile-bpf b/katran/lib/Makefile-bpf
+index 855703e..c6c98a5 100644
+--- a/katran/lib/Makefile-bpf
++++ b/katran/lib/Makefile-bpf
+@@ -37,7 +37,7 @@ clean:
+ 
+ $(obj)/bpf/%.o: $(src)/bpf/%.c
+ 	$(CLANG) $(INCLUDEFLAGS) $(EXTRA_CFLAGS) \
+-	$(DEBUGBPF) -D__KERNEL__ -Wno-unused-value -Wno-pointer-sign \
++	$(DEBUGBPF) -D__KERNEL__ -DNANOTUBE_SIMPLE -Wno-unused-value -Wno-pointer-sign \
+ 		-Wno-compare-distinct-pointer-types \
+ 		-O2 -emit-llvm -c -g $< -o -| $(LLC) -march=bpf -filetype=obj -o $@
+ 
+diff --git a/katran/lib/bpf/balancer_kern.c b/katran/lib/bpf/balancer_kern.c
+index 606e569..512a81a 100644
+--- a/katran/lib/bpf/balancer_kern.c
++++ b/katran/lib/bpf/balancer_kern.c
+@@ -497,8 +497,12 @@ static inline int process_packet(void *data, __u64 off, void *data_end,
+       // e.g. gfs
+       pckt.flow.port16[0] = 0;
+     }
++#ifndef NANOTUBE_SIMPLE
+     __u32 cpu_num = bpf_get_smp_processor_id();
+     void *lru_map = bpf_map_lookup_elem(&lru_maps_mapping, &cpu_num);
++#else //!NANOTUBE_SIMPLE
++    void *lru_map = &single_lru_cache;
++#endif //!NANOTUBE_SIMPLE
+     if (!lru_map) {
+       lru_map = &fallback_lru_cache;
+       __u32 lru_stats_key = MAX_VIPS + FALLBACK_LRU_CNTR;
+@@ -581,6 +585,7 @@ static inline int process_packet(void *data, __u64 off, void *data_end,
+ }
+ 
+ SEC("xdp-balancer")
++static
+ int balancer_ingress(struct xdp_md *ctx) {
+   void *data = (void *)(long)ctx->data;
+   void *data_end = (void *)(long)ctx->data_end;
+diff --git a/katran/lib/bpf/balancer_maps.h b/katran/lib/bpf/balancer_maps.h
+index 66726c0..589ac49 100644
+--- a/katran/lib/bpf/balancer_maps.h
++++ b/katran/lib/bpf/balancer_maps.h
+@@ -39,6 +39,7 @@ struct bpf_map_def SEC("maps") vip_map = {
+ BPF_ANNOTATE_KV_PAIR(vip_map, struct vip_definition, struct vip_meta);
+ 
+ 
++#ifndef NANOTUBE_SIMPLE
+ // map which contains cpu core to lru mapping
+ struct bpf_map_def SEC("maps") lru_maps_mapping = {
+   .type = BPF_MAP_TYPE_ARRAY_OF_MAPS,
+@@ -47,6 +48,18 @@ struct bpf_map_def SEC("maps") lru_maps_mapping = {
+   .max_entries = MAX_SUPPORTED_CPUS,
+   .map_flags = NO_FLAGS,
+ };
++#endif //NANOTUBE_SIMPLE
++
++#ifdef NANOTUBE_SIMPLE
++struct bpf_map_def SEC("maps") single_lru_cache = {
++  .type = BPF_MAP_TYPE_LRU_HASH,
++  .key_size = sizeof(struct flow_key),
++  .value_size = sizeof(struct real_pos_lru),
++  .max_entries = DEFAULT_LRU_SIZE,
++  .map_flags = NO_FLAGS,
++};
++BPF_ANNOTATE_KV_PAIR(single_lru_cache, struct flow_key, struct real_pos_lru);
++#endif //NANOTUBE_SIMPLE
+ 
+ // fallback lru. we should never hit this one outside of unittests
+ struct bpf_map_def SEC("maps") fallback_lru_cache = {
+diff --git a/katran/lib/linux_includes/bpf_helpers.h b/katran/lib/linux_includes/bpf_helpers.h
+index 8468dbc..1cb9beb 100644
+--- a/katran/lib/linux_includes/bpf_helpers.h
++++ b/katran/lib/linux_includes/bpf_helpers.h
+@@ -19,7 +19,7 @@
+ })
+ 
+ /* helper functions called from eBPF programs written in C */
+-static void *(*bpf_map_lookup_elem)(void *map, void *key) =
++static void *(*bpf_map_lookup_elem)(const void * restrict map, const void * restrict key) =
+   (void *) BPF_FUNC_map_lookup_elem;
+ static int (*bpf_map_update_elem)(void *map, void *key, void *value,
+           unsigned long long flags) =

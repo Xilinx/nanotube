@@ -1,0 +1,6 @@
+Reading maps
+Read 1 packets
+Expecting 1 packets.
+Testing kernel xdp_trivial_benchmark_traffic
+  Packet 0 Length 60 Result 0
+Test passed!

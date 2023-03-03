@@ -1,0 +1,29 @@
+{
+  "channels": [
+    {
+      "channel_id": 0,
+      "elem_size": 65,
+      "num_elem": 16
+    },
+    {
+      "channel_id": 1,
+      "elem_size": 65,
+      "num_elem": 16
+    },
+    {
+      "channel_id": 2,
+      "elem_size": 65,
+      "num_elem": 16
+    }
+  ],
+  "stages": [
+    {
+      "thread_id": 0,
+      "ports": [ 0, 1 ]
+    },
+    {
+      "thread_id": 1,
+      "ports": [ 1, 2 ]
+    }
+  ]
+}

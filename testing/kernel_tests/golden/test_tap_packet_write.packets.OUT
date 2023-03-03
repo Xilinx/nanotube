@@ -1,0 +1,63 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Convert with: text2pcap -t '%Y-%m-%d %H:%M:%S.' <in-file> <out-file>
+
+# Offset 8, length 0: Empty write
+1980-10-12 17:40:00.000000
+0000 08 00 00 00 00 7f 00 ff be 31 e9 cb db 6a 26 5f
+0010 e4 68 83 af 35 3c 8e ee 0d ad 8f 0e 48 92 0e c9
+0020 48 72 8e 43 47 18 c4 a5 01 ac 8a f9 82 53 9c a3
+0030 22 ee 7f 42 53 89 e4 2c d9 f1 c6 c2
+
+# Offset 7, length 17: Short contiguous write
+1980-10-12 17:40:00.000000
+0000 07 00 11 00 01 00 00 80 81 82 83 84 85 86 87 88
+0010 89 8a 8b 8c 8d 8e 8f 90 df 94 11 91 eb 1d 54 65
+0020 ef a5 66 09 fb 35 82 3a 60 8a 52 a7 0d 4d 42 2d
+0030 ec fd 9a 7c 86 37 9d 20 53 04 2c 41
+
+# Offset 9, length 13: Short masked write
+1980-10-12 17:40:00.000000
+0000 09 00 0d 00 00 7f 00 96 ac 80 ff ff 26 ff b3 e9
+0010 ff 75 ff ff 2e ff dc 0a 73 c4 f9 92 83 94 d6 76
+0020 f4 0c b9 a3 19 a7 10 65 e9 2d 8a 96 da 76 3a 6c
+0030 34 ae 6a f3 28 27 34 eb bb 1b 9d 67 64 10 0c 07
+0040 81 e7 74 75 eb 15 e8 53 b3 4b e8 0f 7f be 49 e5
+0050 37 52 40 a8 61 86 fb 97 a1 fb a2 1f 2f 56 67 88
+0060 cf 10 18 17 95 2a 27 06 3b b6 a0 f7 f2 de ba 7f
+0070 74 b0 bf ac 0c 72 ff 40 94 f9 2e
+
+# Offset 50, length 19: Write spanning words
+1980-10-12 17:40:00.000000
+0000 32 00 13 00 01 00 00 ff f2 bf a8 63 c0 e0 24 56
+0010 4d 40 00 cd 04 b3 c5 10 84 b9 8d 24 d4 f1 15 f7
+0020 c7 77 b1 bb 86 06 47 9b 1b 9c 50 28 eb f2 68 e0
+0030 de 27 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d
+0040 8e 8f 90 91 92 d0 9f bf 78 5f b8 f5 d3 8e 84 4b
+0050 00 66 f5 1f 5a 55 b3 42 52 92 f7 5e 97 97 90 f6
+0060 f7 36 6f 31 b8 c6 9f 23 51 15 c7 9c f0 4a 3a 77
+0070 5b d5 98 b9 c0 be e5
+
+# Offset 56, length 8: Write extends beyond EOP
+1980-10-12 17:40:00.000000
+0000 38 00 08 00 00 00 00 ff 4e 04 0e 58 60 41 4c 5b
+0010 5c e2 47 4f a6 21 35 2f 36 9a 80 8b 42 15 ca c2
+0020 e9 b5 45 2c b8 44 8f cb 50 d9 d0 f6 13 7c 67 52
+0030 df 50 f5 bc 63 26 ed 58 80 80 80 80
+
+# Offset 68, length 8: Write starts beyond EOP
+1980-10-12 17:40:00.000000
+0000 44 00 08 00 00 00 00 ff 37 14 b8 c0 8c af 6c a3
+0010 e4 d9 77 56 fd 67 c9 70 b0 5d 66 05 62 a9 5d 70
+0020 56 79 3e 45 04 72 63 db 0f 6d af 27 13 d8 2d 5c
+0030 de 11 e3 18 c6 12 60 d4 5b 9a ec f9
+
+# Offset 9, length 11: Short contiguous write
+1980-10-12 17:40:00.000000
+0000 09 00 0b 00 01 7f 00 ff af ff fe fd fc fb fa f9
+0010 f8 f7 f6 f5 d9 e4 a4 c9 47 df 60 f6 c4 d0 fb 23
+0020 7c d2 11 6b da 59 24 40 d2 40 89 fd f9 ee e4 9d
+0030 28 65 a2 7d d9 75 7f a7 28 fb f0 cd
+

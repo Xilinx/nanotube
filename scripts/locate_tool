@@ -1,0 +1,70 @@
+#! /usr/bin/python3
+# Dear emacs, this is a -*-python-*- file.
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+import os
+import os.path
+import subprocess
+import sys
+
+prog_dir = os.path.dirname(__file__)
+top_dir = os.path.normpath(os.path.join(prog_dir, ".."))
+py_lib_dir = os.path.join(top_dir, "py-lib")
+sys.path.append(py_lib_dir)
+
+from tool_config import config
+
+def get_env_vars(conf, env_var_list):
+    env = dict(os.environ)
+    for var in env_var_list:
+        val = conf.get(var)
+        assert val!=None, "Failed to find tool %s" % (var,)
+        env[var] = val
+    return env
+
+def main(argv):
+    conf = config(os.path.join(top_dir, "build"), {})
+    run_tool = False
+    done_any = False
+    for i in range(1, len(argv)):
+        name = argv[i]
+        if name == "--run":
+            run_tool = True
+            continue
+
+        info = conf.find_command(name)
+        if info == None:
+            sys.stderr.write("%s: Unknown tool '%s'.\n" %
+                             (argv[0], name))
+            return 1
+
+        path = info['path']
+        env_var_list = info.get('env_vars', ())
+
+        if path == None:
+            sys.stderr.write("%s: Failed to find tool '%s'.\n" %
+                             (argv[0], name))
+            return 1
+
+        if run_tool:
+            args = [path] + argv[i+1:]
+            env = get_env_vars(conf, env_var_list)
+            rc = subprocess.call(args, env=env)
+            if rc != 0:
+                sys.stderr.write("%s: Tool %s returned exit code %s.\n" %
+                                 (argv[0], path, rc))
+            return rc
+
+        done_any = True
+        print(path)
+
+    if not done_any:
+        sys.stderr.write("Usage: %s [--run] <tool> [<args>]\n" % argv[0])
+        return 1
+
+    return 0
+
+sys.exit(main(sys.argv))

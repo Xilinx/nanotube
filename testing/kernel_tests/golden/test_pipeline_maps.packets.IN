@@ -1,0 +1,162 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Because of NANO-273, low-level tests do not read the
+# test_pipeline_maps.maps.IN yet and don't prepopulate the map.  Therefore we
+# will "pre-poppulate" the map entries here, potentially overwriting the
+# entries if running with a high-level test that does indeed populate the map.
+# Once NANO-273 is fixed, this packets should be removed.
+# Sadly, I cannot do the same for the test_pipeline_maps.maps.OUT file, because
+# that is dumped after every packet.
+# nanotube_map: 0 0 4 4
+# key: de ad be ef
+# value: fe ed ba cc
+# end
+# sel1 = 127, key = 0xefbeadde, data = 0xccbaedfe, op = write
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef fe ed ba cc 03 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 00 ff 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff01ff, op = insert
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 01 ff 00 01 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 00 ff 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff02ff, op = update
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 02 ff 00 02 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 00 ff 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff03ff, op = write
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 03 ff 00 03 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 00 ff 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff04ff, op = remove
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 04 ff 00 04 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  7f 01 02 03 04 ff 00 ff 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b0 aa 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab1cc, op = insert
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b1 aa 00 01 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b0 aa 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab2cc, op = update
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b2 aa 00 02 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b0 aa 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab3cc, op = write
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b3 aa 00 03 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b0 aa 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab4cc, op = remove
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b4 aa 00 04 0a 0b 0c 0d 0e 0f
+
+# sel1 = 127, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  7f de ad be ef cc b0 aa 00 00 0a 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 00 ff 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff01ff, op = insert
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 01 ff 00 01 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 00 ff 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff02ff, op = update
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 02 ff 00 02 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 00 ff 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff03ff, op = write
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 03 ff 00 03 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 00 ff 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff04ff, op = remove
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 04 ff 00 04 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0x04030201, data = 0xff00ff, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab 01 02 03 04 ff 00 ff 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b0 aa 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab1cc, op = insert
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b1 aa 00 01 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b0 aa 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab2cc, op = update
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b2 aa 00 02 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b0 aa 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab3cc, op = write
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b3 aa 00 03 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b0 aa 00 00 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab4cc, op = remove
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b4 aa 00 04 0b 0c 0d 0e 0f
+
+# sel1 = 128, key = 0xefbeadde, data = 0xaab0cc, op = read
+2020-03-26 17:44:17.184404
+0000  80 ab de ad be ef cc b0 aa 00 00 0b 0c 0d 0e 0f

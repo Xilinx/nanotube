@@ -1,0 +1,3 @@
+LLVM ERROR: State variable @s8 = internal unnamed_addr global i8 0, align 1 used by thread 'stage_0' and thread 'stage_1'.
+Target triple: x86_64-unknown-linux-gnu
+Exit code 1

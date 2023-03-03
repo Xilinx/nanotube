@@ -1,0 +1,88 @@
+#! /usr/bin/python3
+# \author  Neil Turton <neilt@amd.com>
+#  \brief  A script for managing Nanotube build configuration.
+#   \date  2020-10-28
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+import argparse
+import os
+import os.path
+import sys
+
+prog_dir = os.path.dirname(__file__)
+top_dir = os.path.normpath(os.path.join(prog_dir, ".."))
+py_lib_dir = os.path.join(top_dir, "py-lib")
+sys.path.append(py_lib_dir)
+
+from tool_config import config
+
+class app(object):
+    def __init__(self, argv):
+        self.__argv = argv
+
+    def parse_args(self):
+        p = argparse.ArgumentParser(
+            description="Manage Nanotube build configuration.",
+        )
+
+        p.add_argument("-a", "--all", default=False, action="store_true",
+                       help="Show all the variables.")
+        p.add_argument("-d", "--delete", default=[], action="append",
+                       help="Delete a variable.")
+        p.add_argument("-s", "--save", default=False, action="store_true",
+                       help="Save the config file.")
+        p.add_argument("variables", nargs='*',
+                       help="The variables to set or show.")
+
+        self.__args = p.parse_args(self.__argv[1:])
+
+        show_vars = []
+        set_vars = {}
+        for arg in self.__args.variables:
+            parts = arg.split("=", 1)
+            if len(parts) == 1:
+                show_vars.append(parts[0])
+            else:
+                var,val = parts
+                set_vars[var] = val;
+        self.__show_vars = show_vars
+        self.__set_vars = set_vars
+
+        if len(show_vars) == 0 and len(set_vars) == 0:
+            self.__args.all = True
+
+        if len(set_vars) != 0 or len(self.__args.delete) != 0:
+            self.__args.save = True
+
+    def process_config(self):
+        self.__conf = config(os.path.join(top_dir, "build"),
+                             self.__set_vars)
+        for var in self.__args.delete:
+            self.__conf.delete(var)
+        if self.__args.save and self.__conf.need_save():
+            self.__conf.save()
+
+    def show_output(self):
+        if self.__args.all:
+            for var,val in sorted(self.__conf.items()):
+                print("%s=%s" % (var, val))
+        else:
+            for var in self.__show_vars:
+                print(str(self.__conf.get(var)))
+
+    def run(self):
+        try:
+            self.parse_args()
+            self.process_config()
+            self.show_output()
+        except RuntimeError as e:
+            sys.stderr.write("%s: ERROR: %s\n" % (sys.argv[0], e))
+            sys.exit(1)
+
+        return 0
+
+sys.exit(app(sys.argv).run())

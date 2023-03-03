@@ -1,0 +1,54 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Convert with: text2pcap -t '%Y-%m-%d %H:%M:%S.' <in-file> <out-file>
+# Read offset 8, length 0: Empty read
+1980-10-12 17:40:00.000000
+0000 08 00 00 00 00 c8 2d ff 9f e4 bb e4 60 80 65 f7
+0010 4e a5 dd b5 16 b0 6b 53 da 16 70 8f c1 5a 53 d2
+0020 e1 96 bc 96 f5 85 e3 44 40 b0 a0 00 a3 d6 92 d2
+0030 00 b6 db 1b 06 74 13 1f 6c c3 33 91 b9 c6 f7 5f
+0040 fd 03 5f 59
+# Read offset 5, length 19: Short contiguous read
+1980-10-12 17:40:01.000001
+0000 05 00 13 00 00 97 0f b9 b0 6a 13 cc de dd 1e 12
+0010 8e 4b e5 1e 25 79 11 ce 0c 27 16 07 0b a0 1a 79
+0020 46 7a a4 80 ad 97 18 d5 99 25 46 a5 d1 ef d9 fb
+0030 f0 a6 5f 58 5c 90 bc a6 d1 35 78 5d a9 2a 20 1d
+0040 9f 98 05 0e f6 57 8f
+# Read offset 61, length 6: Short split read
+1980-10-12 17:40:02.000002
+0000 34 00 16 00 00 15 5c a8 9d f8 46 de 77 8f 92 5e
+0010 e8 a8 a1 fd b6 57 3b ed 66 22 bd 21 8a b8 eb d9
+0020 ca 34 a3 e0 de ca db 9c 5e a7 22 66 33 33 fb fb
+0030 7c bb 62 13 c0 96 4c da 0f 3e df 77 e3 50 1e 68
+0040 10 bf 0e 6f d6 4a 88 ef 80 bd ad 88 25 8c a7 88
+0050 b6 63 f7 86 6c 8b 9b 05 d4 52
+# Read offset 64, length 64: Long contiguous read
+1980-10-12 17:40:03.000003
+0000 3f 00 40 00 00 25 c7 ee 47 e2 ed e3 e6 16 2c 54
+0010 04 50 b5 37 79 f8 ce b9 1d 05 69 72 c2 39 aa 19
+0020 11 28 ec f1 8d a6 5d 44 da 05 21 36 fd 6e 25 06
+0030 3c 01 8c 7b 57 4b 20 3b 64 d2 77 e8 3b ae 4b fc
+0040 48 3d 35 e0 9f 59 5d f6 37 27 06 8f dd 86 11 15
+0050 d1 b2 b3 fa 5e 44 63 79 e1 37 5e f6 34 cd f2 bb
+0060 65 fb b0 08 16 45 eb 66 86 59 36 58 92 c7 34 a8
+0070 02 dc fe fc 03 26 7a 86 7b 1d 97 58 cb c3 e7 bb
+0080 a8 9f b5 1c
+# Read offset 22, length 64: Long split read
+1980-10-12 17:40:04.000004
+0000 16 00 40 00 01 e7 cc 49 10 d3 a0 23 c4 99 25 c1
+0010 51 94 b6 b8 05 73 1d 04 a5 f2 47 9d 20 81 98 cf
+0020 7d 35 ba 03 3d 22 1b 9c d3 b2 dd 0d 63 7b af be
+0030 8a 76 a3 e2 6f 1c 31 47 db ca 16 d8 15 3c bd 82
+0040 86 ab 26 77 74 1f 99 fa a2 ec 7d 1f 75 bb 3c 8c
+0050 8c 13 54 16 8c c1 f6 7b 8b 60 d9 3d ae d5 98 c2
+0060 d4 02 22
+# Read offset 22, length 64: Truncated read
+1980-10-12 17:40:05.000005
+0000 26 00 30 00 11 c4 1c 13 93 a2 60 e0 ac 58 93 19
+0010 3e e5 94 6c d8 aa f1 4b cc 06 98 cc 39 44 5a 6b
+0020 8c b6 d6 b4 b6 fa d2 06 61 d6 04 d9 ce 7c 8c 2d
+0030 4e e3 9a 76 8a 24 b3 29 93 47 35 f0 1e b2 05 01
+0040 81 26 18 96 51 6c f2 6d 43 59

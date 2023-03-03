@@ -1,0 +1,96 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+# This tool converts a pcap file to a text file.  The format of the
+# text file is the same as the one consumed by scripts/text_to_pcap.
+
+import argparse
+import os
+import os.path
+import re
+import subprocess
+import sys
+
+time_re = re.compile(r'(\d+-\d+-\d+ \d+:\d+:\d+.\d+) ')
+line_re = re.compile(r'\s+0x(\w+):')
+byte_re = re.compile(r'\s*(\w\w)')
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description='Convert a pcap file to text',
+    )
+
+    parser.add_argument('-z', '--zone', dest="zone", default="UTC",
+                        help="Set the time zone.")
+    parser.add_argument('input', nargs=1,
+                        help='The input pcap file.')
+    parser.add_argument('output', nargs='?', default=None,
+                        help='The output text file.')
+
+    args = parser.parse_args(argv[1:])
+    args.prog_name = argv[0]
+
+    if args.output == None:
+        base,ext = os.path.splitext(args.input[0])
+        if ext != ".pcap":
+            sys.stderr.write("%s: Could not determine output filename.\n" %
+                             (argv[0],))
+            sys.exit(1)
+
+        args.output = base + ".txt"
+
+    return args
+
+def open_output(args):
+    if args.output == "-":
+        return sys.stdout
+
+    return open(args.output, "w")
+
+def write_output(args, f):
+    tcpdump_args = ["tcpdump", "-xxtttt", "-r", args.input[0]]
+    env = dict(os.environ)
+    env['TZ'] = args.zone
+    proc = subprocess.Popen(tcpdump_args, stdout=subprocess.PIPE, env=env)
+    for line in proc.stdout:
+        line = line.decode().rstrip("\n")
+
+        m = time_re.match(line)
+        if m != None:
+            f.write(m.group(1)+"\n")
+            continue
+
+        m = line_re.match(line)
+        if m == None:
+            continue
+        addr = m.group(1)
+
+        parts = [addr+" "]
+        pos = m.end(0)
+        while pos < len(line):
+            m = byte_re.match(line, pos)
+            if m == None:
+                sys.stderr.write("%s: Failed to parse line before '%s'.\n" %
+                                 (args.prog_name, line[pos:]))
+                sys.exit(1)
+            parts.append(m.group(1))
+            pos = m.end(0)
+
+        f.write((" ".join(parts))+"\n")
+
+    rc = proc.wait()
+    if rc != 0:
+        sys.stderr.write("%s: Got return code %s from tcpdump.\n" %
+                         (args.prog_name, rc))
+        sys.exit(1)
+
+def main(argv):
+    args = parse_args(argv)
+    f = open_output(args)
+    write_output(args, f)
+    return 0
+
+sys.exit(main(sys.argv))

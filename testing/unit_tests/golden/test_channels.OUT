@@ -1,0 +1,18 @@
+func_1: Case 1: try_read returns false.
+func_1: Sleeping.
+func_2: Started.
+func_2: Write. (1)
+func_1: Sleeping.
+func_2: Write. (2)
+func_2: Wake. (2)
+func_1: Case 2: try_read returns true.
+func_1: Sleeping.
+func_2: Write. (3)
+func_2: Wake. (3)
+func_1: Case 3: has_space returns true.
+func_1: Reading.
+func_1: Case 4: try_write returns true.
+func_1: Reading.
+func_1: Case 5: has_space returns false.
+func_1: Case 6: try_write returns false.
+Test complete!

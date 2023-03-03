@@ -1,0 +1,93 @@
+digraph {
+  label="_Z10simple_memP16nanotube_contextP15nanotube_packet"
+  inst0 [label="  %call = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %0, i64 1, i64 10)"]
+  inst1 [label="  %call2 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %1, i64 11, i64 10)"]
+  inst2 [label="  call void @llvm.memset.p0i8.i64(i8* nonnull align 1 %3, i8 42, i64 10, i1 false)"]
+  inst3 [label="  %call5 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %4, i64 21, i64 10)"]
+  inst4 [label="  %call7 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %0, i64 31, i64 10)"]
+  inst5 [label="  call void @llvm.memcpy.p0i8.p0i8.i64(i8* nonnull align 1 %2, i8* nonnull align 1 %1, i64 10, i1 false)"]
+  inst6 [label="  %call11 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %2, i64 41, i64 10)"]
+  inst7 [label="  %call13 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %3, i64 51, i64 10)"]
+  inst8 [label="  %7 = load i64, i64* %6, align 8, !tbaa !2"]
+  inst9 [label="  store i64 %7, i64* %8, align 8, !tbaa !2"]
+  inst10 [label="  %10 = load i16, i16* %9, align 8, !tbaa !6"]
+  inst11 [label="  store i16 %10, i16* %11, align 8, !tbaa !6"]
+  inst12 [label="  %call22 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %5, i64 61, i64 10)"]
+  inst0 -> {inst4 }
+  inst1 -> {inst5 }
+  inst2 -> {inst7 }
+  inst3 -> {inst8 inst10 }
+  inst5 -> {inst6 }
+  inst9 -> {inst11 }
+  inst11 -> {inst12 }
+}
+digraph {
+  label="_Z8test_warP16nanotube_contextP15nanotube_packet"
+  inst0 [label="  %call = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %0, i64 1, i64 10)"]
+  inst1 [label="  %3 = load i32, i32* %1, align 4, !tbaa !2"]
+  inst2 [label="  store i32 %3, i32* %rd, align 4, !tbaa !2"]
+  inst3 [label="  store i32 42, i32* %1, align 4, !tbaa !2"]
+  inst4 [label="  %call4 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %0, i64 11, i64 10)"]
+  inst5 [label="  %call5 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %2, i64 21, i64 4)"]
+  inst6 [label="  %call8 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %4, i64 31, i64 10)"]
+  inst7 [label="  %7 = load i32, i32* %5, align 4, !tbaa !2"]
+  inst8 [label="  store i32 %7, i32* %rd12, align 4, !tbaa !2"]
+  inst9 [label="  store i32 42, i32* %8, align 4, !tbaa !2"]
+  inst10 [label="  %call16 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %4, i64 41, i64 10)"]
+  inst11 [label="  %call17 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %6, i64 51, i64 4)"]
+  inst12 [label="  %call20 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %9, i64 61, i64 10)"]
+  inst13 [label="  %12 = load i32, i32* %10, align 4, !tbaa !2"]
+  inst14 [label="  store i32 %12, i32* %rd24, align 4, !tbaa !2"]
+  inst15 [label="  store i8 42, i8* %arrayidx26, align 1, !tbaa !6"]
+  inst16 [label="  %call28 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %9, i64 71, i64 10)"]
+  inst17 [label="  %call29 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %11, i64 81, i64 4)"]
+  inst18 [label="  %call32 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %13, i64 91, i64 10)"]
+  inst19 [label="  %15 = load i8, i8* %arrayidx37, align 1, !tbaa !6"]
+  inst20 [label="  store i8 %15, i8* %rd36, align 1, !tbaa !6"]
+  inst21 [label="  store i32 42, i32* %14, align 4, !tbaa !2"]
+  inst22 [label="  %call40 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %13, i64 101, i64 10)"]
+  inst23 [label="  %call41 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %rd36, i64 111, i64 1)"]
+  inst0 -> {inst1 inst3 }
+  inst1 -> {inst3 }
+  inst2 -> {inst5 }
+  inst3 -> {inst4 }
+  inst6 -> {inst7 inst9 }
+  inst7 -> {inst9 }
+  inst8 -> {inst11 }
+  inst9 -> {inst10 }
+  inst12 -> {inst13 inst15 }
+  inst13 -> {inst15 }
+  inst14 -> {inst17 }
+  inst15 -> {inst16 }
+  inst18 -> {inst19 inst21 }
+  inst19 -> {inst21 }
+  inst20 -> {inst23 }
+  inst21 -> {inst22 }
+}
+digraph {
+  label="_Z11mem_computeP16nanotube_contextP15nanotube_packet"
+  inst0 [label="  call void @llvm.memset.p0i8.i64(i8* nonnull align 2 %0, i8 42, i64 10, i1 false)"]
+  inst1 [label="  %call = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %1, i64 1, i64 10)"]
+  inst2 [label="  %2 = load i8, i8* %arrayidx, align 1, !tbaa !2"]
+  inst3 [label="  %3 = load i8, i8* %arrayidx2, align 1, !tbaa !2"]
+  inst4 [label="  %4 = load i8, i8* %1, align 1, !tbaa !2"]
+  inst5 [label="  store i8 %add, i8* %1, align 1, !tbaa !2"]
+  inst6 [label="  %call8 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %1, i64 1, i64 10)"]
+  inst7 [label="  %call10 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %0, i64 11, i64 10)"]
+  inst8 [label="  call void @llvm.memcpy.p0i8.p0i8.i64(i8* nonnull align 1 %5, i8* nonnull align 1 %1, i64 10, i1 false)"]
+  inst9 [label="  store i8 1, i8* %arrayidx13, align 1, !tbaa !2"]
+  inst10 [label="  store i8 2, i8* %arrayidx14, align 1, !tbaa !2"]
+  inst11 [label="  %8 = load i16, i16* %6, align 2"]
+  inst12 [label="  store i16 %8, i16* %7, align 1"]
+  inst13 [label="  %call18 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* nonnull %5, i64 21, i64 10)"]
+  inst0 -> {inst7 inst11 }
+  inst1 -> {inst2 inst3 inst4 inst5 }
+  inst2 -> {inst5 }
+  inst3 -> {inst5 }
+  inst4 -> {inst5 }
+  inst5 -> {inst6 inst8 }
+  inst8 -> {inst9 }
+  inst9 -> {inst10 }
+  inst10 -> {inst12 }
+  inst12 -> {inst13 }
+}

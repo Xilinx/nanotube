@@ -1,0 +1,11 @@
+Reading maps
+Read 6 packets
+Expecting 6 packets.
+Testing kernel packets_in
+  Packet 0 Length 68 Result -128
+  Packet 1 Length 71 Result 23
+  Packet 2 Length 90 Result 0
+  Packet 3 Length 132 Result 0
+  Packet 4 Length 127 Result 0
+  Packet 5 Length 127 Result 0
+Test passed!

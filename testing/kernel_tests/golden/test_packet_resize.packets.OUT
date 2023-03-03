@@ -1,0 +1,49 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Insert 7 bytes at the start of the packet.
+0000  00 00 00 00 00 00 00 a0 f3 00 00 07 00 58 a0 23
+0010  18 a6 14 08 00 45 00 00 1d 2a af 00 00 80 11 8d
+0020  e8 c0 a8 00 e7 c0 a8 00 01 da a0 1a 85 00 09 88
+0030  7d 00
+
+# Delete 5 bytes at the start of the packet.
+0000  ff 58 a0 23 18 a6 14 08 00 45 00 00 1d 2a af 00
+0010  00 80 11 8d e8 c0 a8 00 e8 c0 a8 00 02 da a0 1a
+0020  85 00 09 88 7d 00
+
+# Insert 4 bytes in the middle of the packet.
+0000  a0 f5 13 00 04 00 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a 00 00 00 00 af 00 00 80 11 8d e8 c0 a8
+0020  00 e9 c0 a8 00 03 da a0 1a 85 00 09 88 7d 00
+
+# Delete 8 bytes in the middle of the packet.
+0000  a0 f6 1f 00 f8 ff 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 ea c0 09
+0020  88 7d 00
+
+# Insert 3 bytes at the end of the packet.
+0000  a0 f7 2b 00 03 00 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 eb c0 a8
+0020  00 05 da a0 1a 85 00 09 88 7d ff 00 00 00
+
+# Delete 4 bytes at the end of the packet.
+0000  a0 f8 2b 00 fc ff 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 ec c0 a8
+0020  00 06 da a0 1a 85 00 09 88 7d ff
+
+# Delete 4 bytes spanning the end of the packet.
+0000  a0 f9 29 00 fc ff 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 ed c0 a8
+0020  00 07 da a0 1a 85 00 09 88
+
+# Insert 5 bytes after the end of the packet.
+0000  a0 fa 2c 00 05 00 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 ee c0 a8
+0020  00 08 da a0 1a 85 00 09 88 7d ff
+
+# Delete 7 bytes after the end of the packet.
+0000  a0 fb 2c 00 f9 ff 58 a0 23 18 a6 14 08 00 45 00
+0010  00 1d 2a af 00 00 80 11 8d e8 c0 a8 00 ef c0 a8
+0020  00 09 da a0 1a 85 00 09 88 7d ff

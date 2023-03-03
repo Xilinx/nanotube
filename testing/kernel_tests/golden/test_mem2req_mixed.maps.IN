@@ -1,0 +1,11 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+nanotube_map: 0 0 6 6
+key:   58 a0 23 18 a6 14
+value: 11 22 33 44 55 66
+key:   50 f3 c1 8c 29 58
+value: aa bb cc dd ee ff
+end
+

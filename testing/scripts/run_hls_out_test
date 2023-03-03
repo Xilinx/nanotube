@@ -1,0 +1,73 @@
+#! /bin/bash
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+set -eu
+
+if [ "$#" -ne 1 ] ; then
+    echo "Usage: $0 <source-file>" >&2
+    exit 1
+fi
+
+TEST=$1
+SCRIPT_DIR=$(dirname "$0")
+
+. "${SCRIPT_DIR}/functions.sh"
+
+case "${TEST}" in
+    *.cc) TEST_NAME="${TEST%.cc}" ;;
+    *.ll) TEST_NAME="${TEST%.ll}" ;;
+    *)  echo "$0: Unknown source file suffix in '${TEST}'" >&2
+        exit 1
+        ;;
+esac
+
+init_test "${TEST_NAME}"
+
+case "${TEST}" in
+    *.cc) IR="${TEST_BUILD_DIR}/${TEST_BASE}.ll" ;;
+    *.ll) IR="${TEST}" ;;
+    *)  echo "$0: Unknown source file suffix in '${TEST}'" >&2
+        exit 1
+        ;;
+esac
+
+GO=${GOLDEN_PREFIX}
+O=${OUTPUT_PREFIX}
+NANOTUBE_BE="${BUILD_TOP}/nanotube_back_end"
+
+mkdir -p "${O}"
+
+if ! check_files $GO/test.log; then
+    exit 1
+fi
+
+(
+    set +e
+    $NANOTUBE_BE -overwrite -o "$O" "$IR"
+    echo "Exit code $?"
+) &> "$O/test.log"
+
+STATUS=PASS
+for GF in $GO/* ; do
+    if ! check_output $GF $O/${GF##*/} "^//" ; then
+        STATUS=FAIL
+    fi
+done
+for OF in $O/* ; do
+    if [ -e "$OF" -a ! -e "$GO/${OF##*/}" ] ; then
+        echo "Spurious output file $OF"
+        STATUS=FAIL
+    fi
+done
+
+if [ $STATUS = PASS ] ; then
+    echo "PASS"
+else
+   echo "FAIL Output directory: ${O}"
+   exit 1
+fi
+
+exit 0
+

@@ -1,0 +1,137 @@
+# \author  Neil Turton <neilt@amd.com>
+#  \brief  Nanotube testing
+#   \date  2020-08-03
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+Import('env')
+
+import glob
+import os.path
+import subprocess
+
+# Read the test list.  The generating script produces a list of tests
+# on stdout, one per line.  Each test name consists of a number of
+# fields separated by commas.  The first field is the base name.  The
+# remaining fields are pass names.
+test_list = []
+proc = subprocess.Popen([os.path.join(str(env["SOURCE_DIR"]), "gen_test_list")],
+                        stdout=subprocess.PIPE)
+for line in proc.stdout:
+    test_list.append(line.decode('utf-8').rstrip().split(","))
+proc.wait()
+assert proc.returncode == 0, proc.returncode
+
+# Translate pass names to the right command line parameter
+pass_opts = {
+    'converge': '-compact-geps -converge_mapa',
+    'byteify' : '-byteify',
+    'destruct': '-destruct',
+    'ebpf2nt': '-ebpf2nanotube',
+    'mem2req' : '-mem2req',
+    'platform' : '-platform -always-inline -constprop',
+    'ntattr' : ( '-nt-attributes -O2' ),
+    'optreq' :  ('-optreq -enable-loop-unroll -always-inline '
+                 '-constprop -loop-unroll -simplifycfg' ),
+    'inline'  : ( '-always-inline -constprop' ),
+    'inline_opt': ( '-always-inline'
+                    ' -rewrite-setup -replace-malloc'
+                    ' -thread-const -constprop'
+                    ' -codegenprepare -constprop -dce '
+                    ' -enable-loop-unroll -loop-unroll'
+                    ' -move-alloca -simplifycfg -instcombine'
+                    ' -thread-const -constprop -simplifycfg' ),
+    'pipeline' : ( '-compact-geps -basicaa -tbaa '
+                   '-nanotube-aa -pipeline' ),
+    'flatten' : ( '-flatten-cfg' ),
+}
+
+data_prefixes_with_dups = [ti[0].split('.')[0] for ti in test_list]
+data_prefixes = sorted(set(data_prefixes_with_dups))
+
+def link_taps(env, out_bc_file, in_bc_file):
+    env.LlvmLink([out_bc_file],
+                 [
+                     in_bc_file,
+                     env['BUILD_TOP'].File('libnt/nanotube_low_level.bc'),
+                 ])
+
+def lower_api(env, out_bc_file, in_bc_file):
+    env.LlvmLink([out_bc_file],
+                 [
+                     in_bc_file,
+                     env['BUILD_TOP'].File('libnt/nanotube_high_level.bc'),
+                 ])
+
+def build_hls_exe(env, exe_file, in_bc_file):
+    json_file = env.Nanotube_Be(in_bc_file)
+    out = env.Build_Kernel_Test(exe_file, json_file)
+
+golden_src = env['SOURCE_DIR'].Dir('golden')
+
+env.add_libs('test_harness')
+# NANO247_NO_ARRAY_MAPS and p4c include paths are used by p4c-xdp generated tests
+env.Append(CCFLAGS='-Wno-gcc-compat -D NANO247_NO_ARRAY_MAPS '\
+                   '-I examples/forward/h/backends/ebpf/runtime/usr/include/ '\
+                   '-I examples/forward/h/extensions/p4c-xdp/tests '\
+                   '-I examples/forward/h/backends/ebpf/runtime '\
+                   ''.split())
+
+def add_test(test_info):
+    src_file_and_opts = test_info[0].split(':')
+    src_file = src_file_and_opts[0]
+    extra_opts = src_file_and_opts[1]
+    passes = list(test_info[1:])
+    base  = os.path.splitext(src_file)[0]
+
+    out_pass_str = ("".join("."+x for x in passes))
+    out_bc_file = base + out_pass_str + ".bc"
+    exe_file = "test_" + base + out_pass_str
+
+    if len(passes) == 0:
+        env.BitFile(src_file)
+    else:
+        this_pass = passes[-1]
+        in_pass_str = ("".join("."+x for x in passes[:-1]))
+        in_bc_file = base + in_pass_str + ".bc"
+
+        if this_pass == "hls":
+            build_hls_exe(env, exe_file, in_bc_file)
+            return
+
+        if this_pass == "link_taps":
+            link_taps(env, out_bc_file, in_bc_file)
+        elif this_pass == "lower":
+            lower_api(env, out_bc_file, in_bc_file)
+        else:
+            env.NanotubeOpt(out_bc_file, in_bc_file,
+                            OPT_FLAGS=pass_opts[this_pass]+" "+extra_opts)
+
+    obj_file = env.BitFileObj(out_bc_file)
+    env.Program(
+        exe_file,
+        [
+            obj_file,
+        ]
+    )
+
+done = set()
+for test_info in test_list:
+    test_info = tuple(test_info)
+    while test_info not in done:
+        done.add(test_info)
+        add_test(test_info)
+        if len(test_info) <= 1:
+            break
+        test_info = test_info[:-1]
+
+for base in data_prefixes:
+    for direction in ('IN', 'OUT'):
+        out_file = "golden/test_"+base+".pcap."+direction
+        in_file = golden_src.File("test_"+base+".packets."+direction)
+        env.Command(out_file,
+                    [env['SOURCE_TOP'].File('scripts/text_to_pcap'), in_file],
+                    [ "${SOURCES[0]} ${SOURCES[1]} ${TARGETS[0]}" ])
+

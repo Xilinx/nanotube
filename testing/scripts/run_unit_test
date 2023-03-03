@@ -1,0 +1,66 @@
+#! /bin/bash
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+set -eu
+
+if [ "$#" -ne 1 ] ; then
+    echo "Usage: $0 <source-file>" >&2
+    exit 1
+fi
+
+TEST=$1
+SCRIPT_DIR=$(dirname "$0")
+
+. "${SCRIPT_DIR}/functions.sh"
+
+init_test "${TEST%.*}"
+
+TEST_EXE="${TEST_BUILD_DIR}/${TEST_BASE}"
+
+# Golden inputs are G*I
+GI=${GOLDEN_PREFIX}.IN
+if ! [[ -e $GI ]]; then
+    GI=/dev/stdin
+fi
+
+# Golden outputs are G*O
+GO=${GOLDEN_PREFIX}.OUT
+
+O=${OUTPUT_PREFIX}.OUT
+
+check_unit() {
+    check_output $GO $O
+}
+
+if ! check_files $GI $GO; then
+    exit 1
+fi
+echo "  Input $GI."
+case "${TEST}" in
+*.cpp)
+  echo "  Cmd: $TEST_EXE < $GI > $O"
+  "$TEST_EXE" < "$GI" > "$O"
+  RES="$?" ;;
+*.sh) 
+  echo "  Cmd: ${TEST} ${TEST_BUILD_DIR} < $GI > $O"
+  "${TEST}" "${TEST_BUILD_DIR}" < "$GI" > "$O"
+  RES="$?" ;;
+*)
+  echo "Unknown test suffix in '${TEST}'.\n"
+  exit 1 ;;
+esac
+F=0
+echo -n "  Return code.. "
+if [[ $RES -eq 0 ]]; then
+    echo "PASS"
+else
+    echo "FAIL Output: $OM and $OP."
+    F=1
+fi
+if ! check_unit; then
+    F=1
+fi
+
+exit "$F"

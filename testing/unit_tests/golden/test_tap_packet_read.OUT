@@ -1,0 +1,18 @@
+Case  1: Rf Af Af Af
+Case  2: Rs Rm Re Af
+Case  3: Rs Rm Rm Re
+Case  4: Rs Rm Rm Rm | Rm Re Af Af
+Case  5: Rs Rm Rm Rm | Rm Rm Rm Re
+Case  6: Rs Rm Rm Rm | Rm Rm Rm Rm | Re Af Af Af
+Case  7: Be Rf Af Af
+Case  8: Be Rs Re Af
+Case  9: Be Rs Rm Re
+Case 10: Be Rs Rm Rm | Rm Re Af Af
+Case 11: Rs Rm <EOP>
+Case 12: Rs Rm Rm Rm <EOP>
+Case 13: Rs Rm Rm Rm | Rm <EOP>
+Case 14: Be Rs Rm <EOP>
+Case 15: Be Rs Rm Rm <EOP>
+Case 16: Be Rs Rm Rm | Rm <EOP>
+Random cases.
+Test passed.

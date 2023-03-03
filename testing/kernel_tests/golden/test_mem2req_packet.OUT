@@ -1,0 +1,8 @@
+Reading maps
+Read 0 packets
+Expecting 2 packets.
+Testing kernel memset_test
+  Packet 0 Length 1530 Result 0
+Testing kernel select_test
+  Packet 0 Length 1530 Result 0
+Test passed!

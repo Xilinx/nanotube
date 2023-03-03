@@ -1,0 +1,46 @@
+#! /bin/bash
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+set -u
+
+if [ "$#" -ne 1 ] ; then
+    echo "Usage: $0 <source-file>" >&2
+    exit 1
+fi
+
+TEST=$1
+SCRIPT_DIR=$(dirname "$0")
+
+. "${SCRIPT_DIR}/functions.sh"
+
+init_test "${TEST%.ll}"
+
+GO=${GOLDEN_PREFIX}.ll
+PASS_DIRS=/${TEST_DIR_REL#*/}
+PASSES=${PASS_DIRS//"/"/" -"}
+NTOPT=${BUILD_TOP}/nanotube_opt
+O=${OUTPUT_PREFIX}.ll
+
+if ! check_files $GO; then
+    exit 1
+fi
+
+TEST_OPTS=$(perl -ne 'print if s/^;\s*OPTIONS\s*=//' $TEST)
+
+$NTOPT ${PASSES} ${TEST_OPTS} $TEST -S -o - | \
+    grep -v "ModuleID" > ${O}
+RES=$?
+
+if [[ $RES -eq 0 ]]; then
+    echo "PASS"
+    if ! check_output $GO ${O} "^;"; then
+        exit 1
+    fi
+else
+    echo "FAIL Output: ${O}."
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,4 @@
+Case 0: No call to shift_down_bits.
+Case 1: 8 byte output, shift by 0.
+Case 2: 8 byte output, shift by 5.
+Test passed.

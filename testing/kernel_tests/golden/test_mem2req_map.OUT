@@ -1,0 +1,31 @@
+Reading maps
+  Map 0
+Read 0 packets
+Expecting 1 packets.
+Testing kernel map_read_test
+8 bit off: 1 data: aa
+16 bit off: 2 data: cafe
+32 bit off: 4 data: feedbacc
+64 bit off: 8 data: 8877665544332211
+8 bit idx 0 data: ff
+Did not find key zzz
+Testing kernel map_write_test
+Did not find key zzz
+Testing kernel map_read_test2
+8 bit off: 1 data: bb
+16 bit off: 2 data: f00f
+32 bit off: 4 data: cafeb00c
+64 bit off: 8 data: 123456789abcdef
+8 bit idx 5 data: aa
+Did not find key zzz
+Testing kernel map_memset_memcpy_test
+8 bit off: 1 data: bb
+16 bit off: 30466 data: cdef
+32 bit off: 1164413355 data: 77777777
+64 bit off: 131354989131639 data: 123456789abcdef
+8 bit off: 1 data: bb
+16 bit off: 2 data: f00f
+32 bit off: 4 data: cafeb00c
+64 bit off: 8 data: 123456789abcdef
+  Packet 0 Length 1530 Result 0
+Test passed!

@@ -1,0 +1,91 @@
+#! /bin/bash
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+set -eu
+
+if [ "$#" -ne 1 ] ; then
+    echo "Usage: $0 <source-file>" >&2
+    exit 1
+fi
+
+TEST="$1"
+TEST_SCRIPT_DIR=$(dirname "$0")
+
+. "${TEST_SCRIPT_DIR}/functions.sh"
+
+init_test "${TEST}"
+
+# Variables:
+#   TEST: testing/kernel_tests/mem2req_mixed.manual.c,lower,inline_opt
+#   TEST_BASE: mem2req_mixed.manual.c,lower,inline_opt
+#     (Stripped the directory)
+#   TEST_SRC_BASE: mem2req_mixed.manual.c
+#     (Stripped commas)
+#   TEST_PASSES: lower,inline_opt
+#   TEST_SHORT_NAME: test_mem2req_mixed
+#   TEST_LONG_NAME: test_mem2req_mixed.manual.lower.inline_opt
+
+# Remove everything after the first comma to give the source file name.
+TEST_SRC_BASE="${TEST_BASE%%,*}"
+
+# Extract the pass list.
+case "${TEST_BASE}" in
+*,*) TEST_PASSES=",${TEST_BASE#*,}" ;;
+*) TEST_PASSES="" ;;
+esac
+
+# Remove all suffixes and add the "test_" prefix.
+TEST_SHORT_NAME="test_${TEST_SRC_BASE%%.*}"
+
+# Remove a single suffix, add the "test_" prefix and add the passes as
+# suffixes.
+TEST_LONG_NAME="test_${TEST_SRC_BASE%.*}${TEST_PASSES//,/.}"
+
+GOLDEN_SOURCE_PREFIX="${TEST_GOLDEN_DIR}/${TEST_SHORT_NAME}"
+GOLDEN_BUILD_PREFIX="${TEST_GOLDEN_BUILD_DIR}/${TEST_SHORT_NAME}"
+OUTPUT_PREFIX="${TEST_OUTPUT_DIR}/${TEST_LONG_NAME}"
+
+TEST_EXE="${TEST_BUILD_DIR}/${TEST_LONG_NAME}"
+
+# Golden inputs are G*I
+GMI="${GOLDEN_SOURCE_PREFIX}.maps.IN"
+GPI="${GOLDEN_BUILD_PREFIX}.pcap.IN"
+
+# Golden outputs are G*O
+GO="${GOLDEN_SOURCE_PREFIX}.OUT"
+GMO="${GOLDEN_SOURCE_PREFIX}.maps.OUT"
+GPO="${GOLDEN_BUILD_PREFIX}.pcap.OUT"
+
+O="${OUTPUT_PREFIX}.OUT"
+OM="${OUTPUT_PREFIX}.maps.OUT"
+
+check_kernel() {
+    check_output $GO $O;   A=$?
+    check_output $GMO $OM "^#"; B=$?
+    return $(( A || B ))
+}
+
+if ! check_files $GMI $GPI $GMO $GPO $GO; then
+    exit 1;
+fi
+echo "  Inputs $GMI and $GPI."
+echo "  Cmd: $TEST_EXE --map-load $GMI --pcap-in $GPI --map-dump $OM "\
+     "--pcap-expect $GPO > $O"
+# NOTE: HLS may debug output, filter that
+$TEST_EXE --map-load $GMI --pcap-in $GPI --map-dump $OM --pcap-expect $GPO |\
+    grep -v "^INFO \[HLS SIM\]:" > $O
+RES=$?
+F=0
+echo -n "  Return code.. "
+if [[ $RES -eq 0 ]]; then
+    echo "PASS"
+else
+    echo "FAIL Output: $OM."
+    F=1
+fi
+if ! check_kernel; then
+    F=1
+fi
+exit "$F"

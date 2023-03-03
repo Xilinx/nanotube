@@ -1,0 +1,12 @@
+Running case 1
+
+
+_Testing_Maps_
+ERROR: Attempt to insert an element into an array map 42
+Exit code 1
+Running case 2
+
+
+_Testing_Maps_
+ERROR: Attempt to remove an entry from an array map 42
+Exit code 1

@@ -1,0 +1,127 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+#
+# The test list is generated using lists of step sequences.  Each
+# entry in a list specifies a sequence of steps.  The steps are run in
+# turn, the first step operating on the compiled source and the other
+# steps running on the output of the previous step in the sequence.
+#
+# A sequence of steps can be specified as a single step, such as
+# "destruct" in which case just a single step is run.  Alternatively,
+# a range of steps can be used such as "mem2req:inline_opt".  This
+# will run all the steps between the two mentioned steps in the
+# standard sequence.  It is also possible to specify a sequence of
+# steps and ranges such as "mem2req:platform,converge".  This example
+# indicates that all the steps between mem2req and platform should be
+# run, followed by the converge step.
+#
+# Each step and their standard sequencing are defined in
+# scripts/nanotube_build.  Review / edit that file when adding new steps or
+# workloads, or changing the steps executed.
+#
+# All the sequences in the list are processed, each starting from the
+# compiled source.  A test is run after each of the steps in each
+# sequence.
+
+default_combo = [
+    "destruct",
+    "byteify,destruct",
+    "lower,inline,destruct",
+    "lower,inline,byteify,destruct",
+]
+
+converge_combo = [
+    "lower,inline,converge",
+    "lower,inline,byteify,converge"
+]
+
+# Select specific combos per source file.
+src_combo_list = [
+    ["wide_to_byte.c",            "", ["byteify,destruct","destruct,byteify"] ],
+    ["converge01.c",              "", converge_combo ],
+    ["converge02.c",              "", converge_combo ],
+    ["converge02.hl.c",           "", ["mem2req:platform,converge"] ],
+    ["converge03.c",              "", converge_combo ],
+    ["converge03.multi_exit.ll",  "", converge_combo ],
+
+    [ "xdp_trivial.c",            "-bus=1", ["ebpf2nt:hls"] ],
+
+    [ "ip_tunnel.xdp.cc",         "-bus=1", ["ebpf2nt:hls",
+                                             "ebpf2nt:optreq,flatten"] ],
+    [ "ip_tunnel.cc",             "", ["mem2req:inline_opt",
+                                       "mem2req:platform,converge",
+                                       "mem2req:optreq,flatten"] ],
+
+    [ "mem2req_packet.c",         "", ["mem2req,platform,lower,inline"] ],
+    [ "mem2req_map.c" ,           "", ["mem2req,platform,lower,inline"] ],
+    [ "mem2req_mixed.c",          "", ["mem2req,platform,lower,inline"] ],
+    [ "mem2req_mixed.manual.c",   "", default_combo ],
+    [ "mem2req_packet.manual.c",  "", ["none"] ],
+
+    [ "channel_kernel.cc" ,       "", ["hls"] ],
+    [ "tap_map.cc",               "", ["link_taps:hls"] ],
+    [ "tap_packet_read.cc",       "", ["link_taps:hls"] ],
+    [ "tap_packet_length.cc",     "", ["link_taps:hls"] ],
+    #[ "tap_packet_length.hl.c",  "", ["platform,pipeline"] ],
+    [ "tap_packet_write.cc",      "", ["link_taps:hls"] ],
+    [ "tap_packet_resize.cc",     "", ["link_taps:hls"] ],
+    [ "wordify.manual.cc",        "", ["link_taps:hls"]],
+    [ "wordify.cc",               "", ["pipeline"] ],
+    [ "packet_resize.cc",         "", ["mem2req:hls"] ],
+    #[ "pipeline_maps.cc",         "", ["pipeline"] ],
+    [ "pipeline_maps.cc",         "", ["inline"] ],
+    [ "length_resize_pipeline.cc", "", ["pipeline"] ],
+    [ "length_resize_pipeline_shb.cc", "-bus=1", ["pipeline"] ],
+
+    #[ "pipeline_phi_maps.cc",      "", ["pipeline"] ],
+    [ "pipeline_phi_maps.cc",      "", ["inline"] ],
+    #[ "compute_pipeline.cc",      "", ["pipeline"] ],
+    [ "optreq_arithmetic.cc",     "", ["ntattr,optreq,flatten"] ],
+    [ "flatten_phi.cc",           "", ["mem2req,flatten"] ],
+]
+
+import os.path
+import subprocess
+
+test_dir = os.path.dirname(__file__)
+nanotube_build = os.path.join(test_dir, "../../scripts/nanotube_build")
+
+step_list_cache = {}
+def get_step_list(step_spec):
+    if step_spec in step_list_cache:
+        return step_list_cache[step_spec]
+    args = [nanotube_build, "-l", "-f", "xdp-c", "-b", "hls",
+            "-s", step_spec]
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    result = []
+    for line in proc.stdout:
+        result.append(line.decode('utf-8').rstrip())
+    proc.wait()
+    assert proc.returncode == 0, proc.returncode
+    step_list_cache[step_spec] = result
+    return result
+
+# Expand the test list.
+test_list = []
+for src_file, opt_args, combo_spec in src_combo_list:
+    done = set()
+    for step_spec in combo_spec:
+        step_list = get_step_list(step_spec)
+        first_idx = 0
+        if len(step_list) > 0 and step_list[0] == "ebpf2nt":
+            first_idx = 1
+        for i in range(first_idx, 1+len(step_list)):
+            combo = tuple(step_list[:i])
+            if combo not in done:
+                test_list.append((src_file+':'+opt_args,)+combo)
+                done.add(combo)
+
+# Output the test list.
+done = set()
+for test_info in test_list:
+    if test_info not in done:
+        print(",".join(test_info))
+        done.add(test_info)

@@ -1,0 +1,223 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Testing kernel packets_in
+# Maps after packet 0
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 1
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 2
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 01 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 3
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 01 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 4
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 02 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 5
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 02 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 6
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 03 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 7
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 03 ff 00
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 8
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 9
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 10
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 11
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 12
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: fe ed ba cc
+end
+
+# Maps after packet 13
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b2 aa 00
+end
+
+# Maps after packet 14
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b2 aa 00
+end
+
+# Maps after packet 15
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b3 aa 00
+end
+
+# Maps after packet 16
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b3 aa 00
+end
+
+# Maps after packet 17
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 18
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 19
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 20
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 01 ff 00
+end
+
+# Maps after packet 21
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 01 ff 00
+end
+
+# Maps after packet 22
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 02 ff 00
+end
+
+# Maps after packet 23
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 02 ff 00
+end
+
+# Maps after packet 24
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 03 ff 00
+end
+
+# Maps after packet 25
+nanotube_map: 0 0 4 4
+key: 01 02 03 04
+value: ff 03 ff 00
+end
+
+# Maps after packet 26
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 27
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 28
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 29
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b1 aa 00
+end
+
+# Maps after packet 30
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b1 aa 00
+end
+
+# Maps after packet 31
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b2 aa 00
+end
+
+# Maps after packet 32
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b2 aa 00
+end
+
+# Maps after packet 33
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b3 aa 00
+end
+
+# Maps after packet 34
+nanotube_map: 0 0 4 4
+key: de ad be ef
+value: cc b3 aa 00
+end
+
+# Maps after packet 35
+nanotube_map: 0 0 4 4
+end
+
+# Maps after packet 36
+nanotube_map: 0 0 4 4
+end
+

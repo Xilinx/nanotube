@@ -1,0 +1,9 @@
+Reading maps
+Read 5 packets
+Expecting 4 packets.
+Testing kernel ip_tunnel
+  Packet 0 Length 42 Result 0
+  Packet 1 Length 98 Result 0
+  Packet 2 Length 122 Result 0
+  Packet 3 Length 98 Result 0
+Test passed!

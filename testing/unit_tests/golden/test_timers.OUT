@@ -1,0 +1,7 @@
+func_1: Started.
+func_1: Woken.
+func_1: Sleeping again.
+func_2: Started.
+func_2: Wake up!
+func_1: Finished.
+Test complete!

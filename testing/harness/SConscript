@@ -1,0 +1,30 @@
+# \author  Neil Turton <neilt@amd.com>
+#  \brief  Nanotube test harness
+#   \date  2022-10-10
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+Import('env')
+
+llvm_config = env.get('LLVM_CONFIG')
+if llvm_config == None:
+    Return("")
+
+lib_sources = (
+    'map_dump_agent.cpp',
+    'map_load_agent.cpp',
+    'pcap_expect_agent.cpp',
+    'pcap_in_agent.cpp',
+    'pcap_out_agent.cpp',
+    'socket_agent.cpp',
+    'tap_agent.cpp',
+    'test_agent.cpp',
+    'test_harness.cpp',
+    'verbose_agent.cpp',
+)
+
+env.Library('test_harness', lib_sources)
+env.Object('test_harness_main.cpp')

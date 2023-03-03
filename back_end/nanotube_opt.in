@@ -1,0 +1,16 @@
+#! /bin/bash
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+m4_changequote({{,}})m4_dnl
+GDB=
+case "$1" in
+    --gdb) GDB='gdb --args' ; shift ;;
+    --gdb=*) GDB="${1#--gdb=}" ; shift ;;
+esac
+exec $GDB 'LLVM_OBJ_ROOT/bin/opt' \
+  --load 'NANOTUBE_OBJ_ROOT/back_end/libback_end_passes.so' \
+  --load 'NANOTUBE_OBJ_ROOT/front_end/libebpf_passes.so' \
+  "$@"

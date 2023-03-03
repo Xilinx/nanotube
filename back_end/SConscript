@@ -1,0 +1,102 @@
+# \author  Neil Turton <neilt@amd.com>
+#  \brief  Nanotube back-end
+#   \date  2020-06-10
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+Import('env capture_output')
+
+llvm_config = env.get('LLVM_CONFIG')
+if llvm_config == None:
+    Return("")
+
+back_end_libs = capture_output([
+    llvm_config, '--libs',
+    'Core',
+    'Support',
+])
+
+sources = [
+    'aa_tie_in.cpp',
+    'add_trace.cpp',
+    'AnnotateHLS.cpp',
+    'bus_type.cpp',
+    'Byteify.cpp',
+    'code_metrics.cpp',
+    'common_cmd_opts.cpp',
+    'compact_geps.cpp',
+    'control_capsule.cpp',
+    'Converge.cpp',
+    'Destruct.cpp',
+    'enable_loop_unroll.cpp',
+    'flatten_cfg.cpp',
+    'HLS_Printer.cpp',
+    'hls_validate.cpp',
+    'Intrinsics.cpp',
+    'Liveness.cpp',
+    'Map_Packet_CFG.cpp',
+    'Mem2req.cpp',
+    'move_alloca.cpp',
+    'Nanotube_Alias.cpp',
+    'nt_attributes.cpp',
+    'optimise_requests.cpp',
+    'Pipeline.cpp',
+    'platform.cpp',
+    'Pointer_Analysis.cpp',
+    'PointerTrace.cpp',
+    'print_setup.cpp',
+    'printing_helpers.cpp',
+    'Provenance.cpp',
+    'RenameParams.cpp',
+    'replace_malloc.cpp',
+    'rewrite_setup.cpp',
+    'setup_func.cpp',
+    'setup_func_builder.cpp',
+    'thread_const.cpp',
+]
+
+lib_nanotube_env = env.Clone()
+lib_nanotube_env.Append(CXXFLAGS=env['LLVM_CXX_FLAGS'].split(" "))
+lib_nanotube_env.Append(CCFLAGS=env['GCC_CCFLAGS'])
+lib_nanotube_env.Append(CPPPATH=["."])
+lib_nanotube_env.Append(LINKFLAGS=env['LLVM_LD_FLAGS'].split(" "))
+lib_nanotube_env.Append(LIBS=back_end_libs.split(" "))
+# Modern compilers (e.g. Ubuntu 20.04) error on use of ArrayRef.h without this
+lib_nanotube_env.Append(CCFLAGS='-Wno-init-list-lifetime')
+
+lib = lib_nanotube_env.SharedLibrary('back_end_passes', sources)
+
+back_end_main_libs = capture_output([
+    llvm_config, '--libs',
+    'Analysis',
+    'IRReader',
+    'SelectionDAG',
+    'Passes',
+])
+
+back_end_main_env = env.Clone()
+back_end_main_env.Append(CXXFLAGS=env['LLVM_CXX_FLAGS'].split(" "))
+back_end_main_env.Append(CCFLAGS=env['GCC_CCFLAGS'])
+back_end_main_env.Append(CPPPATH=["."])
+back_end_main_env.Append(LINKFLAGS=env['LLVM_LD_FLAGS'].split(" "))
+back_end_main_env.Append(LIBS=back_end_main_libs.split(" "))
+back_end_main_env.Append(LIBS=['back_end_passes'])
+back_end_main_env.Append(LIBPATH=[env['BUILD_DIR']])
+back_end_main_env.Append(RPATH=[env['LLVM_LIB_DIR']])
+back_end_main_env.Append(RPATH=[env['BUILD_DIR'].abspath])
+back_end_main_env.Program('${NANOTUBE_BE}', ['back_end_main.cpp'])
+
+env.Command(['${NANOTUBE_OPT}'],
+            ['nanotube_opt.in'],
+            [
+                "m4 -P"
+                " -D 'LLVM_OBJ_ROOT=${LLVM_OBJ_ROOT}'"
+                " -D 'NANOTUBE_OBJ_ROOT=${BUILD_TOP_ABS}'"
+                " '${SOURCE}'"
+                " >'${TARGET}'",
+                [ "chmod", "a+x", "${TARGET}" ],
+                ])
+

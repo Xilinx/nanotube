@@ -1,0 +1,153 @@
+
+
+_Testing_Maps_
+Map input
+  Read map 123 from stdin
+  Read map 999 from stdin
+  Read map -1 from stdin
+Map output
+nanotube_map: 123 0 8 64
+key: de ad be ef fe ed ba cc
+value: 00 00 11 11 22 22 33 33 44 44 55 55 66 66 77 77
+       88 88 99 99 aa aa bb bb cc cc dd dd ee ee ff ff
+       cc 01 cc 02 cc 03 cc 04 cc 05 cc 06 cc 07 cc 08
+       09 cc 0a cc 0b cc 0c cc 0d cc 0e cc 0f cc 10 cc
+end
+
+nanotube_map: 999 0 4 32
+key: fe ed ba cc
+value: cb cb cb cb cb cb cb cb cb cb cb cb cb cb cb cb
+       cb cb cb cb cb cb cb cb cb cb cb cb cb cb cb cb
+key: c0 ff ee 00
+value: 66 66 66 66 66 66 66 66 66 66 66 66 66 66 66 66
+       66 66 66 66 66 66 66 66 66 66 66 66 66 66 66 66
+key: de ad be ef
+value: f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+       f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+end
+
+Wrote 64 bytes:
+00 01 02 03 04 05 06 07 
+08 09 0a 0b 0c 0d 0e 0f 
+10 11 12 13 14 15 16 17 
+18 19 1a 1b 1c 1d 1e 1f 
+20 21 22 23 24 25 26 27 
+28 29 2a 2b 2c 2d 2e 2f 
+30 31 32 33 34 35 36 37 
+38 39 3a 3b 3c 3d 3e 3f 
+
+Read 64 bytes:
+00 01 02 03 04 05 06 07 
+08 09 0a 0b 0c 0d 0e 0f 
+10 11 12 13 14 15 16 17 
+18 19 1a 1b 1c 1d 1e 1f 
+20 21 22 23 24 25 26 27 
+28 29 2a 2b 2c 2d 2e 2f 
+30 31 32 33 34 35 36 37 
+38 39 3a 3b 3c 3d 3e 3f 
+
+Wrote 1 bytes at pos 16 value ab.
+Read 10 bytes with offset 10:
+00 01 02 03 04 05 06 07 
+08 09 0a 0b 0c 0d 0e 0f 
+ab 11 12 13 14 15 16 17 
+18 19 1a 1b 1c 1d 1e 1f 
+20 21 22 23 24 25 26 27 
+28 29 2a 2b 2c 2d 2e 2f 
+30 31 32 33 34 35 36 37 
+38 39 3a 3b 3c 3d 3e 3f 
+
+Wrote 32 bytes at pos 32 with fancy enable mask.
+Read 64 bytes with offset 0:
+00 01 02 03 04 05 06 07 
+08 09 0a 0b 0c 0d 0e 0f 
+ab 11 12 13 14 15 16 17 
+18 19 1a 1b 1c 1d 1e 1f 
+20 ff 22 23 ff ff 26 27 
+28 29 ff ff ff ff 2e 2f 
+30 31 32 33 34 35 ff ff 
+ff ff ff ff ff ff 3e 3f 
+
+Read 0 bytes from map 66
+Read 0 bytes from NULL key
+Read 0 bytes to NULL data
+Read 0 bytes from missing key
+Read 0 bytes from too big key
+Read 0 bytes from too small key
+Read 64 bytes with request of 80 bytes
+00 01 02 03 04 05 06 07 
+08 09 0a 0b 0c 0d 0e 0f 
+ab 11 12 13 14 15 16 17 
+18 19 1a 1b 1c 1d 1e 1f 
+20 ff 22 23 ff ff 26 27 
+28 29 ff ff ff ff 2e 2f 
+30 31 32 33 34 35 ff ff 
+ff ff ff ff ff ff 3e 3f 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+
+Read 32 bytes from offset 32 and requesting 64 bytes
+20 ff 22 23 ff ff 26 27 
+28 29 ff ff ff ff 2e 2f 
+30 31 32 33 34 35 ff ff 
+ff ff ff ff ff ff 3e 3f 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+
+Wrote 0 bytes to map 66
+Wrote 0 bytes to NULL key
+Wrote 0 bytes of NULL data
+Wrote 0 bytes with NULL enables
+Wrote 0 bytes to large key
+Wrote 0 bytes to small key
+Wrote 0 bytes to offset 5 with req size 64 
+Wrote 0 bytes with length 80
+Updated 32 bytes at pos 0.
+Read 64 bytes with offset 0:
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+20 ff 22 23 ff ff 26 27 
+28 29 ff ff ff ff 2e 2f 
+30 31 32 33 34 35 ff ff 
+ff ff ff ff ff ff 3e 3f 
+
+Updated 0 bytes at pos 0 with missing key.
+Re-Updated 0 bytes at pos 0 with missing key.
+Inserted 32 bytes at pos 0 with new key.
+Read 64 bytes with offset 0:
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+f0 f0 f0 f0 f0 f0 f0 f0 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+
+Re-inserted 0 bytes at pos 0 with (not so) new key.
+Removed newly inserted key, result 18446744073709551615.
+Re-removed newly inserted key, result 0.
+Read 0 bytes with offset 0 from removed key
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+
+Final map state:
+nanotube_map: 42 0 8 64
+key: de ad be ef fe ed ba cc
+value: f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+       f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+       20 ff 22 23 ff ff 26 27 28 29 ff ff ff ff 2e 2f
+       30 31 32 33 34 35 ff ff ff ff ff ff ff ff 3e 3f
+end
+
+Test passed.

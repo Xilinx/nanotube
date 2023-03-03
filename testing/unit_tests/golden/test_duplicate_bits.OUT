@@ -1,0 +1,4 @@
+Case 1: 40 bits of input, no padding.
+Case 2: 27 bits of input, no padding.
+Case 3: 19 bits of input padded to 23.
+Test passed.

@@ -1,0 +1,33 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+# Ignore most hidden files
+.*
+# .. except .gitignore itself :)
+!.gitignore
+
+# Ignore backup files
+*~
+*.bak
+
+# Ignore Python bytecode cache files.
+*.pyc
+
+# Ignore the build directory
+/build
+
+# Ignore the tmp directory
+/tmp
+
+# Ignore external symlinks
+external/katran
+external/bsub_lib
+
+# Ignore experimentation directories
+stephan_plays
+debugging
+
+# Ignore build files in the example directories
+/examples/*/*.bc
+/examples/*/*.ll

@@ -1,0 +1,57 @@
+# \author  Neil Turton <neilt@amd.com>
+#  \brief  The Nanotube library
+#   \date  2020-07-27
+#
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+import os.path
+
+Import('env')
+
+llvm_config = env.get('LLVM_CONFIG')
+if llvm_config == None:
+    Return("")
+
+env.Append(CXXFLAGS=['-std=c++11'])
+high_level_sources = (
+    'map_highlevel.cpp',
+    'packet_highlevel.cpp',
+    'ebpf_nt_adapter.cpp',
+    'misc_inline.cpp',
+    'nanotube_packet_metadata_sb.cpp',
+    'nanotube_packet_metadata_shb.cpp',
+)
+low_level_sources = (
+    'nanotube_map_taps.cpp',
+    'nanotube_packet_taps_core.cpp',
+    'nanotube_packet_taps_sb.cpp',
+    'nanotube_packet_taps_shb.cpp',
+    'nanotube_packet_taps_bus.cpp',
+)
+lib_sources = high_level_sources + low_level_sources + (
+    'base_map.cpp',
+    'nanotube_channel.cpp',
+    'nanotube_context.cpp',
+    'nanotube_debug.cpp',
+    'nanotube_malloc.cpp',
+    'nanotube_map.cpp',
+    'nanotube_packet.cpp',
+    'nanotube_pcap_dump.cpp',
+    'nanotube_pcap_read.cpp',
+    'nanotube_thread.cpp',
+    'packet_kernel.cpp',
+    'processing_system.cpp',
+)
+
+env.Library('nanotube', lib_sources)
+
+high_level_bcs = [env.BitFile(f) for f in high_level_sources]
+env.LlvmLink('nanotube_high_level.bc', high_level_bcs)
+
+low_level_env = env.Clone()
+low_level_env.Append(CCFLAGS=['-Wno-gcc-compat', '-Wno-pass-failed'])
+low_level_bcs = [low_level_env.BitFile(f) for f in low_level_sources]
+low_level_env.LlvmLink('nanotube_low_level.bc', low_level_bcs)

@@ -1,0 +1,79 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+#
+# This tool converts a text file to a pcap file.  The format of the
+# text file is the same as the one produced by scripts/pcap_to_text.
+
+import argparse
+import os
+import os.path
+import re
+import subprocess
+import sys
+
+class app(object):
+  def parse_args(self, argv):
+    self.__argv = argv
+
+    parser = argparse.ArgumentParser(
+        description='Convert a text file to pcap',
+    )
+
+    parser.add_argument('-z', '--zone', dest="zone", default="UTC",
+                        help="Set the time zone.")
+    parser.add_argument('input', help='The input text file.')
+    parser.add_argument('output', nargs='?', default=None,
+                        help='The output pcap file.')
+
+    self.__args = parser.parse_args(argv[1:])
+    self.__prog_name = argv[0]
+
+    if self.__args.output == None:
+      base,ext = os.path.splitext(self.__args.input[0])
+      if ext != ".pcap":
+        sys.stderr.write("%s: Could not determine output filename.\n" %
+                         (argv[0],))
+        sys.exit(1)
+
+      self.__args.output = base + ".txt"
+
+  def do_conversion(self):
+    link_type = 1 # Ethernet
+    # Does the first line contain the special PPI marker?
+    with open(self.__args.input) as f:
+      first_line = f.readline()
+      if "-*- link-type: PPI -*-" in first_line:
+        link_type = 192 # PPI (see man text2pcap)
+
+    args = [ 'text2pcap', '-q', '-l', str(link_type), '-t', '%Y-%m-%d %H:%M:%S.',
+             self.__args.input, self.__args.output ]
+    env = dict(os.environ)
+    env['TZ'] = self.__args.zone
+    proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    failed = False
+    for line in proc.stdout:
+      if not failed:
+        sys.stderr.write("%s: Unexpected output from text2pcap:\n" %
+                         self.__argv[0])
+        failed = True
+      line_str = line.decode('utf-8')
+      sys.stderr.write("  %s\n" % line_str.rstrip('\r\n'))
+
+    if failed:
+      sys.exit(1)
+
+  def run(self, argv):
+    self.parse_args(argv)
+
+    # Make sure /usr/sbin is on the path.
+    if 'PATH' not in os.environ['PATH']:
+      os.environ['PATH'] = os.defpath
+    os.environ['PATH'] += ":/usr/sbin"
+
+    self.do_conversion()
+
+sys.exit(app().run(sys.argv))

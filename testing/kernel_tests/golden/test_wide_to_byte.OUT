@@ -1,0 +1,14 @@
+Reading maps
+Read 0 packets
+Expecting 1 packets.
+Testing kernel wide_to_byte
+8: 42 16: cafe 32: feedbacc 64: 600dface2badfee7
+8: 42 16: cafe 32: feedbacc 64: 600dface2badfee7
+8: 42 16: cafe 8: 43 32: feedbacc 8: 44 64: 600dface2badfee7
+8: 42 16: cafe 8: 43 32: feedbacc 8: 44 64: 600dface2badfee7
+8: e7 16: fee7 32: 2badfee7 64: 600dface2badfee7
+8: cc 16: bacc 32: feedbacc 64: 600dfacefeedbacc
+8: fe 16: cafe 32: feedcafe 64: 600dfacefeedcafe
+8: 42 16: ca42 32: feedca42 64: 600dfacefeedca42
+  Packet 0 Length 1530 Result 0
+Test passed!
