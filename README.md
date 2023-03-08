@@ -104,7 +104,7 @@ below will need to be changed.
 
 To checkout the Nanotube repository, run this command:
 
-      git clone git@github.com:Xilinx-CNS/nanotube.git
+      git clone git@github.com:Xilinx/nanotube.git
 
 ## Downloading and building LLVM
 
@@ -269,7 +269,7 @@ Here are a few rules for contributing:
 
 We use GitHub issues for tracking bugs in the compiler.
 
-  https://github.com/Xilinx-CNS/nanotube/issues
+  https://github.com/Xilinx/nanotube/issues
 
 When filing a bug, the summary should include a short clear
 description of the bug.
