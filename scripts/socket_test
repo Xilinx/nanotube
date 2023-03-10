@@ -417,10 +417,6 @@ class App:
     # Set if the test timed out.
     self.__timed_out = False
 
-    # Set if the main part of the test is complete and we are waiting
-    # for extra packets.
-    self.__waiting = False
-
     # Set when the test is complete.
     self.__complete = False
 
@@ -826,46 +822,39 @@ class App:
 
     return False
 
-  def check_done(self):
-    if not self.__sel_enabled:
-      return True
+  def do_running(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Running the test.\n")
 
-    if not self.__waiting:
-      if not self.check_running_done():
-        return False
-
-      self.__waiting = True
+    while self.__sel_enabled:
       self.__time_now = self.get_time()
-      self.__end_time = self.__time_now + self.__wait_time
-
-      if self.__verbosity >= 1:
-        sys.stderr.write("Started waiting at time %s seconds.\n" %
-                         self.__time_now)
+      self.poll_selector()
+      self.wait_proc()
+      if self.check_running_done():
+        return
     
-    if not self.check_waiting_done():
-      return False
+  def do_waiting(self):
+    self.__time_now = self.get_time()
+    self.__end_time = self.__time_now + self.__wait_time
 
+    if self.__verbosity >= 1:
+      sys.stderr.write("Started waiting at time %s seconds.\n" %
+                       self.__time_now)
+
+    while self.__sel_enabled:
+      self.__time_now = self.get_time()
+      self.poll_selector()
+      self.wait_proc()
+      if self.check_waiting_done():
+        return
+    
+  def end_program(self):
     self.__time_now = self.get_time()
 
     if self.__verbosity >= 1:
       sys.stderr.write("Finished waiting at time %s seconds.\n" %
                        self.__time_now)
 
-    return True
-
-
-  def main_loop(self):
-    if self.__verbosity >= 1:
-      sys.stderr.write("Running the main loop.\n")
-
-    while self.__sel_enabled:
-      self.__time_now = self.get_time()
-      self.poll_selector()
-      self.wait_proc()
-      if self.check_done():
-        return
-
-  def end_program(self):
     # Check whether the process has already exited.
     self.wait_proc()
     if self.__proc_exited:
@@ -930,7 +919,8 @@ class App:
     self.invoke_program()
     self.connect_socket()
     self.start_packets()
-    self.main_loop()
+    self.do_running()
+    self.do_waiting()
     self.end_program()
     self.flush_log()
     self.report_results()
