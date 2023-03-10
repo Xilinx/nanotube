@@ -94,7 +94,7 @@ class HexReader:
       yield self.__buffer
       self.__buffer = bytearray()
 
-class Socket:
+class QemuSocket:
   """A QEMU socket for transferring packets.
 
   The socket constructor has parameters which specify the hostname,
@@ -529,12 +529,12 @@ class App:
 
   def create_socket(self):
     verbosity = self.__verbosity - 1
-    self.__socket = Socket(hostname=self.__args.host,
-                           port=self.__args.port,
-                           mode=self.__args.mode,
-                           mtu=self.__args.mtu,
-                           timeout=self.__timeout,
-                           verbosity=verbosity)
+    self.__socket = QemuSocket(hostname=self.__args.host,
+                               port=self.__args.port,
+                               mode=self.__args.mode,
+                               mtu=self.__args.mtu,
+                               timeout=self.__timeout,
+                               verbosity=verbosity)
 
     if self.__verbosity >= 1:
       if self.__args.mode == LISTEN:
