@@ -40,6 +40,50 @@
 // which determines the type of capsule being processed and then
 // dispatches to the appropriate code.  If the capsule is a network
 // packet, it dispatches to the original entry block.
+//
+// The generated code looks like this:
+//   entry:
+//     %control_capsule_buffer = alloca i8, i64 20
+//     %capsule_class = call i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet* %packet)
+//     switch i32 %capsule_class, label %pass_through_capsule [
+//       i32 1, label %process_net_packet
+//       i32 2, label %control_capsule_read
+//     ]
+//   
+//   pass_through_capsule:                             ; preds = %entry
+//     ret void
+//   
+//   control_capsule_read:                             ; preds = %entry
+//     %0 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 0, i64 20)
+//     %cc.res_id0.get = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 2
+//     %cc.res_id0.load = load i8, i8* %cc.res_id0.get
+//     %cc.res_id0.zext = zext i8 %cc.res_id0.load to i16
+//     %cc.res_id1.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 3
+//     %cc.res_id1.load = load i8, i8* %cc.res_id1.gep
+//     %cc.res_id1.zext = zext i8 %cc.res_id1.load to i16
+//     %cc.res_id1.shl = shl i16 %cc.res_id1.zext, 8
+//     %cc.res_id = or i16 %cc.res_id0.zext, %cc.res_id1.shl
+//     switch i16 %cc.res_id, label %control_capsule_bad_resource [
+//       i16 0, label %control_capsule_map0_bb
+//     ]
+//   
+//   control_capsule_map0_bb:                          ; preds = %control_capsule_read
+//     call void @nanotube_map_process_capsule(%struct.nanotube_context* %context, i16 0, i8* %control_capsule_buffer, i64 4, i64 8)
+//     br label %control_capsule_write
+//   
+//   control_capsule_bad_resource:                     ; preds = %control_capsule_read
+//     %cc.rc0.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 4
+//     store i8 2, i8* %cc.rc0.gep
+//     %cc.rc1.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 5
+//     store i8 0, i8* %cc.rc1.gep
+//     br label %control_capsule_write
+//   
+//   control_capsule_write:                            ; preds = %control_capsule_map0_bb, %control_capsule_bad_resource
+//     %1 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 0, i64 20)
+//     ret void
+//   
+//   process_net_packet:                               ; preds = %entry
+//     <original code>
 
 #define DEBUG_TYPE "control-capsule"
 
