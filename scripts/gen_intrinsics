@@ -16,6 +16,7 @@ MODES=(MODE_HPP, MODE_CPP)
 TAG_NAME="Name"
 TAG_COPYRIGHT="Copyright"
 TAG_FLAGS="Flags"
+TAG_FMRB="Fmrb"
 
 FLAG_DUMMY="Dummy"
 FLAG_NANOTUBE="Nanotube"
@@ -51,6 +52,7 @@ ENUM_END="""
 HPP_END="""
   extern std::map<std::string, Intrinsics::ID> intrinsic_name_to_id;
   extern std::map<Intrinsics::ID, std::string> intrinsic_id_to_name;
+  extern const std::vector<llvm::FunctionModRefBehavior> intrinsic_fmrb;
 
 } // namespace nanotube
 
@@ -78,6 +80,28 @@ std::map<Intrinsics::ID, std::string> nanotube::intrinsic_id_to_name {
 """
 
 ID_TO_NAME_END="""};
+"""
+
+FMRB_BEGIN="""
+#define RO  FMRB_OnlyReadsArgumentPointees
+#define RW  FMRB_OnlyAccessesArgumentPointees
+#define RWI FMRB_OnlyAccessesInaccessibleOrArgMem
+#define I   FMRB_OnlyAccessesInaccessibleMem
+#define DNA FMRB_DoesNotAccessMemory
+#define UK  FMRB_UnknownModRefBehavior
+/* Note: There is a lack of precision here in multiple dimensions.
+ * Missing write-only, the distinction between inaccessible mem vs arg
+ * mem, and read-only inaccessible + arg */
+const std::vector<llvm::FunctionModRefBehavior> nanotube::intrinsic_fmrb {
+"""
+
+FMRB_END="""};
+#undef RO
+#undef RW
+#undef RWI
+#undef I
+#undef DNA
+#undef UK
 """
 
 CPP_END="""
@@ -139,6 +163,11 @@ class app:
                          (self.__prog, TAG_FLAGS, e))
         sys.exit(1)
 
+      if TAG_FMRB not in e:
+        sys.stderr.write("%s: Missing %r in definition %r.\n" %
+                         (self.__prog, TAG_FMRB, e))
+        sys.exit(1)
+
       e[TAG_FLAGS] = e[TAG_FLAGS].split()
       self.__intrinsics.append(e)
 
@@ -178,11 +207,20 @@ class app:
                (enum_name, name))
     fh.write(ID_TO_NAME_END)
 
+  def write_fmrb(self, fh):
+    fh.write(FMRB_BEGIN)
+    for e in self.__intrinsics:
+      name = e[TAG_NAME]
+      fmrb = e[TAG_FMRB]
+      fh.write("  %-6s // %s\n" % (fmrb+",", name))
+    fh.write(FMRB_END)
+
   def write_cpp(self, fh):
     self.write_copyright(fh)
     fh.write(CPP_BEGIN)
     self.write_name_to_id(fh)
     self.write_id_to_name(fh)
+    self.write_fmrb(fh)
     fh.write(CPP_END)
 
   def write_output(self):
