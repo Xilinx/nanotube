@@ -2621,6 +2621,40 @@ IntrinsicDebugPass::IntrinsicDebugPass(): ImmutablePass(ID) {
   for (auto &p: intrinsic_name_to_id) {
     output << p.first << " -> " << p.second << "\n";
   }
+
+  for (unsigned i=0; i<intrinsic_arg_info.size(); i++) {
+    output << intrinsic_to_string((Intrinsics::ID)i)
+           << ":";
+    for (unsigned j=0; j<intrinsic_arg_info[i].size(); j++) {
+      const char *s = "? ";
+      switch (intrinsic_arg_info[i][j]) {
+      case ModRefInfo::MustRef:    s = "R "; break;
+      case ModRefInfo::MustMod:    s = "W "; break;
+      case ModRefInfo::MustModRef: s = "RW"; break;
+      case ModRefInfo::NoModRef:   s = "N "; break;
+      case ModRefInfo::ModRef:     s = "_ "; break;
+      default:                               break;
+      }
+      output << ' ' << s;
+    }
+    output << '\n';
+  }
+
+  for (int i=Intrinsics::none; i<Intrinsics::end; i++) {
+    auto iid = (Intrinsics::ID)i;
+    output << intrinsic_to_string(iid) << ": ";
+    const char *s = "(unknown)";
+    switch (get_nt_fmrb(iid)) {
+    case FMRB_OnlyReadsArgumentPointees:        s = "RO";  break;
+    case FMRB_OnlyAccessesArgumentPointees:     s = "RW";  break;
+    case FMRB_OnlyAccessesInaccessibleOrArgMem: s = "RWI"; break;
+    case FMRB_OnlyAccessesInaccessibleMem:      s = "I";   break;
+    case FMRB_DoesNotAccessMemory:              s = "DNA"; break;
+    case FMRB_UnknownModRefBehavior:            s = "UK";  break;
+    default: break;
+    }
+    output << s << '\n';
+  }
 }
 
 static RegisterPass<IntrinsicDebugPass>
