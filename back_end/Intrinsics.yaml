@@ -1,0 +1,180 @@
+- Copyright: |
+   /**************************************************************************
+   ** Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+   ** SPDX-License-Identifier: MIT
+   **************************************************************************/
+
+- Name: none
+  Flags: Dummy
+
+- Name: llvm_bswap
+  Flags: LLVM
+
+- Name: llvm_dbg_declare
+  Flags: LLVM
+
+- Name: llvm_dbg_value
+  Flags: LLVM
+
+- Name: llvm_lifetime_start
+  Flags: LLVM
+
+- Name: llvm_lifetime_end
+  Flags: LLVM
+
+- Name: llvm_memset
+  ExtName: memset
+  Flags: Extern
+
+- Name: llvm_memcpy
+  Flags: LLVM
+
+- Name: llvm_memcmp
+  Flags: LLVM
+
+- Name: llvm_stackrestore
+  Flags: LLVM
+
+- Name: llvm_stacksave
+  Flags: LLVM
+
+- Name: llvm_unknown
+  Flags: LLVM
+
+- Name: malloc
+  Flags: Nanotube
+
+- Name: context_create
+  Flags: Nanotube
+
+- Name: context_add_channel
+  Flags: Nanotube
+
+- Name: context_add_map
+  Flags: Nanotube
+
+- Name: channel_create
+  Flags: Nanotube
+
+- Name: channel_set_attr
+  Flags: Nanotube
+
+- Name: channel_export
+  Flags: Nanotube
+
+- Name: channel_read
+  Flags: Nanotube
+
+- Name: channel_try_read
+  Flags: Nanotube
+
+- Name: channel_write
+  Flags: Nanotube
+
+- Name: channel_has_space
+  Flags: Nanotube
+
+- Name: thread_create
+  Flags: Nanotube
+
+- Name: thread_wait
+  Flags: Nanotube
+
+- Name: add_plain_packet_kernel
+  Flags: Nanotube
+
+- Name: packet_read
+  Flags: Nanotube
+
+- Name: packet_write
+  Flags: Nanotube
+
+- Name: packet_write_masked
+  Flags: Nanotube
+
+- Name: packet_edit
+  Flags: Nanotube
+
+- Name: packet_bounded_length
+  Flags: Nanotube
+
+- Name: packet_get_port
+  Flags: Nanotube
+
+- Name: packet_set_port
+  Flags: Nanotube
+
+- Name: packet_data
+  Flags: Nanotube
+
+- Name: packet_end
+  Flags: Nanotube
+
+- Name: packet_resize
+  Flags: Nanotube
+
+- Name: packet_resize_ingress
+  Flags: Nanotube
+
+- Name: packet_resize_egress
+  Flags: Nanotube
+
+- Name: packet_drop
+  Flags: Nanotube
+
+- Name: map_create
+  Flags: Nanotube
+
+- Name: map_op
+  Flags: Nanotube
+
+- Name: map_op_send
+  Flags: Nanotube
+
+- Name: map_op_receive
+  Flags: Nanotube
+
+- Name: map_get_id
+  Flags: Nanotube
+
+- Name: map_lookup
+  Flags: Nanotube
+
+- Name: map_read
+  Flags: Nanotube
+
+- Name: map_write
+  Flags: Nanotube
+
+- Name: map_insert
+  Flags: Nanotube
+
+- Name: map_update
+  Flags: Nanotube
+
+- Name: map_remove
+  Flags: Nanotube
+
+- Name: get_time_ns
+  Flags: Nanotube
+
+- Name: debug_trace
+  Flags: Nanotube
+
+- Name: trace_buffer
+  Flags: Nanotube
+
+- Name: tap_packet_resize_ingress_state_init
+  Flags: Nanotube
+
+- Name: tap_packet_resize_egress_state_init
+  Flags: Nanotube
+
+- Name: tap_map_create
+  Flags: Nanotube
+
+- Name: tap_map_add_client
+  Flags: Nanotube
+
+- Name: tap_map_build
+  Flags: Nanotube

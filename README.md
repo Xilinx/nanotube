@@ -76,6 +76,7 @@ To install the require packages, run these commands as root:
       apt-get install -y cmake g++ m4 libpcap-dev wireshark scons libelf-dev libpci-dev
       apt-get install -y libboost-dev libboost-doc libboost-program-options-dev
       apt-get install -y python-is-python2 libxml2-dev libboost-system-dev
+      apt-get install -y python3-yaml
 
 Note that the python-is-python2 package changes the /usr/bin/python
 symlink to point to Python2, so it may affect other programs or
@@ -88,6 +89,7 @@ To install the require packages, run these commands as root:
       apt-get install -y cmake g++ m4 libpcap-dev wireshark scons libelf-dev libpci-dev
       apt-get install -y libboost-dev libboost-doc libboost-program-options-dev
       apt-get install -y libxml2-dev libboost-system-dev
+      apt-get install -y python3-yaml
 
 ### Installing packages on CentOS 7
 
@@ -96,6 +98,7 @@ To install the required packages, run these commands as root:
       yum install -y https://cbs.centos.org/kojifiles/packages/scons/2.5.1/4.el7/noarch/scons-2.5.1-4.el7.noarch.rpm
       yum install -y devtoolset-6 libpcap-devel wireshark
       yum install -y boost-devel pciutils-devel
+      yum install -y python36-PyYAML
 
 Note that devtoolset-{5,6,7,8} should be fine, but the instructions
 below will need to be changed.

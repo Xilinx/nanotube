@@ -24,33 +24,6 @@
 using namespace nanotube;
 using namespace llvm;
 
-typedef std::map<std::string, Intrinsics::ID> map_type;
-#define DEF(NAME) {"nanotube_"#NAME, Intrinsics::NAME}
-static map_type intrinsic_name_to_id{
-#include "Intrinsics.def"
-#undef DEF
-};
-
-static std::map<Intrinsics::ID, std::string> intrinsic_id_to_name {
-#define DEF(NAME) {Intrinsics::NAME, ""#NAME}
-  DEF(none),
-  DEF(llvm_bswap),
-  DEF(llvm_dbg_declare),
-  DEF(llvm_dbg_value),
-  DEF(llvm_lifetime_end),
-  DEF(llvm_lifetime_start),
-  DEF(llvm_memset),
-  DEF(llvm_memcpy),
-  DEF(llvm_memcmp),
-  DEF(llvm_stackrestore),
-  DEF(llvm_stacksave),
-  DEF(llvm_unknown),
-#undef DEF
-#define DEF(NAME) {Intrinsics::NAME, "nanotube_"#NAME}
-#include "Intrinsics.def"
-#undef DEF
-};
-
 Intrinsics::ID nanotube::get_intrinsic(const Instruction* insn)
 {
   assert(insn != NULL);

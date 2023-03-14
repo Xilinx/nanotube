@@ -19,6 +19,15 @@ back_end_libs = capture_output([
     'Support',
 ])
 
+env.Command(["IntrinsicDefs.cpp"],
+            ["${SOURCE_TOP}/scripts/gen_intrinsics",
+             "Intrinsics.yaml"],
+            [ "${SOURCES[0]} -C ${SOURCES[1]} ${TARGET}" ])
+env.Command(["IntrinsicDefs.hpp"],
+            ["${SOURCE_TOP}/scripts/gen_intrinsics",
+             "Intrinsics.yaml"],
+            [ "${SOURCES[0]} -H ${SOURCES[1]} ${TARGET}" ])
+
 sources = [
     'aa_tie_in.cpp',
     'add_trace.cpp',
@@ -36,6 +45,7 @@ sources = [
     'HLS_Printer.cpp',
     'hls_validate.cpp',
     'Intrinsics.cpp',
+    'IntrinsicDefs.cpp',
     'Liveness.cpp',
     'Map_Packet_CFG.cpp',
     'Mem2req.cpp',

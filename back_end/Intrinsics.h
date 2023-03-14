@@ -23,6 +23,7 @@
 #include "llvm/IR/Value.h"
 #include "nanotube_api.h"
 #include "bus_type.hpp"
+#include "IntrinsicDefs.hpp"
 
 #include <cstdint>
 #include <string>
@@ -45,32 +46,6 @@ using llvm::Value;
 
 namespace nanotube
 {
-  namespace Intrinsics
-  {
-    typedef enum {
-      none,
-
-      // LLVM intrinsics.
-      llvm_bswap,
-      llvm_dbg_declare,
-      llvm_dbg_value,
-      llvm_lifetime_start,
-      llvm_lifetime_end,
-      llvm_memset,
-      llvm_memcpy,
-      llvm_memcmp,
-      llvm_stackrestore,
-      llvm_stacksave,
-      llvm_unknown,
-
-      // Nanotube intrinsics.
-#include "Intrinsics.def"
-
-      // Not an intrinsic.  Indicates the maximum value.
-      end,
-    } ID;
-  }
-
   // This can be called to determine whether an instruction is a call
   // to an intrinsic and which intrinsic if it is.  For a call to a
   // normal function or a non-call instruction it will return
