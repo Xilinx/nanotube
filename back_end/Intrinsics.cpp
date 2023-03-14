@@ -2619,11 +2619,13 @@ public:
 char IntrinsicDebugPass::ID;
 
 IntrinsicDebugPass::IntrinsicDebugPass(): ImmutablePass(ID) {
+  raw_os_ostream output(std::cout);
+
   for (auto &p: intrinsic_id_to_name) {
-    std::cout << p.first << " -> " << p.second << "\n";
+    output << p.first << " -> " << p.second << "\n";
   }
   for (auto &p: intrinsic_name_to_id) {
-    std::cout << p.first << " -> " << p.second << "\n";
+    output << p.first << " -> " << p.second << "\n";
   }
 }
 
