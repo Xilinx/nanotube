@@ -2435,7 +2435,7 @@ namespace nanotube {
 #define RW ModRefInfo::MustModRef
 #define N  ModRefInfo::NoModRef
 #define _  ModRefInfo::ModRef
-static const ModRefInfo nt_arg_info[][10] = {
+static const ModRefInfo intrinsic_arg_info[][10] = {
   { _, _, _, _, _, _, _, _, _,       },   /* none */
   { N,              _,_,_,_,_,_,_,_,_},   /* llvm_bswap */
   { N, N, N,            _,_,_,_,_,_,_},   /* llvm_dbg_declare */
@@ -2495,7 +2495,8 @@ static const ModRefInfo nt_arg_info[][10] = {
   {RW, N, N, N, N,RW, N,RW, N,      _},   /* tap_map_add_client */
   {RW,              _,_,_,_,_,_,_,_,_},   /* tap_map_build */
 };
-const unsigned nt_arg_info_size = sizeof(nt_arg_info) / sizeof(nt_arg_info[0]);
+const unsigned intrinsic_arg_info_size =
+  sizeof(intrinsic_arg_info) / sizeof(intrinsic_arg_info[0]);
 #undef R
 #undef W
 #undef RW
@@ -2511,10 +2512,11 @@ ModRefInfo get_nt_arg_info(Intrinsics::ID intr, unsigned arg_idx) {
     return ModRefInfo::ModRef;
 
   assert((intr >= low) && (intr <= high));
-  assert(high - low + 1 == nt_arg_info_size);
-  assert(arg_idx < sizeof(nt_arg_info[0]) / sizeof(nt_arg_info[0][0]));
+  assert(high - low + 1 == intrinsic_arg_info_size);
+  assert(arg_idx < ( sizeof(intrinsic_arg_info[0]) /
+                     sizeof(intrinsic_arg_info[0][0]) ));
 
-  return nt_arg_info[intr - low][arg_idx];
+  return intrinsic_arg_info[intr - low][arg_idx];
 }
 
 FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
@@ -2527,7 +2529,7 @@ FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
   /* Note: There is a lack of precision here in multiple dimensions.
    * Missing write-only, the distinction between inaccessible mem vs arg
    * mem, and read-only inaccessible + arg */
-  static const FunctionModRefBehavior nt_fmrb[] = {
+  static const FunctionModRefBehavior intrinsic_fmrb[] = {
     UK,  /* none */
     DNA, /* llvm_bswap */
     UK,  /* llvm_dbg_declare */
@@ -2595,11 +2597,12 @@ FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
   /* Make sure the table covers all enums */
   const unsigned low  = Intrinsics::none;
   const unsigned high = Intrinsics::end-1;
-  const unsigned nt_fmrb_size = sizeof(nt_fmrb) / sizeof(nt_fmrb[0]);
+  const unsigned intrinsic_fmrb_size = ( sizeof(intrinsic_fmrb) /
+                                         sizeof(intrinsic_fmrb[0]) );
 
   assert((intr >= low) && (intr <= high));
-  assert(high - low + 1 == nt_fmrb_size);
-  return nt_fmrb[intr - low];
+  assert(high - low + 1 == intrinsic_fmrb_size);
+  return intrinsic_fmrb[intr - low];
 }
 };
 
