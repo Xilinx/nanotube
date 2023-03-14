@@ -24,7 +24,11 @@ sources = [
 ]
 
 lib_nanotube_env = env.Clone()
-lib_nanotube_env.Append(CPPPATH=["."])
+lib_nanotube_env.Append(CPPPATH=[
+    ".",
+    "../include",
+    "../back_end",
+])
 lib_nanotube_env.SharedLibrary('ebpf_passes', sources)
 
 prog_libs = capture_output([

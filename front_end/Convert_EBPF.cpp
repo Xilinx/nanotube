@@ -32,10 +32,10 @@
 #include "llvm/Transforms/Utils/ModuleUtils.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
 
-#include "../back_end/Intrinsics.h"
-#include "../include/nanotube_private.hpp"
-#include "../include/ebpf_nt_adapter.h"
-#include "../back_end/utils.h"
+#include "Intrinsics.h"
+#include "nanotube_private.hpp"
+#include "ebpf_nt_adapter.h"
+#include "utils.h"
 
 using namespace llvm;
 using namespace nanotube;
