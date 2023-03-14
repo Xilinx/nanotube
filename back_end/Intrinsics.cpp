@@ -2630,4 +2630,33 @@ FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
 }
 };
 
+/*************************************************************************/
+
+#include <iostream>
+
+class IntrinsicDebugPass: public llvm::ImmutablePass {
+public:
+  static char ID;
+  IntrinsicDebugPass();
+};
+
+char IntrinsicDebugPass::ID;
+
+IntrinsicDebugPass::IntrinsicDebugPass(): ImmutablePass(ID) {
+  for (auto &p: intrinsic_id_to_name) {
+    std::cout << p.first << " -> " << p.second << "\n";
+  }
+  for (auto &p: intrinsic_name_to_id) {
+    std::cout << p.first << " -> " << p.second << "\n";
+  }
+}
+
+static RegisterPass<IntrinsicDebugPass>
+register_pass("intrinsic-debug", "Debug the intrinsics",
+               false,
+               false
+  );
+
+/*************************************************************************/
+
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */
