@@ -6,175 +6,233 @@
 
 - Name: none
   Flags: Dummy
+  Fmrb: UK
 
 - Name: llvm_bswap
   Flags: LLVM
+  Fmrb: DNA
 
 - Name: llvm_dbg_declare
   Flags: LLVM
+  Fmrb: UK
 
 - Name: llvm_dbg_value
   Flags: LLVM
+  Fmrb: UK
 
 - Name: llvm_lifetime_start
   Flags: LLVM
+  Fmrb: UK
 
 - Name: llvm_lifetime_end
   Flags: LLVM
+  Fmrb: UK
 
 - Name: llvm_memset
   ExtName: memset
   Flags: Extern
+  Fmrb: RW
 
 - Name: llvm_memcpy
   Flags: LLVM
+  Fmrb: RW
 
 - Name: llvm_memcmp
   Flags: LLVM
+  Fmrb: RO
 
 - Name: llvm_stackrestore
   Flags: LLVM
+  Fmrb: DNA
 
 - Name: llvm_stacksave
   Flags: LLVM
+  Fmrb: DNA
 
 - Name: llvm_unknown
   Flags: LLVM
+  Fmrb: UK
 
 - Name: malloc
   Flags: Nanotube
+  Fmrb: I
 
 - Name: context_create
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: context_add_channel
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: context_add_map
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: channel_create
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: channel_set_attr
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: channel_export
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: channel_read
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: channel_try_read
   Flags: Nanotube
+  Fmrb: RW
 
 - Name: channel_write
   Flags: Nanotube
+  Fmrb: RW
 
 - Name: channel_has_space
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: thread_create
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: thread_wait
   Flags: Nanotube
+  Fmrb: I
 
 - Name: add_plain_packet_kernel
   Flags: Nanotube
+  Fmrb: UK
 
 - Name: packet_read
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_write
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_write_masked
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_edit
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_bounded_length
   Flags: Nanotube
+  Fmrb: I
 
 - Name: packet_get_port
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_set_port
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_data
   Flags: Nanotube
+  Fmrb: I
 
 - Name: packet_end
   Flags: Nanotube
+  Fmrb: I
 
 - Name: packet_resize
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_resize_ingress
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_resize_egress
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: packet_drop
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_create
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_op
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_op_send
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_op_receive
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_get_id
   Flags: Nanotube
+  Fmrb: I
 
 - Name: map_lookup
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_read
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_write
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_insert
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_update
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: map_remove
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: get_time_ns
   Flags: Nanotube
+  Fmrb: DNA
 
 - Name: debug_trace
   Flags: Nanotube
+  Fmrb: I
 
 - Name: trace_buffer
   Flags: Nanotube
+  Fmrb: RWI
 
 - Name: tap_packet_resize_ingress_state_init
   Flags: Nanotube
+  Fmrb: RW
 
 - Name: tap_packet_resize_egress_state_init
   Flags: Nanotube
+  Fmrb: RW
 
 - Name: tap_map_create
   Flags: Nanotube
+  Fmrb: I
 
 - Name: tap_map_add_client
   Flags: Nanotube
+  Fmrb: RW
 
 - Name: tap_map_build
   Flags: Nanotube
+  Fmrb: RWI
