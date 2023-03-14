@@ -26,12 +26,12 @@ using namespace llvm;
 
 typedef std::map<std::string, Intrinsics::ID> map_type;
 #define DEF(NAME) {"nanotube_"#NAME, Intrinsics::NAME}
-static map_type nanotube_intrinsic_ids{
+static map_type intrinsic_name_to_id{
 #include "Intrinsics.def"
 #undef DEF
 };
 
-static std::map<Intrinsics::ID, std::string> nanotube_intrinsic_names {
+static std::map<Intrinsics::ID, std::string> intrinsic_id_to_name {
 #define DEF(NAME) {Intrinsics::NAME, ""#NAME}
   DEF(none),
   DEF(llvm_bswap),
@@ -71,8 +71,8 @@ Intrinsics::ID nanotube::get_intrinsic(const Function* func)
   assert(func != NULL);
 
   std::string name = func->getName();
-  map_type::iterator it = nanotube_intrinsic_ids.find(name);
-  if (it != nanotube_intrinsic_ids.end())
+  auto it = intrinsic_name_to_id.find(name);
+  if (it != intrinsic_name_to_id.end())
     return it->second;
 
   switch (func->getIntrinsicID())
@@ -132,8 +132,8 @@ Intrinsics::ID nanotube::get_intrinsic(const Function* func)
 }
 
 std::string nanotube::intrinsic_to_string(Intrinsics::ID id) {
-  auto it = nanotube_intrinsic_names.find(id);
-  if( it != nanotube_intrinsic_names.end() )
+  auto it = intrinsic_id_to_name.find(id);
+  if( it != intrinsic_id_to_name.end() )
     return it->second;
   else
     return "<unknown>";
