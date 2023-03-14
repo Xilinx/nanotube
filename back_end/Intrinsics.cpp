@@ -2514,89 +2514,10 @@ ModRefInfo get_nt_arg_info(Intrinsics::ID intr, unsigned arg_idx) {
 }
 
 FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
-#define RO  FMRB_OnlyReadsArgumentPointees
-#define RW  FMRB_OnlyAccessesArgumentPointees
-#define RWI FMRB_OnlyAccessesInaccessibleOrArgMem
-#define I   FMRB_OnlyAccessesInaccessibleMem
-#define DNA FMRB_DoesNotAccessMemory
-#define UK  FMRB_UnknownModRefBehavior
-  /* Note: There is a lack of precision here in multiple dimensions.
-   * Missing write-only, the distinction between inaccessible mem vs arg
-   * mem, and read-only inaccessible + arg */
-  static const FunctionModRefBehavior intrinsic_fmrb[] = {
-    UK,  /* none */
-    DNA, /* llvm_bswap */
-    UK,  /* llvm_dbg_declare */
-    UK,  /* llvm_dbg_value */
-    UK,  /* llvm_lifetime_start */
-    UK,  /* llvm_lifetime_end */
-    RW,  /* llvm_memset */
-    RW,  /* llvm_memcpy */
-    RO,  /* llvm_memcmp */
-    DNA, /* llvm_stackrestore */
-    DNA, /* llvm_stacksave */
-    UK,  /* llvm_unknown */
-    I,   /* malloc */
-    UK,  /* context_create */
-    UK,  /* context_add_channel */
-    UK,  /* context_add_map */
-    UK,  /* channel_create */
-    UK,  /* channel_set_attr */
-    UK,  /* channel_export */
-    UK,  /* channel_read */
-    RW,  /* channel_try_read */
-    RW,  /* channel_write */
-    UK,  /* channel_has_space */
-    UK,  /* thread_create */
-    I,   /* thread_wait */
-    UK,  /* add_plain_packet_kernel */
-    RWI, /* packet_read */
-    RWI, /* packet_write */
-    RWI, /* packet_write_masked */
-    RWI, /* packet_edit */
-    I,   /* packet_bounded_length */
-    RWI, /* packet_get_port */
-    RWI, /* packet_set_port */
-    I,   /* packet_data */
-    I,   /* packet_end */
-    RWI, /* packet_resize */
-    RWI, /* packet_resize_ingress */
-    RWI, /* packet_resize_egress */
-    RWI, /* packet_drop */
-    RWI, /* map_create */
-    RWI, /* map_op */
-    RWI, /* map_op_send */
-    RWI, /* map_op_receive */
-    I,   /* map_get_id */
-    RWI, /* map_lookup */
-    RWI, /* map_read */
-    RWI, /* map_write */
-    RWI, /* map_insert */
-    RWI, /* map_update */
-    RWI, /* map_remove */
-    DNA, /* get_time_ns */
-    I,   /* debug_trace */
-    RWI, /* trace_buffer */
-    RW,  /* tap_packet_resize_ingress_state_init */
-    RW,  /* tap_packet_resize_egress_state_init */
-    I,   /* tap_map_create */
-    RW,  /* tap_map_add_client */
-    RWI, /* tap_map_build */
-  };
-#undef RO
-#undef RW
-#undef RWI
-#undef I
-#undef UK
   /* Make sure the table covers all enums */
-  const unsigned low  = Intrinsics::none;
-  const unsigned high = Intrinsics::end-1;
-  const unsigned intrinsic_fmrb_size = ( sizeof(intrinsic_fmrb) /
-                                         sizeof(intrinsic_fmrb[0]) );
-
-  assert((intr >= low) && (intr <= high));
-  assert(high - low + 1 == intrinsic_fmrb_size);
-  return intrinsic_fmrb[intr - low];
+  assert(intr < Intrinsics::end);
+  assert(intrinsic_fmrb.size() == Intrinsics::end);
+  return intrinsic_fmrb[intr];
 }
 };
 
