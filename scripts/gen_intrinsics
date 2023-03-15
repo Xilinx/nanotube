@@ -14,9 +14,11 @@ MODE_CPP="cpp"
 MODES=(MODE_HPP, MODE_CPP)
 
 TAG_NAME="Name"
+TAG_ARGS="Args"
 TAG_COPYRIGHT="Copyright"
 TAG_FLAGS="Flags"
 TAG_FMRB="Fmrb"
+TAG_MODREF="ModRef"
 
 FLAG_DUMMY="Dummy"
 FLAG_NANOTUBE="Nanotube"
@@ -53,6 +55,7 @@ HPP_END="""
   extern std::map<std::string, Intrinsics::ID> intrinsic_name_to_id;
   extern std::map<Intrinsics::ID, std::string> intrinsic_id_to_name;
   extern const std::vector<llvm::FunctionModRefBehavior> intrinsic_fmrb;
+  extern const std::vector<std::vector<llvm::ModRefInfo> > intrinsic_arg_info;
 
 } // namespace nanotube
 
@@ -102,6 +105,29 @@ FMRB_END="""};
 #undef I
 #undef DNA
 #undef UK
+"""
+
+ARG_INFO_BEGIN="""
+/* This is a very compact representation of the ModRef behaviour of the
+ * intrinsics.  It is a table indexed by the intrinsic ID and the argument
+ * index.  Its content is the ModRefInfo for the argument.  Note that
+ * non-pointer arguments are represented as NoModRef and arguments not
+ * present are represented as odRef.  Further, please note that map_op may
+ * give tighter bounds when inspecting the actual operation type. */
+#define R  ModRefInfo::MustRef
+#define W  ModRefInfo::MustMod
+#define RW ModRefInfo::MustModRef
+#define N  ModRefInfo::NoModRef
+#define _  ModRefInfo::ModRef
+const std::vector<std::vector<ModRefInfo> > nanotube::intrinsic_arg_info = {
+"""
+
+ARG_INFO_END="""};
+#undef R
+#undef W
+#undef RW
+#undef N
+#undef _
 """
 
 CPP_END="""
@@ -157,6 +183,23 @@ class app:
         sys.stderr.write("%s: Missing %r in definition %r.\n" %
                          (self.__prog, TAG_NAME, e))
         sys.exit(1)
+      name = e[TAG_NAME]
+
+      if TAG_ARGS not in e:
+        sys.stderr.write("%s: Missing %r in definition %r.\n" %
+                         (self.__prog, TAG_ARGS, e))
+        sys.exit(1)
+
+      if type(e[TAG_ARGS]) is not list:
+        sys.stderr.write("%s: Incorrect %r type in definition of %r.\n" %
+                         (self.__prog, TAG_ARGS, name))
+        sys.exit(1)
+
+      for i,arg in enumerate(e[TAG_ARGS]):
+        if TAG_MODREF not in arg:
+          sys.stderr.write("%s: Missing %r in argument %d of %r.\n" %
+                           (self.__prog, TAG_MODREF, i, name))
+          sys.exit(1)
 
       if TAG_FLAGS not in e:
         sys.stderr.write("%s: Missing %r in definition %r.\n" %
@@ -215,12 +258,24 @@ class app:
       fh.write("  %-6s // %s\n" % (fmrb+",", name))
     fh.write(FMRB_END)
 
+  def write_arg_info(self, fh):
+    fh.write(ARG_INFO_BEGIN)
+    for e in self.__intrinsics:
+      name = e[TAG_NAME]
+      args = e[TAG_ARGS]
+      arg_info = ",".join("%2s"%e[TAG_MODREF] for e in args)
+      fh.write("  %-35s // %s\n" %
+               ("{"+arg_info+"},", name))
+
+    fh.write(ARG_INFO_END)
+
   def write_cpp(self, fh):
     self.write_copyright(fh)
     fh.write(CPP_BEGIN)
     self.write_name_to_id(fh)
     self.write_id_to_name(fh)
     self.write_fmrb(fh)
+    self.write_arg_info(fh)
     fh.write(CPP_END)
 
   def write_output(self):

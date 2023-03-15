@@ -7,232 +7,471 @@
 - Name: none
   Flags: Dummy
   Fmrb: UK
+  Args: []
 
 - Name: llvm_bswap
   Flags: LLVM
   Fmrb: DNA
+  Args:
+  - ModRef: N
 
 - Name: llvm_dbg_declare
   Flags: LLVM
   Fmrb: UK
+  Args:
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
 
 - Name: llvm_dbg_value
   Flags: LLVM
   Fmrb: UK
+  Args:
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
 
 - Name: llvm_lifetime_start
   Flags: LLVM
   Fmrb: UK
+  Args:
+  - ModRef: N
+  - ModRef: _
 
 - Name: llvm_lifetime_end
   Flags: LLVM
   Fmrb: UK
+  Args:
+  - ModRef: N
+  - ModRef: _
 
 - Name: llvm_memset
   ExtName: memset
   Flags: Extern
   Fmrb: RW
+  Args:
+  - ModRef: W
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
 
 - Name: llvm_memcpy
   Flags: LLVM
   Fmrb: RW
+  Args:
+  - ModRef: W
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: llvm_memcmp
   Flags: LLVM
   Fmrb: RO
+  Args:
+  - ModRef: R
+  - ModRef: R
+  - ModRef: N
 
 - Name: llvm_stackrestore
   Flags: LLVM
   Fmrb: DNA
+  Args:
+  - ModRef: _
 
 - Name: llvm_stacksave
   Flags: LLVM
   Fmrb: DNA
+  Args: []
 
 - Name: llvm_unknown
   Flags: LLVM
   Fmrb: UK
+  Args: []
 
 - Name: malloc
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: N
 
 - Name: context_create
   Flags: Nanotube
   Fmrb: UK
+  Args: []
 
 - Name: context_add_channel
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
 
 - Name: context_add_map
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
 
 - Name: channel_create
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: channel_set_attr
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: channel_export
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: channel_read
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: W
+  - ModRef: N
 
 - Name: channel_try_read
   Flags: Nanotube
   Fmrb: RW
+  Args:
+  - ModRef: RW
+  - ModRef: N
+  - ModRef: W
+  - ModRef: N
 
 - Name: channel_write
   Flags: Nanotube
   Fmrb: RW
+  Args:
+  - ModRef: RW
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
 
 - Name: channel_has_space
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
 
 - Name: thread_create
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: R
+  - ModRef: _
+  - ModRef: R
+  - ModRef: N
 
 - Name: thread_wait
   Flags: Nanotube
   Fmrb: I
+  Args: []
 
 - Name: add_plain_packet_kernel
   Flags: Nanotube
   Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: _
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_read
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: W
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_write
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: W
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_write_masked
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: W
+  - ModRef: R
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_edit
   Flags: Nanotube
   Fmrb: RWI
+  Args: []
 
 - Name: packet_bounded_length
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: R
+  - ModRef: N
 
 - Name: packet_get_port
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
 
 - Name: packet_set_port
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: W
+  - ModRef: N
 
 - Name: packet_data
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: R
+  - ModRef: N
 
 - Name: packet_end
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: R
+  - ModRef: N
 
 - Name: packet_resize
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: RW
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_resize_ingress
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: W
+  - ModRef: RW
+  - ModRef: W
+  - ModRef: N
+  - ModRef: N
 
 - Name: packet_resize_egress
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: RW
+  - ModRef: R
+  - ModRef: N
 
 - Name: packet_drop
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: RW
+  - ModRef: N
 
 - Name: map_create
   Flags: Nanotube
   Fmrb: RWI
+  Args: []
 
 - Name: map_op
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: W
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_op_send
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_op_receive
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: W
+  - ModRef: N
 
 - Name: map_get_id
   Flags: Nanotube
   Fmrb: I
+  Args: []
 
 - Name: map_lookup
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_read
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: W
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_write
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_insert
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_update
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
 
 - Name: map_remove
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
 
 - Name: get_time_ns
   Flags: Nanotube
   Fmrb: DNA
+  Args: []
 
 - Name: debug_trace
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: N
+  - ModRef: N
 
 - Name: trace_buffer
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: N
+  - ModRef: R
+  - ModRef: N
 
 - Name: tap_packet_resize_ingress_state_init
   Flags: Nanotube
   Fmrb: RW
+  Args:
+  - ModRef: W
 
 - Name: tap_packet_resize_egress_state_init
   Flags: Nanotube
   Fmrb: RW
+  Args:
+  - ModRef: W
 
 - Name: tap_map_create
   Flags: Nanotube
   Fmrb: I
+  Args:
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
 
 - Name: tap_map_add_client
   Flags: Nanotube
   Fmrb: RW
+  Args:
+  - ModRef: RW
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
+  - ModRef: N
+  - ModRef: RW
+  - ModRef: N
+  - ModRef: RW
+  - ModRef: N
 
 - Name: tap_map_build
   Flags: Nanotube
   Fmrb: RWI
+  Args:
+  - ModRef: RW
