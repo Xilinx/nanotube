@@ -2435,7 +2435,7 @@ namespace nanotube {
 #define RW ModRefInfo::MustModRef
 #define N  ModRefInfo::NoModRef
 #define _  ModRefInfo::ModRef
-static const ModRefInfo intrinsic_arg_info[][10] = {
+static const std::vector<std::vector<ModRefInfo> > intrinsic_arg_info = {
   { _, _, _, _, _, _, _, _, _, _,    },   /* none */
   { N,              _,_,_,_,_,_,_,_,_},   /* llvm_bswap */
   { N, N, N,            _,_,_,_,_,_,_},   /* llvm_dbg_declare */
@@ -2495,8 +2495,6 @@ static const ModRefInfo intrinsic_arg_info[][10] = {
   {RW, N, N, N, N,RW, N,RW, N,      _},   /* tap_map_add_client */
   {RW,              _,_,_,_,_,_,_,_,_},   /* tap_map_build */
 };
-const unsigned intrinsic_arg_info_size =
-  sizeof(intrinsic_arg_info) / sizeof(intrinsic_arg_info[0]);
 #undef R
 #undef W
 #undef RW
@@ -2504,19 +2502,15 @@ const unsigned intrinsic_arg_info_size =
 #undef _
 
 ModRefInfo get_nt_arg_info(Intrinsics::ID intr, unsigned arg_idx) {
-  const unsigned low  = Intrinsics::none;
-  const unsigned high = Intrinsics::end-1;
-
   if (intr == Intrinsics::none ||
       intr == Intrinsics::llvm_unknown)
     return ModRefInfo::ModRef;
 
-  assert((intr >= low) && (intr <= high));
-  assert(high - low + 1 == intrinsic_arg_info_size);
-  assert(arg_idx < ( sizeof(intrinsic_arg_info[0]) /
-                     sizeof(intrinsic_arg_info[0][0]) ));
+  assert(intr < Intrinsics::end);
+  assert(intrinsic_arg_info.size() == Intrinsics::end);
+  assert(arg_idx < intrinsic_arg_info[intr].size());
 
-  return intrinsic_arg_info[intr - low][arg_idx];
+  return intrinsic_arg_info[intr][arg_idx];
 }
 
 FunctionModRefBehavior get_nt_fmrb(Intrinsics::ID intr) {
