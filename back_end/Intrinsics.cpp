@@ -2436,7 +2436,7 @@ namespace nanotube {
 #define N  ModRefInfo::NoModRef
 #define _  ModRefInfo::ModRef
 static const ModRefInfo intrinsic_arg_info[][10] = {
-  { _, _, _, _, _, _, _, _, _,       },   /* none */
+  { _, _, _, _, _, _, _, _, _, _,    },   /* none */
   { N,              _,_,_,_,_,_,_,_,_},   /* llvm_bswap */
   { N, N, N,            _,_,_,_,_,_,_},   /* llvm_dbg_declare */
   { N, N, N,            _,_,_,_,_,_,_},   /* llvm_dbg_value */
@@ -2447,7 +2447,7 @@ static const ModRefInfo intrinsic_arg_info[][10] = {
   { R, R, N,            _,_,_,_,_,_,_},   /* llvm_memcmp */
   { _,              _,_,_,_,_,_,_,_,_},   /* llvm_stackrestore */
   {               _,_,_,_,_,_,_,_,_,_},   /* llvm_stacksave */
-  { _, _, _, _, _, _, _, _, _,       },   /* llvm_unknown */
+  { _, _, _, _, _, _, _, _, _, _,    },   /* llvm_unknown */
   { N,              _,_,_,_,_,_,_,_,_},   /* malloc */
   {               _,_,_,_,_,_,_,_,_,_},   /* context_create */
   { R, N, R, N,           _,_,_,_,_,_},   /* context_add_channel */
