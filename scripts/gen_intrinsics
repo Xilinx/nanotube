@@ -16,6 +16,8 @@ MODES=(MODE_HPP, MODE_CPP)
 TAG_NAME="Name"
 TAG_ARGS="Args"
 TAG_COPYRIGHT="Copyright"
+TAG_ENUM_NAME="EnumName"
+TAG_EXTERN_NAME="ExternName"
 TAG_FLAGS="Flags"
 TAG_FMRB="Fmrb"
 TAG_MODREF="ModRef"
@@ -212,6 +214,16 @@ class app:
         sys.exit(1)
 
       e[TAG_FLAGS] = e[TAG_FLAGS].split()
+
+      if TAG_ENUM_NAME not in e:
+        e[TAG_ENUM_NAME] = e[TAG_NAME]
+
+      if TAG_EXTERN_NAME not in e:
+        if FLAG_NANOTUBE in e[TAG_FLAGS]:
+          e[TAG_EXTERN_NAME] = "nanotube_"+e[TAG_NAME]
+        else:
+          e[TAG_EXTERN_NAME] = e[TAG_NAME]
+
       self.__intrinsics.append(e)
 
   def write_copyright(self, fh):
@@ -220,7 +232,7 @@ class app:
   def write_enum(self, fh):
     fh.write(ENUM_BEGIN)
     for e in self.__intrinsics:
-      fh.write("      %s,\n" %(e[TAG_NAME]))
+      fh.write("      %s,\n" %(e[TAG_ENUM_NAME]))
     fh.write(ENUM_END)
 
   def write_hpp(self, fh):
@@ -234,38 +246,31 @@ class app:
     for e in self.__intrinsics:
       if FLAG_NANOTUBE not in e[TAG_FLAGS]:
         continue
-      name = e[TAG_NAME]
-      fh.write("  {\"nanotube_%s\", Intrinsics::%s},\n" %
-               (name, name))
+      fh.write("  {\"%s\", Intrinsics::%s},\n" %
+               (e[TAG_EXTERN_NAME], e[TAG_ENUM_NAME]))
     fh.write(NAME_TO_ID_END)
 
   def write_id_to_name(self, fh):
     fh.write(ID_TO_NAME_BEGIN)
     for e in self.__intrinsics:
-      enum_name = e[TAG_NAME]
-      name = enum_name
-      if FLAG_NANOTUBE in e[TAG_FLAGS]:
-        name = "nanotube_"+name
       fh.write("  {Intrinsics::%s, \"%s\"},\n" %
-               (enum_name, name))
+               (e[TAG_ENUM_NAME], e[TAG_EXTERN_NAME]))
     fh.write(ID_TO_NAME_END)
 
   def write_fmrb(self, fh):
     fh.write(FMRB_BEGIN)
     for e in self.__intrinsics:
-      name = e[TAG_NAME]
-      fmrb = e[TAG_FMRB]
-      fh.write("  %-6s // %s\n" % (fmrb+",", name))
+      fh.write("  %-6s // %s\n" %
+               (e[TAG_FMRB]+",", e[TAG_ENUM_NAME]))
     fh.write(FMRB_END)
 
   def write_arg_info(self, fh):
     fh.write(ARG_INFO_BEGIN)
     for e in self.__intrinsics:
-      name = e[TAG_NAME]
       args = e[TAG_ARGS]
       arg_info = ",".join("%2s"%e[TAG_MODREF] for e in args)
       fh.write("  %-35s // %s\n" %
-               ("{"+arg_info+"},", name))
+               ("{"+arg_info+"},", e[TAG_ENUM_NAME]))
 
     fh.write(ARG_INFO_END)
 
