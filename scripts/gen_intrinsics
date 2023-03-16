@@ -56,6 +56,7 @@ ENUM_END="""
 HPP_END="""
   extern std::map<std::string, Intrinsics::ID> intrinsic_name_to_id;
   extern std::map<Intrinsics::ID, std::string> intrinsic_id_to_name;
+  Intrinsics::ID intrinsic_id_from_llvm(llvm::Intrinsic::ID id);
   extern const std::vector<llvm::FunctionModRefBehavior> intrinsic_fmrb;
   extern const std::vector<std::vector<llvm::ModRefInfo> > intrinsic_arg_info;
 
@@ -68,6 +69,8 @@ HPP_END="""
 
 CPP_BEGIN="""
 #include "IntrinsicDefs.hpp"
+
+#include "llvm/IR/Intrinsics.h"
 
 using namespace nanotube;
 using namespace llvm;
@@ -85,6 +88,22 @@ std::map<Intrinsics::ID, std::string> nanotube::intrinsic_id_to_name {
 """
 
 ID_TO_NAME_END="""};
+"""
+
+ID_FROM_LLVM_BEGIN="""
+Intrinsics::ID nanotube::intrinsic_id_from_llvm(llvm::Intrinsic::ID id)
+{
+  switch (id)
+  {
+  case llvm::Intrinsic::not_intrinsic:
+    return Intrinsics::none;
+"""
+
+ID_FROM_LLVM_END="""
+  default:
+    return Intrinsics::llvm_unknown;
+  }
+}
 """
 
 FMRB_BEGIN="""
@@ -263,6 +282,16 @@ class app:
                (e[TAG_ENUM_NAME], e[TAG_EXTERN_NAME]))
     fh.write(ID_TO_NAME_END)
 
+  def write_id_from_llvm(self, fh):
+    fh.write(ID_FROM_LLVM_BEGIN)
+    for e in self.__intrinsics:
+      if FLAG_LLVM in e[TAG_FLAGS]:
+        fh.write("\n"
+                 "  case llvm::Intrinsic::%s:\n"
+                 "    return Intrinsics::%s;\n" %
+                 (e[TAG_NAME], e[TAG_ENUM_NAME]))
+    fh.write(ID_FROM_LLVM_END)
+
   def write_fmrb(self, fh):
     fh.write(FMRB_BEGIN)
     for e in self.__intrinsics:
@@ -285,6 +314,7 @@ class app:
     fh.write(CPP_BEGIN)
     self.write_name_to_id(fh)
     self.write_id_to_name(fh)
+    self.write_id_from_llvm(fh)
     self.write_fmrb(fh)
     self.write_arg_info(fh)
     fh.write(CPP_END)

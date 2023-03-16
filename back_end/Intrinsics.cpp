@@ -48,41 +48,9 @@ Intrinsics::ID nanotube::get_intrinsic(const Function* func)
   if (it != intrinsic_name_to_id.end())
     return it->second;
 
-  switch (func->getIntrinsicID())
-  {
-  case llvm::Intrinsic::not_intrinsic:
-    break;
-
-  case llvm::Intrinsic::bswap:
-    return Intrinsics::llvm_bswap;
-
-  case llvm::Intrinsic::dbg_declare:
-    return Intrinsics::llvm_dbg_declare;
-
-  case llvm::Intrinsic::dbg_value:
-    return Intrinsics::llvm_dbg_value;
-
-  case llvm::Intrinsic::lifetime_start:
-    return Intrinsics::llvm_lifetime_start;
-
-  case llvm::Intrinsic::lifetime_end:
-    return Intrinsics::llvm_lifetime_end;
-
-  case llvm::Intrinsic::memcpy:
-    return Intrinsics::llvm_memcpy;
-
-  case llvm::Intrinsic::memset:
-    return Intrinsics::llvm_memset;
-
-  case llvm::Intrinsic::stackrestore:
-    return Intrinsics::llvm_stackrestore;
-
-  case llvm::Intrinsic::stacksave:
-    return Intrinsics::llvm_stacksave;
-
-  default:
-    return Intrinsics::llvm_unknown;
-  }
+  auto iid = intrinsic_id_from_llvm(func->getIntrinsicID());
+  if (iid != Intrinsics::none)
+    return iid;
 
 #if 0
   llvm::LibFunc lib_func;
