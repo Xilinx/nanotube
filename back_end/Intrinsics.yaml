@@ -47,7 +47,7 @@
 
 - Name: llvm_memset
   ExternName: memset
-  Flags: Extern
+  Flags: LLVM
   Fmrb: RW
   Args:
   - ModRef: W
@@ -67,7 +67,7 @@
 
 - Name: llvm_memcmp
   ExternName: memcmp
-  Flags: LLVM
+  Flags:
   Fmrb: RO
   Args:
   - ModRef: R

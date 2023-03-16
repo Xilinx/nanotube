@@ -213,7 +213,10 @@ class app:
                          (self.__prog, TAG_FMRB, e))
         sys.exit(1)
 
-      e[TAG_FLAGS] = e[TAG_FLAGS].split()
+      if e[TAG_FLAGS] is None:
+        e[TAG_FLAGS] = []
+      else:
+        e[TAG_FLAGS] = e[TAG_FLAGS].split()
 
       if TAG_ENUM_NAME not in e:
         e[TAG_ENUM_NAME] = e[TAG_NAME]
