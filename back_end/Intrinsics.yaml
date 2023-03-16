@@ -9,13 +9,13 @@
   Fmrb: UK
   Args: []
 
-- Name: llvm_bswap
+- Name: bswap
   Flags: LLVM
   Fmrb: DNA
   Args:
   - ModRef: N
 
-- Name: llvm_dbg_declare
+- Name: dbg_declare
   Flags: LLVM
   Fmrb: UK
   Args:
@@ -23,7 +23,7 @@
   - ModRef: N
   - ModRef: N
 
-- Name: llvm_dbg_value
+- Name: dbg_value
   Flags: LLVM
   Fmrb: UK
   Args:
@@ -31,21 +31,21 @@
   - ModRef: N
   - ModRef: N
 
-- Name: llvm_lifetime_start
-  Flags: LLVM
-  Fmrb: UK
-  Args:
-  - ModRef: N
-  - ModRef: _
-
-- Name: llvm_lifetime_end
+- Name: lifetime_start
   Flags: LLVM
   Fmrb: UK
   Args:
   - ModRef: N
   - ModRef: _
 
-- Name: llvm_memset
+- Name: lifetime_end
+  Flags: LLVM
+  Fmrb: UK
+  Args:
+  - ModRef: N
+  - ModRef: _
+
+- Name: memset
   ExternName: memset
   Flags: LLVM
   Fmrb: RW
@@ -55,7 +55,7 @@
   - ModRef: N
   - ModRef: N
 
-- Name: llvm_memcpy
+- Name: memcpy
   ExternName: memcpy
   Flags: LLVM
   Fmrb: RW
@@ -74,19 +74,19 @@
   - ModRef: R
   - ModRef: N
 
-- Name: llvm_stackrestore
+- Name: stackrestore
   Flags: LLVM
   Fmrb: DNA
   Args:
   - ModRef: _
 
-- Name: llvm_stacksave
+- Name: stacksave
   Flags: LLVM
   Fmrb: DNA
   Args: []
 
 - Name: llvm_unknown
-  Flags: LLVM
+  Flags: Dummy
   Fmrb: UK
   Args: []
 

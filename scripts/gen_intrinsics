@@ -219,13 +219,16 @@ class app:
         e[TAG_FLAGS] = e[TAG_FLAGS].split()
 
       if TAG_ENUM_NAME not in e:
-        e[TAG_ENUM_NAME] = e[TAG_NAME]
+        if FLAG_LLVM in e[TAG_FLAGS]:
+          e[TAG_ENUM_NAME] = "llvm_" + e[TAG_NAME]
+        else:
+          e[TAG_ENUM_NAME] = e[TAG_NAME]
 
       if TAG_EXTERN_NAME not in e:
         if FLAG_NANOTUBE in e[TAG_FLAGS]:
-          e[TAG_EXTERN_NAME] = "nanotube_"+e[TAG_NAME]
+          e[TAG_EXTERN_NAME] = "nanotube_"+e[TAG_ENUM_NAME]
         else:
-          e[TAG_EXTERN_NAME] = e[TAG_NAME]
+          e[TAG_EXTERN_NAME] = e[TAG_ENUM_NAME]
 
       self.__intrinsics.append(e)
 
