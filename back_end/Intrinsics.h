@@ -379,7 +379,7 @@ namespace nanotube
   Constant* create_nt_merge_data_mask(Module& m);
   Constant* create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type);
   FunctionType* get_capsule_classify_ty(Module& m);
-  Constant* create_capsule_classify(Module& m, nanotube_bus_id_t bus_type);
+  Constant* create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type);
 
   StructType* get_nt_tap_packet_read_req_ty(Module& m);
   StructType* get_nt_tap_packet_read_resp_ty(Module& m);

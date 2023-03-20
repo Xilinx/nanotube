@@ -423,7 +423,7 @@ void cc_code_builder::finish_entry_bb()
 {
   // Build the entry basic block.
   m_builder.SetInsertPoint(m_new_entry_bb);
-  auto *classify_func = create_capsule_classify(*m_module, m_bus_type);
+  auto *classify_func = create_bus_capsule_classify(*m_module, m_bus_type);
   Value *args[] = { m_packet_arg, };
   auto *capsule_class = m_builder.CreateCall(classify_func,
                                              args, "capsule_class");

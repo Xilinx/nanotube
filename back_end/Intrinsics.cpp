@@ -1056,7 +1056,7 @@ FunctionType* get_capsule_classify_ty(Module& m) {
   return FunctionType::get(res_ty, arg_ty, false);
 }
 
-Constant* create_capsule_classify(Module& m, nanotube_bus_id_t bus_type) {
+Constant* create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = ( std::string("nanotube_capsule_classify") +
                  get_bus_suffix(bus_type) );
   return get_or_insert_function(m, fname, get_capsule_classify_ty(m));
