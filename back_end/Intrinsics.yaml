@@ -4,6 +4,44 @@
    ** SPDX-License-Identifier: MIT
    **************************************************************************/
 
+# This YAML file contains an array of objects which each have a
+# collection of properties.  Each object has a class which indicates
+# what sort of information it holds.  Most objects have a name to
+# allow cross-references.  Objects can contain other objects, but that
+# should only be done if the container object remains easy to read
+# from start to finish.  Large collections of objects should be
+# constructed using cross-references.
+#
+# The copyright class contains a copyright message for the input file
+# and output files.
+#
+#   Properties:
+#     Copyright: The copyright message.
+#
+# The intrinsic class contains information the functions known about
+# by the compiler.  It is used to generate the enum of intrinsics and
+# tables of information about them.  The functions may be defined by
+# the C library, by LLVM or by Nanotube.
+#
+#   Properties:
+#     Name: The basic name used to form other names.
+#     Args: An array of arguments (the argument class).
+#     EnumName: The name used in the intrinsic enum.
+#     ExternName: The name presented to the user.
+#     Flags: A string containing space separated flags.
+#     Fmrb: The FunctionModRefBehavior.
+#
+#   Flags:
+#     Dummy: Not a specific function.
+#     LLVM: Defined by LLVM.
+#     Nanotube: Defined by Nanotube.
+#
+# The argument class contains information about an argument to a
+# function.
+#
+#   Properties:
+#     ModRef: The ModRefInfo of the argument.
+
 - Name: none
   Flags: Dummy
   Fmrb: UK
