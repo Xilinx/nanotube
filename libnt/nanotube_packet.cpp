@@ -21,6 +21,9 @@
 #include "nanotube_packet.hpp"
 
 #include "nanotube_api.h"
+#include "nanotube_packet_metadata_sb.h"
+#include "nanotube_packet_metadata_shb.h"
+#include "nanotube_packet_metadata_x3rx.h"
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
 #include "x3rx_bus.hpp"
@@ -66,6 +69,26 @@ nanotube_packet_set_port(nanotube_packet_t* packet,
                          nanotube_packet_port_t port)
 {
   packet->set_port(port);
+}
+
+
+nanotube_capsule_class_t
+nanotube_capsule_classify(nanotube_packet_t* packet)
+{
+  switch (packet->get_bus_type()) {
+  default:
+  case NANOTUBE_BUS_ID_ETH:
+    return NANOTUBE_CAPSULE_CLASS_NETWORK;
+
+  case NANOTUBE_BUS_ID_SB:
+    return nanotube_capsule_classify_sb(packet);
+
+  case NANOTUBE_BUS_ID_SHB:
+    return nanotube_capsule_classify_shb(packet);
+
+  case NANOTUBE_BUS_ID_X3RX:
+    return nanotube_capsule_classify_x3rx(packet);
+  }    
 }
 
 
