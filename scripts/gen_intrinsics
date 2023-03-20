@@ -133,8 +133,7 @@ ARG_INFO_BEGIN="""
  * intrinsics.  It is a table indexed by the intrinsic ID and the argument
  * index.  Its content is the ModRefInfo for the argument.  Note that
  * non-pointer arguments are represented as NoModRef and arguments not
- * present are represented as odRef.  Further, please note that map_op may
- * give tighter bounds when inspecting the actual operation type. */
+ * present are represented as ModRef. */
 #define R  ModRefInfo::MustRef
 #define W  ModRefInfo::MustMod
 #define RW ModRefInfo::MustModRef
