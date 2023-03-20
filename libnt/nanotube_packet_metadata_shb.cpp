@@ -32,3 +32,12 @@ nanotube_packet_set_port_shb(nanotube_packet_t* packet,
   nanotube_packet_write_masked(packet, buffer, mask, offset, 
                                softhub_bus::CH_ROUTE_RAW_PKT_LENGTH);
 }
+
+#ifdef __clang__
+__attribute__((always_inline))
+#endif
+nanotube_capsule_class_t
+nanotube_capsule_classify_shb(nanotube_packet_t* packet)
+{
+  return NANOTUBE_CAPSULE_CLASS_NETWORK;
+}

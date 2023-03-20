@@ -36,7 +36,7 @@ nanotube_packet_set_port_sb(nanotube_packet_t* packet,
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t
-nanotube_capsule_classify(nanotube_packet_t* packet)
+nanotube_capsule_classify_sb(nanotube_packet_t* packet)
 {
   static_assert(sizeof(simple_bus::header::port) == 1,
                 "port field size is incorrect");

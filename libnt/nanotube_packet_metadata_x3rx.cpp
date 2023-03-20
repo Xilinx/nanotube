@@ -29,3 +29,12 @@ nanotube_packet_set_port_x3rx(nanotube_packet_t* packet,
   unsigned offset = offsetof(x3rx_bus::header, port);
   nanotube_packet_write_masked(packet, buffer, mask, offset, 1);
 }
+
+#ifdef __clang__
+__attribute__((always_inline))
+#endif
+nanotube_capsule_class_t
+nanotube_capsule_classify_x3rx(nanotube_packet_t* packet)
+{
+  return NANOTUBE_CAPSULE_CLASS_NETWORK;
+}
