@@ -72,11 +72,7 @@ def build_hls_exe(env, exe_file, in_bc_file):
 golden_src = env['SOURCE_DIR'].Dir('golden')
 
 env.add_libs('test_harness')
-# NANO247_NO_ARRAY_MAPS and p4c include paths are used by p4c-xdp generated tests
-env.Append(CCFLAGS='-Wno-gcc-compat -D NANO247_NO_ARRAY_MAPS '\
-                   '-I examples/forward/h/backends/ebpf/runtime/usr/include/ '\
-                   '-I examples/forward/h/extensions/p4c-xdp/tests '\
-                   '-I examples/forward/h/backends/ebpf/runtime '\
+env.Append(CCFLAGS='-Wno-gcc-compat'\
                    ''.split())
 
 def add_test(test_info):
