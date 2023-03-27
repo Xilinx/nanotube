@@ -261,6 +261,7 @@ class config(object):
                         ('paths' in info) )
             if info.get('is_path', is_path):
                 val = os.path.abspath(val)
+                val = os.path.normpath(val)
 
             config_vars[var] = val
 

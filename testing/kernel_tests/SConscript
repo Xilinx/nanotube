@@ -16,13 +16,13 @@ import subprocess
 # on stdout, one per line.  Each test name consists of a number of
 # fields separated by commas.  The first field is the base name.  The
 # remaining fields are pass names.
-test_list = []
-proc = subprocess.Popen([os.path.join(str(env["SOURCE_DIR"]), "gen_test_list")],
-                        stdout=subprocess.PIPE)
-for line in proc.stdout:
-    test_list.append(line.decode('utf-8').rstrip().split(","))
-proc.wait()
-assert proc.returncode == 0, proc.returncode
+def run_gen_test_list(test_list, dir, args):
+    proc = subprocess.Popen([os.path.join(str(dir), "gen_test_list")] + args,
+                            stdout=subprocess.PIPE)
+    for line in proc.stdout:
+        test_list.append(line.decode('utf-8').rstrip().split(","))
+    proc.wait()
+    assert proc.returncode == 0, proc.returncode
 
 # Translate pass names to the right command line parameter
 pass_opts = {
@@ -48,9 +48,7 @@ pass_opts = {
     'flatten' : ( '-flatten-cfg' ),
 }
 
-data_prefixes_with_dups = [ti[0].split('.')[0] for ti in test_list]
-data_prefixes = sorted(set(data_prefixes_with_dups))
-
+# Additional build steps for the tests
 def link_taps(env, out_bc_file, in_bc_file):
     env.LlvmLink([out_bc_file],
                  [
@@ -69,12 +67,8 @@ def build_hls_exe(env, exe_file, in_bc_file):
     json_file = env.Nanotube_Be(in_bc_file)
     out = env.Build_Kernel_Test(exe_file, json_file)
 
-golden_src = env['SOURCE_DIR'].Dir('golden')
-
-env.add_libs('test_harness')
-env.Append(CCFLAGS='-Wno-gcc-compat'\
-                   ''.split())
-
+# Adds the test with build instructions to the target
+# test_info: ("src:opts", pass1, pass2, pass3, ...)
 def add_test(test_info):
     src_file_and_opts = test_info[0].split(':')
     src_file = src_file_and_opts[0]
@@ -113,21 +107,51 @@ def add_test(test_info):
         ]
     )
 
-done = set()
-for test_info in test_list:
-    test_info = tuple(test_info)
-    while test_info not in done:
-        done.add(test_info)
-        add_test(test_info)
-        if len(test_info) <= 1:
-            break
-        test_info = test_info[:-1]
+# Go through the test list and create rules to build intermediate build
+# artifacts, making sure to remove duplicates
+#
+# Example:
+#   foo,pass_A, pass_B
+#   foo,pass_A, pass_X, pass_Y
+# will add foo.pass_A.pass_B, foo.pass_A, foo, foo.pass_A.pass_X.pass_Y,
+# foo.pass_A.pass_X in that sequence
+def test_rules(test_list):
+    done = set()
+    for test_info in test_list:
+        test_info = tuple(test_info)
+        while test_info not in done:
+            done.add(test_info)
+            add_test(test_info)
+            if len(test_info) <= 1:
+                break
+            test_info = test_info[:-1]
 
-for base in data_prefixes:
-    for direction in ('IN', 'OUT'):
-        out_file = "golden/test_"+base+".pcap."+direction
-        in_file = golden_src.File("test_"+base+".packets."+direction)
-        env.Command(out_file,
-                    [env['SOURCE_TOP'].File('scripts/text_to_pcap'), in_file],
-                    [ "${SOURCES[0]} ${SOURCES[1]} ${TARGETS[0]}" ])
+# Generate rules for golden input / output data
+# Input / output data is same for various compilation variants of the same test
+# so remove duplicates after stripping different build options from all the
+# tests
+def golden_rules(test_list, golden_src):
+    data_prefixes_with_dups = [ti[0].split('.')[0] for ti in test_list]
+    data_prefixes = sorted(set(data_prefixes_with_dups))
+    for base in data_prefixes:
+        for direction in ('IN', 'OUT'):
+            out_file = "golden/test_"+base+".pcap."+direction
+            in_file = golden_src.File("test_"+base+".packets."+direction)
+            env.Command(out_file,
+                        [env['SOURCE_TOP'].File('scripts/text_to_pcap'), in_file],
+                        [ "${SOURCES[0]} ${SOURCES[1]} ${TARGETS[0]}" ])
 
+env.add_libs('test_harness')
+
+env.Append(CCFLAGS='-Wno-gcc-compat'\
+                   ''.split())
+
+# Build all tests and golden input / output for a specific directory
+def build_tests_and_golden(source_dir):
+    golden_src = source_dir.Dir('golden')
+    test_list = []
+    run_gen_test_list(test_list, source_dir, [])
+    test_rules(test_list)
+    golden_rules(test_list, golden_src)
+
+build_tests_and_golden(env['SOURCE_DIR'])
