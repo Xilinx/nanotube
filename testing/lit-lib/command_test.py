@@ -34,12 +34,16 @@ class command_test(FileBasedTest):
   def __init__(self, prefix):
     try:
       if type(prefix) in (str, unicode):
-        prefix = (prefix,)
+        prefix = [prefix,]
     except NameError:
       # Python 3 does not have unicode defined anymore; instead, all strings
       # are unicode by default
       if isinstance(prefix, str):
-        prefix = (prefix,)
+        prefix = [prefix,]
+    # For easier readability, make the script path relative, but
+    # prefix an explicit "./" because LIT will otherwise not resolve
+    # the path
+    prefix[0] = "./" + os.path.relpath(prefix[0])
     self.__prefix = tuple(prefix)
 
   def execute(self, test, lit_config):
