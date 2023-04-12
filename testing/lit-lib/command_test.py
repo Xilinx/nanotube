@@ -45,12 +45,15 @@ class command_test(FileBasedTest):
   def execute(self, test, lit_config):
     source_path = test.getSourcePath()
     exec_path = test.getExecPath()
+    source_path = os.path.relpath(source_path)
+    exec_path   = os.path.relpath(exec_path)
+
     cmdline = ' '.join(quote(x) for x in (self.__prefix + (source_path,)))
     exec_dir = os.path.dirname(exec_path)
     commands = [cmdline]
     mkdir_p(exec_dir)
     res = TestRunner.executeScriptInternal(test, lit_config, exec_path,
-                                           commands, exec_dir)
+                                           commands, os.getcwd())
     out, err, exit_code, timeout_info = res
     if exit_code == 0:
       status = Test.PASS

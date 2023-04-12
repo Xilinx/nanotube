@@ -25,6 +25,9 @@
 # All the sequences in the list are processed, each starting from the
 # compiled source.  A test is run after each of the steps in each
 # sequence.
+#
+# Additional build-time options can be specified by specifying them as the
+# second component of the list (see -bus=ABC examples below).
 
 default_combo = [
     "destruct",
