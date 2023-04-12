@@ -1,0 +1,440 @@
+#! /usr/bin/python3
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+import argparse
+import os
+import os.path
+import re
+import selectors
+import struct
+import sys
+import time
+
+script_dir = os.path.realpath(os.path.dirname(__file__))
+top_dir = os.path.dirname(script_dir)
+sys.path.append(os.path.join(top_dir, 'py-lib'))
+
+from qemu_socket import QemuSocket, LISTEN, CONNECT
+from utils import dump_packet, parse_time
+
+_address_re = re.compile(r'([^:]*):(\d+)\Z')
+
+_int_re = re.compile(r'[0-9]+\Z')
+_byte_array_re = re.compile(r'[0-9a-f]{1,2}(:[0-9a-f]{1,2})*\Z')
+
+###########################################################################
+
+class CapsuleError(RuntimeError):
+  __slots__ = []
+
+class HeaderFormat:
+  __slots__ = []
+
+  def get_field(self, params, name, default=None):
+    val = params.get(name, default)
+    if val is None:
+      raise CapsuleError("Unspecified '%s' parameter." % name)
+    return val
+
+  def pack(self, params):
+    vals = []
+    for f_name, f_default in self.field_defs:
+      val = self.get_field(params, f_name, f_default)
+      vals.append(val)
+
+    return struct.pack(self.format, *vals)
+
+  def unpack(self, params, buf, offset):
+    hdr_len = struct.calcsize(self.format)
+    hdr_end = offset+hdr_len
+    if len(buf) < hdr_end:
+      raise CapsuleError("Capsule is too short for a %s." % self.name)
+
+    view = memoryview(buf)[offset:hdr_end]
+    vals = struct.unpack(self.format, view)
+    field_names = [n for n,d in self.field_defs]
+    fields = list(zip(field_names, vals))
+    return (fields, hdr_len)
+
+class SbCapsuleFormat(HeaderFormat):
+  __slots__ = []
+  name = 'SbCapsule'
+  format = '<B'
+  field_defs = [
+    ('port', 0xfe),
+  ]
+
+class NanotubeControlFormat(HeaderFormat):
+  __slots__ = []
+  name = 'NanotubeControl'
+  format = '<HHH'
+  field_defs = [
+    ('request_id', 0),
+    ('resource_id', None),
+    ('response_code', 1),
+  ]
+
+OPCODE_READ=0
+
+class MapControlFormat(HeaderFormat):
+  __slots__ = []
+  name = 'MapControl'
+  format = '<H'
+  field_defs = [
+    ('opcode', None),
+  ]
+
+  def pack(self, params):
+    key = self.get_field(params, 'key')
+    value = self.get_field(params, 'value')
+    buf = bytearray(super().pack(params))
+    buf.extend(key)
+    buf.extend(value)
+    return buf
+
+  def unpack(self, params, buf, offset):
+    key = self.get_field(params, 'key')
+    value = self.get_field(params, 'value')
+
+    fields, prefix_len = super().unpack(params, buf, offset)
+    offset += prefix_len
+    view = memoryview(buf)[offset:]
+
+    key_len = len(key)
+    value_len = len(value)
+    data_len = key_len + value_len
+    if len(view) < data_len:
+      raise CapsuleError("Capsule is too short for %s.  Have %d but"
+                         " need %d." % (self.name, len(view), data_len))
+
+    fields.append(('key', bytes(view[:key_len])))
+    fields.append(('value', bytes(view[key_len:data_len])))
+    return (fields, prefix_len + data_len)
+
+class CapsuleFormat:
+  def __init__(self):
+    self.__layers = [ SbCapsuleFormat(),
+                      NanotubeControlFormat(),
+                      MapControlFormat() ]
+
+  def pack(self, params):
+    buf = bytearray()
+    for layer in self.__layers:
+      buf.extend(layer.pack(params))
+    return buf
+
+  def unpack(self, params, buf, offset):
+    all_fields = []
+    total_len = 0
+    for layer in self.__layers:
+      l_fields, l_hdr_len = layer.unpack(params, buf, offset)
+      all_fields.extend(l_fields)
+      offset += l_hdr_len
+      total_len += l_hdr_len
+
+    return (all_fields, total_len)
+
+###########################################################################
+
+class ParseError(RuntimeError):
+  __slots__ = []
+
+class Actions:
+  def __init__(self):
+    self.__params = {}
+    self.__send_capsules = []
+    self.__expect_params = []
+
+  def get_num_capsules(self):
+    return len(self.__send_capsules)
+
+  def pop_send_capsule(self):
+    buf,params = self.__send_capsules.pop(0)
+    self.__expect_params.append(params)
+    return buf
+
+  def pop_expect_params(self):
+    return self.__expect_params.pop(0)
+
+  def done(self):
+    return (len(self.__send_capsules) == 0 and
+            len(self.__expect_params) == 0)
+
+  def parse_int(self, name, val):
+    m = _int_re.match(val)
+    if m is None:
+      raise ParseError("Invalid %s %r." % (name, val))
+
+    return int(val)
+
+  def parse_byte_array(self, name, val):
+    m = _byte_array_re.match(val)
+    if m is None:
+      raise ParseError("Invalid %s %r." % (name, val))
+
+    return bytearray(int(x, 16) for x in val.split(":"))
+
+  def set_request_id(self, val):
+    self.__params['request_id'] = self.parse_int("request ID", val)
+
+  def set_map_id(self, val):
+    self.set_resource_id(val)
+
+  def set_resource_id(self, val):
+    self.__params['resource_id'] = self.parse_int("resource ID", val)
+
+  def set_key(self, val):
+    self.__params['key'] = self.parse_byte_array("key", val)
+
+  def set_key_len(self, val):
+    v = self.parse_int("key length", val)
+    self.__params['key'] = bytearray(0 for i in range(v))
+
+  def set_value(self, val):
+    self.__params['value'] = self.parse_byte_array("value", val)
+
+  def set_val_len(self, val):
+    v = self.parse_int("value length", val)
+    self.__params['value'] = bytearray(0 for i in range(v))
+
+  def do_read(self):
+    params = dict(self.__params)
+    params['opcode'] = OPCODE_READ
+    buf = CapsuleFormat().pack(params)
+    self.__send_capsules.append((buf, params))
+
+###########################################################################
+
+# Usage:
+#   map_access :12345 map=3 key=1,2,3,4 val_len=8 read
+#   map_access :12345 map=3 key=4,3,2,1 val=9,8,7,6,5,4,3,2 write
+
+class app:
+  def __init__(self, argv):
+    self.__actions = Actions()
+
+    p = argparse.ArgumentParser()
+
+    p.add_argument("-m", "--mtu",
+                   action="store", type=int, default=1514,
+                   help="Set the Maximum Transmit Unit.")
+    p.add_argument("-t", "--timeout",
+                   action="store", default="1s",
+                   help="Set the timeout (s/ms/us/ns).")
+    p.add_argument("-w", "--wait-time",
+                   action="store", default="1ms",
+                   help="Set the extra time to wait (s/ms/us/ns).")
+    p.add_argument("-v", "--verbose",
+                   action="count", default=0,
+                   help="Produce more output.")
+
+    p.add_argument("address", nargs=1,
+                   help="The address to connect to.")
+    p.add_argument("request", nargs='+',
+                   help="The request to send.")
+
+    self.__prog = argv[0]
+    self.__args = p.parse_args(argv[1:])
+
+    self.__timeout = parse_time(self.__args.timeout)
+    self.__verbosity = self.__args.verbose
+    self.__wait_time = parse_time(self.__args.wait_time)
+
+    self.__sel = selectors.DefaultSelector()
+    self.__socket = None
+    self.__done = False
+    self.__fail = False
+    self.__time_now = None
+    self.__end_time = None
+
+    m = _address_re.match(self.__args.address[0])
+    if m is None:
+      sys.stderr.write("%s: Invalid address %r.\n" %
+                       (self.__prog, self.__args.address))
+    self.__hostname = m.group(1)
+    self.__port = self.__actions.parse_int("port", m.group(2))
+
+    self.process_args()
+
+  def process_args(self):
+    failed=False
+    for arg in self.__args.request:
+      s = arg.split("=", 1)
+      if len(s) == 2:
+        var,val = s
+
+        # Use a method like set_map, set_key etc...
+        method = getattr(self.__actions, "set_"+var, None)
+        if method is None:
+          sys.stderr.write("%s: Unrecognized parameter %r.\n" %
+                           (self.__prog, var))
+          failed = True
+        else:
+          try:
+            method(val)
+          except ParseError as e:
+            sys.stderr.write("%s: %s\n" % (self.__prog, str(e)))
+            failed = True
+        continue
+
+      # Use a method like do_read, do_write etc...
+      method = getattr(self.__actions, "do_"+arg, None)
+      if method is None:
+        sys.stderr.write("%s: Unrecognized action %r.\n" %
+                         (self.__prog, arg))
+        failed = True
+      else:
+        try:
+          method()
+        except RuntimeError as e:
+          sys.stderr.write("%s: %s\n" % (self.__prog, str(e)))
+          failed = True
+
+    if failed:
+      sys.exit(1)
+
+  def show_fields(self, fields, prefix):
+    for name, val in fields:
+      val_str = repr(val)
+      if isinstance(val, (bytearray, bytes)):
+        val_str = "%r (%s)" % (val, ":".join("%02x"%x for x in val))
+      print("%s%-16s %s" % (prefix, name+":", val_str))
+
+  def get_time(self):
+    return time.clock_gettime(time.CLOCK_MONOTONIC)
+
+  def connect_socket(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Connecting to %s.\n" %
+                       (self.__args.address[0],))
+
+    self.__start_time = self.get_time()
+    self.__end_time = self.__start_time + self.__timeout
+
+    self.__socket = QemuSocket(hostname=self.__hostname,
+                               port=self.__port,
+                               mode=CONNECT,
+                               mtu=self.__args.mtu,
+                               timeout=self.__args.timeout,
+                               verbosity=self.__verbosity-1)
+
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    self.__sel.register(self.__socket, events)
+
+    while True:
+      self.__time_now = self.get_time()
+      timeout = self.__end_time - self.__time_now
+      if self.__socket.try_connect():
+        return
+
+      if timeout < 0:
+        sys.stderr.write("%s: Timed out connecting to %s.\n" %
+                         (self.__prog, self.__args.address[0]))
+        sys.exit(1)
+
+      elapsed = self.__time_now - self.__start_time
+      if elapsed > 0:
+        time.sleep(min(elapsed/4, 1))
+
+  def send_capsules(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Sending %d capsules.\n" %
+                       self.__actions.get_num_capsules())
+
+    while self.__actions.get_num_capsules() != 0:
+      p = self.__actions.pop_send_capsule()
+      if not self.__socket.send(p):
+        return
+
+    if self.__verbosity >= 1:
+      sys.stderr.write("No more capsules to send.\n")
+    events = selectors.EVENT_READ
+    self.__sel.modify(self.__socket, events)
+
+  def handle_read_event(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Receiving capsules.\n")
+    for pkt in self.__socket.receive():
+      if pkt is None:
+        sys.stderr.write("%s: Unexpected EOF from the socket.\n" %
+                         self.__prog)
+        self.__done = True
+        self.__fail = True
+        return
+
+      params = self.__actions.pop_expect_params()
+      if params is None:
+        sys.stderr.write("%s: Received unexpected capsule.\n" %
+                         self.__prog)
+        dump_packet(sys.stderr, "> ", pkt)
+        sys.exit(1)
+
+      print("Received response:")
+      fields, tot_len = CapsuleFormat().unpack(params, pkt, 0)
+      for name,val in fields:
+        print("  %-16s %s" % (name+":", val))
+
+  def handle_write_event(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Continuing send operation.\n")
+    if self.__socket.send():
+      self.send_capsules()
+
+  def recv_capsules(self):
+    while not self.__done:
+      self.__time_now = self.get_time()
+      timeout = self.__end_time - self.__time_now
+      results = self.__sel.select(max(timeout, 0))
+      for key,events in results:
+        assert key.fileobj is self.__socket
+        if (events & selectors.EVENT_READ) != 0:
+          self.handle_read_event()
+        if (events & selectors.EVENT_WRITE) != 0:
+          self.handle_write_event()
+
+      if self.__actions.done():
+        return
+
+      if timeout < 0:
+        if self.__actions.get_num_capsules() == 0:
+          action = "receiving"
+        else:
+          action = "sending"
+        sys.stderr.write("%s: Timed out %s capsules.\n" %
+                         (self.__prog, action))
+        sys.exit(1)
+
+  def extra_wait(self):
+    self.__time_now = self.get_time()
+    self.__end_time = self.__time_now + self.__wait_time
+
+    events = selectors.EVENT_READ
+    self.__sel.modify(self.__socket, events)
+
+    while not self.__done:
+      self.__time_now = self.get_time()
+      timeout = self.__end_time - self.__time_now
+      results = self.__sel.select(max(timeout, 0))
+      for key,events in results:
+        assert key.fileobj is self.__socket
+        if (events & selectors.EVENT_READ) != 0:
+          self.handle_read_event()
+
+      if timeout < 0:
+        return
+
+  def report_results(self):
+    if self.__fail:
+      sys.stderr.write("%s: Operations failed.\n" % self.__prog)
+      sys.exit(1)
+
+  def run(self):
+    self.connect_socket()
+    self.send_capsules()
+    self.recv_capsules()
+    self.extra_wait()
+    self.report_results()
+
+app(sys.argv).run()
