@@ -183,6 +183,10 @@ _infos = [
         'install': 'XILINX_VIVADO',
         'rel_path': 'bin/vivado',
     },
+    {
+        'var' : 'EXTRA_TESTS',
+        'is_path' : True,
+    },
 ]
 
 class config(object):

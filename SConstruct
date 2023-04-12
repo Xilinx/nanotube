@@ -187,13 +187,20 @@ def build_all(env):
     Default('all')
 
 def run_tests(env):
+    opts = ""
+    tests = "testing"
+    extra = env.get('EXTRA_TESTS')
+    if extra:
+        opts  =  "-D NT_DIR=" + top_dir
+        tests += " " + os.path.join(extra, "testing")
+
     target = env.Command(
         'run_tests',
         [
             'all',
         ],
         [
-            ( 'scripts/locate_tool --run llvm-lit -v testing' ),
+            ( 'scripts/locate_tool --run llvm-lit ' + opts + ' -v ' + tests )
         ]
     )
     AlwaysBuild(target)

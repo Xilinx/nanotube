@@ -155,3 +155,13 @@ def build_tests_and_golden(source_dir):
     golden_rules(test_list, golden_src)
 
 build_tests_and_golden(env['SOURCE_DIR'])
+
+# Allow the user to specify additional tests
+extra = env.get('EXTRA_TESTS')
+if extra:
+    extra_source = Dir(extra).Dir("testing/kernel_tests")
+    build_tests_and_golden(extra_source)
+    # Build the extra tests into the same build directory
+    env.VariantDir(env['BUILD_DIR'], extra_source, duplicate=0)
+    # Addiitonal includes from the extra test directory
+    env.Append(CCFLAGS=["-I", extra_source.Dir("include")])
