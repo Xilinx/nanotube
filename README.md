@@ -210,6 +210,41 @@ To run the resulting tool, use
 
       build/bpf-compile examples/build/xdp_tx_iptunnel_kern.o
 
+## Running tests from outside the repository
+
+Nanotube has support for running tests that live outside of the main
+repository, but follow the same types (e.g., kernel_tests, pass_tests) and use
+the same build & run infrastructure as the tests in this repository.  This can
+be useful for running tests as part of regression testing that should not be in
+this repository.
+
+The external tests will be built into the normal build directory.  Note that
+the setting will persist across invocations to scons, please see below.
+
+Use as follows:
+
+    scons ... EXTRA_TESTS=../my_additional_tests/ all
+    scons ... run_tests
+
+The directory structure in my_additional_tests should match that of
+what exists in the normal Nanotube repository:
+
+    > tree -L 2 -d ../my_additional_tests
+    ...
+    ├── testing
+    │   ├── kernel_tests
+    │   └── pass_tests
+    ...
+
+These additional tests will use the same build and test running infrastructure
+as the existing tests, but custom files need to be provided in
+my_additional_tests:
+
+- lit.cfg, lit.local.cfg .. defining the test suite
+- gen_test_list .. defining the different tests and options used for them
+
+Have a look at the tests in this repository for how they are used.
+
 ## Perform an HLS build
 
 When scons has finished building the compiler and tests, the following
