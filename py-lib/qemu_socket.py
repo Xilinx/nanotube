@@ -4,6 +4,7 @@
 ###########################################################################
 import socket
 import struct
+import sys
 
 LISTEN = "listen"
 CONNECT = "connect"
