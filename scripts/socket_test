@@ -19,17 +19,7 @@ top_dir = os.path.dirname(script_dir)
 sys.path.append(os.path.join(top_dir, 'py-lib'))
 from hex_reader import HexReader
 from qemu_socket import QemuSocket, LISTEN, CONNECT
-
-timeout_re = re.compile(r'((?:\d+|\d+\.\d*|\.\d+)(?:[eE][-+]\d+)?)'
-                        r'([mun]?s)')
-
-time_unit_map = { "s": 1e0, "ms": 1e-3, "us": 1e-6, "ns": 1e-9 }
-
-def dump_packet(fh, prefix, pkt):
-  for i in range(0, len(pkt)-1, 16):
-    end = min(i+16, len(pkt))
-    data_str = " ".join("%02x" % b for b in pkt[i:end])
-    fh.write("%s%04x %s\n" % (prefix, i, data_str))
+from utils import dump_packet, parse_time
 
 class App:
   def __init__(self, argv):
@@ -150,8 +140,8 @@ class App:
     self.__args = p.parse_args(argv)
 
     self.__verbosity = self.__args.verbose - self.__args.quiet
-    self.__timeout = self.parse_time(self.__args.timeout)
-    self.__wait_time = self.parse_time(self.__args.wait_time)
+    self.__timeout = parse_time(self.__args.timeout)
+    self.__wait_time = parse_time(self.__args.wait_time)
     if self.__wait_time is None:
       self.__wait_time = self.__timeout / 10
 
@@ -172,19 +162,6 @@ class App:
         sys.stderr.write("%s: error: Program %r does not exists.\n" %
                          (sys.argv[0], self.__args.program))
         sys.exit(1)
-
-  def parse_time(self, time_str):
-    if time_str == None:
-      return None
-
-    m = timeout_re.match(time_str)
-    if not m:
-      sys.stderr.write("%s: Invalid time specification %r.\n" %
-                       (sys.argv[0], time_str))
-      sys.exit(1)
-
-    timeout_val = float(m.group(1))
-    return timeout_val * time_unit_map[m.group(2)]
 
   def get_time(self):
     return time.clock_gettime(time.CLOCK_MONOTONIC)
