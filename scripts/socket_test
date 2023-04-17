@@ -409,8 +409,11 @@ class App:
   def start_packets(self):
     # Send the first packet, if any.
     p = next(self.__in_iter, None)
-    if p is not None and self.__sel_enabled:
-      self.do_socket_send(p)
+    if p is not None:
+      if self.__sel_enabled:
+        self.do_socket_send(p)
+    else:
+      self.handle_send_done()
 
   def handle_socket_events(self, events):
     if (events & selectors.EVENT_READ) != 0:
