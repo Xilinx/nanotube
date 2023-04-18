@@ -191,7 +191,7 @@ namespace {
 namespace {
   class connection {
   public:
-    explicit connection(tcp::socket &&socket);
+    explicit connection(impl *the_impl, tcp::socket &&socket);
 
     ~connection();
 
@@ -216,7 +216,8 @@ namespace {
                                   std::size_t bytes_read);
 
     // Send a packet.
-    void send_packet_s_locked(const nanotube_packet_t *packet);
+    void send_packet_s_locked(impl *the_impl,
+                              const nanotube_packet_t *packet);
 
   private:
     // A flag indicating whether the connection is processing packets.
@@ -288,6 +289,12 @@ private:
   // True if the socket is listening.
   bool m_is_listening;
 
+  // True if the socket transfers capsules.
+  bool m_is_capsule;
+
+  // The section to use for packet operations.  Never modified.
+  nanotube_packet_section_t m_section;
+
   // The async IO acceptor for use when listening.
   tcp::acceptor m_acceptor;
 
@@ -299,6 +306,12 @@ private:
   connections_t m_connections;
 
 public:
+  // Find out whether the sockets should process capsules.
+  bool get_is_capsule() const { return m_is_capsule; }
+
+  // Get the packet section to access.
+  nanotube_packet_section_t get_section() const { return m_section; }
+
   // Start processing.
   void start(const impl_ptr_t *self);
 
@@ -460,7 +473,8 @@ void async_recv::operator() (const boost::system::error_code& error,
 
 ///////////////////////////////////////////////////////////////////////////
 
-connection::connection(tcp::socket &&socket):
+connection::connection(socket_agent::impl *the_impl,
+                       tcp::socket &&socket):
   m_active(false),
   m_socket(std::move(socket)),
   m_rx_offset(0)
@@ -507,7 +521,7 @@ void connection::start_receive_r_locked(impl_ptr_t impl,
   } else {
     std::size_t data_offset = m_rx_offset - PREFIX_LENGTH;
 
-    auto sec = NANOTUBE_SECTION_WHOLE;
+    auto sec = impl->get_section();
     auto sec_len = m_rx_packet.size(sec);
     uint8_t *base = m_rx_packet.begin(sec) + data_offset;
     std::size_t len = sec_len - data_offset;
@@ -571,7 +585,7 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
   // Process data received into m_rx_packet if any.
   if (m_rx_offset >= PREFIX_LENGTH) {
     std::size_t packet_offset = m_rx_offset - PREFIX_LENGTH;
-    auto sec = NANOTUBE_SECTION_WHOLE;
+    auto sec = the_impl->get_section();
     std::size_t packet_length = m_rx_packet.size(sec);
     std::size_t remaining = packet_length - packet_offset;
 
@@ -627,7 +641,7 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
     }
 
     // Resize the packet.
-    auto sec = NANOTUBE_SECTION_WHOLE;
+    auto sec = the_impl->get_section();
     m_rx_packet.resize(sec, pkt_len);
 
     // Copy data into the packet.
@@ -667,7 +681,8 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
   return true;
 }
 
-void connection::send_packet_s_locked(const nanotube_packet_t *packet)
+void connection::send_packet_s_locked(impl *the_impl,
+                                      const nanotube_packet_t *packet)
 {
   union {
     uint32_t val;
@@ -675,7 +690,7 @@ void connection::send_packet_s_locked(const nanotube_packet_t *packet)
   } length_buffer;
 
   // Fill the length buffer.
-  auto sec = NANOTUBE_SECTION_WHOLE;
+  auto sec = the_impl->get_section();
   uint32_t length = packet->size(sec);
   length_buffer.val = htonl(length);
 
@@ -711,6 +726,8 @@ impl::impl(socket_agent* agent,
   m_harness(agent->get_harness()),
   m_kernel(nullptr),
   m_is_listening(false),
+  m_is_capsule(false),
+  m_section(NANOTUBE_SECTION_PAYLOAD),
   m_acceptor(*(m_harness->get_asio_context())),
   m_new_socket(*(m_harness->get_asio_context()))
 {
@@ -718,6 +735,11 @@ impl::impl(socket_agent* agent,
 
   if (p.m_flag_set.count(F_LISTEN) != 0)
     m_is_listening = true;
+
+  if (p.m_flag_set.count(F_CAPSULE) != 0) {
+    m_is_capsule = true;
+    m_section = NANOTUBE_SECTION_WHOLE;
+  }
 
   // Resolve the hostname and port number.
   tcp::resolver resolver(*(m_harness->get_asio_context()));
@@ -786,12 +808,11 @@ impl::send_packet(const nanotube_packet_t *packet)
 {
   lock_guard sg(m_send_mutex);
 #if SOCKET_DEBUG
-  auto sec = NANOTUBE_SECTION_WHOLE;
   std::cerr << "socket_agent: Got packet length "
-            << packet->size(sec) << "\n";
+            << packet->size(m_section) << "\n";
 #endif
   for (auto &conn: m_connections) {
-    conn->send_packet_s_locked(packet);
+    conn->send_packet_s_locked(this, packet);
   }
 }
 
@@ -844,7 +865,7 @@ impl::finish_accept(const impl_ptr_t &self,
 void impl::add_connection_rs_locked(const impl_ptr_t *self,
                                     tcp::socket socket)
 {
-  connection_ptr_t conn(new connection(std::move(socket)));
+  connection_ptr_t conn(new connection(this, std::move(socket)));
   conn->start_rs_locked(self, &conn);
   m_connections.insert(std::move(conn));
  assert(m_active);
@@ -865,9 +886,8 @@ void impl::remove_connection_r_locked(const connection_ptr_t *conn)
 void impl::process_rx_packet_r_locked(nanotube_packet_t *packet)
 {
 #if SOCKET_DEBUG
-  auto sec = NANOTUBE_SECTION_WHOLE;
-      std::cerr << "socket_agent: Assembled packet with length "
-                << packet->size(sec) << ".\n";
+  std::cerr << "socket_agent: Assembled packet with length "
+            << packet->size(m_section) << ".\n";
 #endif
   packet->set_port(0);
   m_kernel->process(packet);
