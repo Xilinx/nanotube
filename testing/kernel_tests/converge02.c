@@ -297,15 +297,15 @@ void nanotube_setup() {
                               NANOTUBE_MAP_TYPE_HASH, 3, 8);
   nanotube_context_add_map(ctx, map_D_);
 
-  nanotube_add_plain_packet_kernel("simple", simple, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("simple_memory_phi", simple_memory_phi, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("partial_memory_phi", partial_memory_phi, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("simple", simple, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("simple_memory_phi", simple_memory_phi, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("partial_memory_phi", partial_memory_phi, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 
-  nanotube_add_plain_packet_kernel("very_simple_separate", very_simple_separate, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("very_simple_separate", very_simple_separate, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 #ifdef STEPHAN_ADDED_HANDLING_FOR_PHI_OF_ADDR_IN_CONVERGE
-  nanotube_add_plain_packet_kernel("very_simple_phi_of_addr", very_simple_phi_of_addr, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("very_simple_phi_of_addr", very_simple_phi_of_addr, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 #endif
-  nanotube_add_plain_packet_kernel("very_simple_memoryphi", very_simple_memoryphi, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("very_simple_lmnmp", very_simple_lmnmp, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("very_simple_memoryphi", very_simple_memoryphi, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("very_simple_lmnmp", very_simple_lmnmp, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

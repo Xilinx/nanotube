@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "bus_id.h"
 
 /**
 ** Note: There are various levels of interfaces that the Nanotube API

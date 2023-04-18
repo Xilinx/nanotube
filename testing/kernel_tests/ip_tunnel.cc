@@ -395,5 +395,5 @@ nanotube_kernel_rc_t ip_tunnel(nanotube_context_t *nt_ctx,
 
 void nanotube_setup()
 {
-  nanotube_add_plain_packet_kernel("ip_tunnel", ip_tunnel, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("ip_tunnel", ip_tunnel, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }

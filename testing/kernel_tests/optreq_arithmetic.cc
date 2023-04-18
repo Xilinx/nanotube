@@ -94,7 +94,7 @@ nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
 }
 
 void nanotube_setup() {
-  nanotube_add_plain_packet_kernel("packets_in", process_packet, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("packets_in", process_packet, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

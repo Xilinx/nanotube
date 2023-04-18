@@ -167,9 +167,9 @@ void nanotube_setup() {
                               NANOTUBE_MAP_TYPE_HASH, 3, sizeof(value_t));
   nanotube_context_add_map(ctx, map_A_);
 
-  nanotube_add_plain_packet_kernel("map_read_test", map_read_test, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("map_write_test", map_write_test, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("map_read_test2", map_read_test, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("map_memset_memcpy_test", map_memset_memcpy_test, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("map_read_test", map_read_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("map_write_test", map_write_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("map_read_test2", map_read_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("map_memset_memcpy_test", map_memset_memcpy_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

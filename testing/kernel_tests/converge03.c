@@ -91,6 +91,6 @@ D:
 }
 
 void nanotube_setup() {
-  nanotube_add_plain_packet_kernel("process_packet", process_packet, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("multi_exit",     multi_exit,     -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("process_packet", process_packet, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("multi_exit",     multi_exit, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }

@@ -494,21 +494,21 @@ nanotube_kernel_rc_t value_merge(nanotube_context_t *nt_ctx, nanotube_packet_t *
 }
 
 void nanotube_setup() {
-  nanotube_add_plain_packet_kernel("phi2", phi2, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi3", phi3, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi4", phi4, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi5", phi5, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi6", phi6, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi7", phi7, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi8", phi8, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi9", phi9, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi10", phi10, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi15", phi15, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi16", phi16, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi17", phi17, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi23", phi23, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi24", phi24, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("phi25", phi25, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("value_merge", value_merge, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi2", phi2, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi3", phi3, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi4", phi4, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi5", phi5, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi6", phi6, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi7", phi7, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi8", phi8, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi9", phi9, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi10", phi10, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi15", phi15, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi16", phi16, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi17", phi17, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi23", phi23, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi24", phi24, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("phi25", phi25, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("value_merge", value_merge, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

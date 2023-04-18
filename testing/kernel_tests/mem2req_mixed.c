@@ -57,6 +57,6 @@ void nanotube_setup() {
                               sizeof(mac_addr));
   nanotube_context_add_map(ctx, map);
 
-  nanotube_add_plain_packet_kernel("one_pkt_one_map", one_pkt_one_map, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("one_pkt_one_map", one_pkt_one_map, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

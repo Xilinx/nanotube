@@ -98,5 +98,5 @@ nanotube_kernel_rc_t wide_to_byte(nanotube_context_t *nt_ctx,
 }
 
 void nanotube_setup(void) {
-    nanotube_add_plain_packet_kernel("wide_to_byte", wide_to_byte, -1, 0 /*false*/);
+    nanotube_add_plain_packet_kernel("wide_to_byte", wide_to_byte, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }

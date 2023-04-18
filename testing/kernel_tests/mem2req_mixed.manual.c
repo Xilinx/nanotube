@@ -59,7 +59,7 @@ void nanotube_setup() {
   nanotube_map_t* map     = nanotube_map_create(map_id,
                               NANOTUBE_MAP_TYPE_HASH, 6, 6);
   nanotube_context_add_map(ctx, map);
-  nanotube_add_plain_packet_kernel("one_pkt_one_map", one_pkt_one_map, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("one_pkt_one_map", one_pkt_one_map, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

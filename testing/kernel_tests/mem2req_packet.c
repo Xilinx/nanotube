@@ -51,8 +51,8 @@ nanotube_kernel_rc_t select_test(nanotube_context_t *nt_ctx,
 }
 
 void nanotube_setup(void) {
-  nanotube_add_plain_packet_kernel("memset_test", memset_test, -1, 0 /*false*/);
-  nanotube_add_plain_packet_kernel("select_test", select_test, -1, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("memset_test", memset_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
+  nanotube_add_plain_packet_kernel("select_test", select_test, NANOTUBE_BUS_ID_ETH, 0 /*false*/);
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

@@ -152,8 +152,8 @@ cleanup:                                          ; preds = %D, %if.then
 ; Function Attrs: nounwind uwtable
 define dso_local void @nanotube_setup() local_unnamed_addr #0 !dbg !102 {
 entry:
-  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @process_packet, i32 -1, i32 0) #4, !dbg !105
-  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([11 x i8], [11 x i8]* @.str.1, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @multi_exit, i32 -1, i32 0) #4, !dbg !106
+  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @process_packet, i32 2, i32 0) #4, !dbg !105
+  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([11 x i8], [11 x i8]* @.str.1, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @multi_exit, i32 2, i32 0) #4, !dbg !106
   ret void, !dbg !107
 }
 
