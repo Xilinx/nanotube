@@ -286,6 +286,9 @@ private:
   // The current packet kernel.
   packet_kernel *m_kernel;
 
+  // The current bus type.
+  enum nanotube_bus_id_t m_bus_type;
+
   // True if the socket is listening.
   bool m_is_listening;
 
@@ -306,6 +309,9 @@ private:
   connections_t m_connections;
 
 public:
+  // Determine the current bus type.
+  enum nanotube_bus_id_t get_bus_type() const { return m_bus_type; }
+
   // Find out whether the sockets should process capsules.
   bool get_is_capsule() const { return m_is_capsule; }
 
@@ -436,10 +442,6 @@ void param_strings::check_flags()
       m_flag_set.count(F_CAPSULE) != 0) {
     std::cerr << "Error: Socket cannot use both packet and capsule.\n";
     fatal_error();
-  }
-
-  if (m_flag_set.count(F_CAPSULE) != 0) {
-    std::cerr << "Error: Capsule sockets are not yet supported.\n";
   }
 
   if (m_flag_set.count(F_PACKET) == 0 &&
@@ -641,6 +643,8 @@ bool connection::process_rx_data_r_locked(impl *the_impl,
     }
 
     // Resize the packet.
+    m_rx_packet.reset(the_impl->get_bus_type(),
+                      the_impl->get_is_capsule());
     auto sec = the_impl->get_section();
     m_rx_packet.resize(sec, pkt_len);
 
@@ -725,6 +729,7 @@ impl::impl(socket_agent* agent,
   m_agent(agent),
   m_harness(agent->get_harness()),
   m_kernel(nullptr),
+  m_bus_type(NANOTUBE_BUS_ID_ETH),
   m_is_listening(false),
   m_is_capsule(false),
   m_section(NANOTUBE_SECTION_PAYLOAD),
@@ -821,6 +826,8 @@ impl::set_kernel(packet_kernel *kernel)
 {
   lock_guard rg(m_recv_mutex);
   m_kernel = kernel;
+  if (kernel != nullptr)
+    m_bus_type = kernel->get_bus_type();
 }
 
 void
