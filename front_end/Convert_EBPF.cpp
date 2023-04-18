@@ -32,6 +32,7 @@
 #include "llvm/Transforms/Utils/ModuleUtils.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
 
+#include "bus_type.hpp"
 #include "Intrinsics.h"
 #include "nanotube_private.hpp"
 #include "ebpf_nt_adapter.h"
@@ -974,9 +975,8 @@ struct ebpf_to_NT : public ModulePass {
     GlobalValue *name_var = ir.CreateGlobalString(name);
     Type *uint8_type = ir.getInt8PtrTy();
     Value *name_ptr = ir.CreateBitCast(name_var, uint8_type);
-    /* If setting capsules=1 (4th arg) here you'd need to set bus_type (3rd arg)
-     * to get_bus_type() */
-    Value* args[] = { name_ptr, func, ir.getInt32(-1), ir.getInt32(0)};
+    int bus_type = int(get_bus_type());
+    Value* args[] = { name_ptr, func, ir.getInt32(bus_type), ir.getInt32(0)};
     ir.CreateCall(add_kernel, args);
     return true;
   }
