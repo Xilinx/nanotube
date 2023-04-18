@@ -66,9 +66,16 @@ func_packet_kernel::func_packet_kernel(processing_system &system,
   m_kernel(kernel),
   m_capsules(capsules)
 {
-  // If the function is not processing capsules then force the bus
-  // type to Ethernet so they do not receive a capsule header.
-  m_bus_type = capsules ? bus_type : NANOTUBE_BUS_ID_ETH;
+  switch(bus_type) {
+  case NANOTUBE_BUS_ID_ETH:
+  case NANOTUBE_BUS_ID_SB:
+  case NANOTUBE_BUS_ID_SHB:
+  case NANOTUBE_BUS_ID_X3RX:
+    break;
+  default:
+    assert(false);
+  }
+  m_bus_type = bus_type;
 }
 
 void func_packet_kernel::process(nanotube_packet_t *packet)
