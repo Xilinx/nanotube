@@ -26,7 +26,7 @@ entry:
   %call = tail call %struct.nanotube_map* @nanotube_map_create(i16 zeroext 0, i32 0, i64 4, i64 8)
   %call1 = tail call %struct.nanotube_context* @nanotube_context_create()
   tail call void @nanotube_context_add_map(%struct.nanotube_context* %call1, %struct.nanotube_map* %call)
-  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), void (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @simple, i32 0, i32 1)
+  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @simple, i32 0, i32 1)
   ret void
 }
 
@@ -36,10 +36,10 @@ declare dso_local %struct.nanotube_context* @nanotube_context_create() local_unn
 
 declare dso_local void @nanotube_context_add_map(%struct.nanotube_context*, %struct.nanotube_map*) local_unnamed_addr #1
 
-declare dso_local void @nanotube_add_plain_packet_kernel(i8*, void (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32) local_unnamed_addr #1
+declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32) local_unnamed_addr #1
 
 ; Function Attrs: uwtable
-define private void @simple(%struct.nanotube_context* %context, %struct.nanotube_packet* nocapture readnone %packet) #2 {
+define private i32 @simple(%struct.nanotube_context* %context, %struct.nanotube_packet* nocapture readnone %packet) #2 {
 entry:
   %control_capsule_buffer = alloca i8, i64 20
   %capsule_class = call i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet* %packet)
@@ -49,7 +49,7 @@ entry:
   ]
 
 pass_through_capsule:                             ; preds = %entry
-  ret void
+  ret i32 0
 
 control_capsule_read:                             ; preds = %entry
   %0 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 0, i64 20)
@@ -78,7 +78,7 @@ control_capsule_bad_resource:                     ; preds = %control_capsule_rea
 
 control_capsule_write:                            ; preds = %control_capsule_map0_bb, %control_capsule_bad_resource
   %1 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 0, i64 20)
-  ret void
+  ret i32 0
 
 process_net_packet:                               ; preds = %entry
   %key = alloca i32, align 4
@@ -100,7 +100,7 @@ process_net_packet:                               ; preds = %entry
   call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %4) #3
   call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %3) #3
   call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %2) #3
-  ret void
+  ret i32 0
 }
 
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)

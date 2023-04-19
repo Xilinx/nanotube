@@ -246,7 +246,8 @@ void cc_code_builder::create_pass_through_bb()
                                 m_func, m_old_entry_bb);
 
   m_builder.SetInsertPoint(bb);
-  m_builder.CreateRetVoid();
+  auto ret_val = m_builder.getInt32(NANOTUBE_PACKET_PASS);
+  m_builder.CreateRet(ret_val);
   m_pass_through_bb = bb;
 }
 
@@ -286,7 +287,8 @@ void cc_code_builder::create_capsule_write_bb()
                                       m_func, m_old_entry_bb);
   m_builder.SetInsertPoint(bb);
   write_capsule();
-  m_builder.CreateRetVoid();
+  auto ret_val = m_builder.getInt32(NANOTUBE_PACKET_PASS);
+  m_builder.CreateRet(ret_val);
   m_capsule_write_bb = bb;
 }
 
