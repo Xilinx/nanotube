@@ -115,6 +115,7 @@ namespace {
     size_t get_buffer_length(const map_info *map);
     size_t get_buffer_length();
 
+    void init_debug_info();
     void create_pass_through_bb();
     void read_capsule();
     void write_capsule();
@@ -205,6 +206,8 @@ cc_code_builder::cc_code_builder(const kernel_info *kernel,
   m_func->setName(func_name);
   m_old_entry_bb = &(m_func->getEntryBlock());
 
+  init_debug_info();
+
   // Extract the function arguments.
   m_context_arg = (m_func->arg_begin() + KERNEL_CONTEXT_ARG);
   m_packet_arg = (m_func->arg_begin() + KERNEL_PACKET_ARG);
@@ -238,6 +241,17 @@ size_t cc_code_builder::get_buffer_length()
       result = size;
   }
   return result;
+}
+
+void cc_code_builder::init_debug_info()
+{
+  for (llvm::Instruction &insn: *m_old_entry_bb) {
+    llvm::DebugLoc loc = insn.getDebugLoc();
+    if (loc) {
+      m_builder.SetCurrentDebugLocation(loc);
+      return;
+    }
+  }
 }
 
 void cc_code_builder::create_pass_through_bb()
