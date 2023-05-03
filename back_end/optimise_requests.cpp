@@ -329,6 +329,8 @@ struct optimise_requests : public FunctionPass {
     info.addRequired<PostDominatorTreeWrapperPass>();
   }
 
+  void verify_cfg(Function *f);
+
   void collect_nt_calls(Function& f, ivec_t* prds, Intrinsics::ID id);
   void collect_nt_calls(BasicBlock& bb, ivec_t* prds, Intrinsics::ID id);
   void group_nt_calls(const ivec_t& prds,
@@ -355,6 +357,9 @@ bool optimise_requests::runOnFunction(Function& f) {
   /* Per Function style */
     LLVM_DEBUG(dbgs() << "Performing function-level analysis:\n");
     bool changes = false;
+
+    /* Make sure the control flow graph is valid. */
+    verify_cfg(&f);
 
     /* Group and merge reads, first */
     ivec_t prds;
@@ -400,6 +405,25 @@ bool optimise_requests::runOnFunction(Function& f) {
     }
   }
   return false;
+}
+
+void optimise_requests::verify_cfg(Function *f)
+{
+  BasicBlock *return_bb = nullptr;
+  for (auto &bb: *f) {
+    auto *insn = bb.getTerminator();
+    if (!isa<ReturnInst>(insn))
+      continue;
+
+    if (return_bb != nullptr) {
+      errs() << "ERROR: Found multiple exit basic blocks: '"
+             << return_bb->getName() << "' and '"
+             << bb.getName() << "'.\n";
+      exit(1);
+    }
+
+    return_bb = &bb;
+  }
 }
 
 void optimise_requests::collect_nt_calls(Function& f, ivec_t* prds,
