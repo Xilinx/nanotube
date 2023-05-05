@@ -193,7 +193,7 @@ class app:
   def read_input(self):
     fname = self.__args.input[0]
     with open(fname, "r") as fh:
-      self.__yaml = yaml.load(fh)
+      self.__yaml = yaml.safe_load(fh)
     for e in self.__yaml:
       if TAG_COPYRIGHT in e:
         self.__copyright = e[TAG_COPYRIGHT]
