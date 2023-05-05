@@ -268,7 +268,8 @@ void cc_code_builder::create_pass_through_bb()
 void cc_code_builder::read_capsule()
 {
   auto *size_ty = m_length_val->getType();
-  auto offset = ConstantInt::get(size_ty, 0);
+  auto md_size = get_bus_md_size();
+  auto offset = ConstantInt::get(size_ty, md_size);
 
   auto *packet_read = create_nt_packet_read(*m_module);
   Value *args[] = {
@@ -283,7 +284,8 @@ void cc_code_builder::read_capsule()
 void cc_code_builder::write_capsule()
 {
   auto *size_ty = m_length_val->getType();
-  auto offset = ConstantInt::get(size_ty, 0);
+  auto md_size = get_bus_md_size();
+  auto offset = ConstantInt::get(size_ty, md_size);
 
   auto *packet_write = create_nt_packet_write(*m_module);
   Value *args[] = {
