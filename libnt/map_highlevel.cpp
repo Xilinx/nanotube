@@ -107,6 +107,10 @@ void nanotube_map_process_capsule(nanotube_context_t *ctxt,
 
   nanotube_map_op(ctxt, map_id, access, key_ptr, key_length,
                   value_ptr, value_ptr, all_one, 0, value_length);
+
+  for (unsigned i=0; i<NANOTUBE_CAPSULE_RESPONSE_CODE_SIZE; i++)
+    capsule[NANOTUBE_CAPSULE_RESPONSE_CODE_OFFSET+i] =
+      (NANOTUBE_CAPSULE_RESPONSE_CODE_SUCCESS >> (i*8));
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */
