@@ -343,6 +343,7 @@ nanotube_map_create(nanotube_map_id_t id, enum map_type_t type,
   nanotube_map* map = NULL;
   switch( type ) {
   case NANOTUBE_MAP_TYPE_HASH:
+  case NANOTUBE_MAP_TYPE_LRU_HASH: // Will need LRU behaviour later.
     map = new nanotube_hash_map(id, key_sz, value_sz);
     break;
   case NANOTUBE_MAP_TYPE_ARRAY_LE:
