@@ -77,6 +77,9 @@ class NanotubeControlFormat(HeaderFormat):
   ]
 
 OPCODE_READ=0
+OPCODE_INSERT=1
+OPCODE_UPDATE=2
+OPCODE_WRITE=3
 
 class MapControlFormat(HeaderFormat):
   __slots__ = []
@@ -202,6 +205,24 @@ class Actions:
   def do_read(self):
     params = dict(self.__params)
     params['opcode'] = OPCODE_READ
+    buf = CapsuleFormat().pack(params)
+    self.__send_capsules.append((buf, params))
+
+  def do_insert(self):
+    params = dict(self.__params)
+    params['opcode'] = OPCODE_INSERT
+    buf = CapsuleFormat().pack(params)
+    self.__send_capsules.append((buf, params))
+
+  def do_update(self):
+    params = dict(self.__params)
+    params['opcode'] = OPCODE_UPDATE
+    buf = CapsuleFormat().pack(params)
+    self.__send_capsules.append((buf, params))
+
+  def do_write(self):
+    params = dict(self.__params)
+    params['opcode'] = OPCODE_WRITE
     buf = CapsuleFormat().pack(params)
     self.__send_capsules.append((buf, params))
 
