@@ -896,7 +896,6 @@ void impl::process_rx_packet_r_locked(nanotube_packet_t *packet)
   std::cerr << "socket_agent: Assembled packet with length "
             << packet->size(m_section) << ".\n";
 #endif
-  packet->set_port(0);
   m_kernel->process(packet);
 }
 
