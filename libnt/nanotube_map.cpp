@@ -384,6 +384,13 @@ size_t nanotube_map_op(nanotube_context_t* ctx, nanotube_map_id_t id,
   //auto key_size   = map->key_sz;
   auto value_size = map->value_sz;
 
+  // Copy the value in before writing the output buffer in case they
+  // share memory.
+  uint8_t value_in[data_length];
+  if (data_in != nullptr) {
+    memcpy(value_in, data_in, data_length);
+  }
+
   /* When we can, overwrite the output */
   if( data_out != nullptr)
     memset(data_out, 0, data_length);
@@ -436,7 +443,7 @@ size_t nanotube_map_op(nanotube_context_t* ctx, nanotube_map_id_t id,
 
     for( size_t i = 0; i < data_length; ++i ) {
       if( mask[i / 8] & (1u << (i % 8)) )
-        value[offset + i] = data_in[i];
+        value[offset + i] = value_in[i];
     }
     return data_length;
 
