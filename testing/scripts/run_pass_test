@@ -17,30 +17,71 @@ SCRIPT_DIR=$(dirname "$0")
 
 init_test "${TEST%.ll}"
 
-GO=${GOLDEN_PREFIX}.ll
 PASS_DIRS=/${TEST_DIR_REL#*/}
 PASSES=${PASS_DIRS//"/"/" -"}
 NTOPT=${BUILD_TOP}/nanotube_opt
-O=${OUTPUT_PREFIX}.ll
 
-if ! check_files $GO; then
-    exit 1
-fi
+OUTPUT_ERR=${OUTPUT_PREFIX}.err
+OUTPUT_IR=${OUTPUT_PREFIX}.ll
+OUTPUT_BIN=${OUTPUT_PREFIX}.bin
+OUTPUT_OUT=${OUTPUT_PREFIX}.out
+GOLDEN_ERR=${GOLDEN_PREFIX}.err
+GOLDEN_IR=${GOLDEN_PREFIX}.ll
+GOLDEN_OUT=${GOLDEN_PREFIX}.out
 
 TEST_OPTS=$(perl -ne 'print if s/^;\s*OPTIONS\s*=//' $TEST)
 
-$NTOPT ${PASSES} ${TEST_OPTS} $TEST -S -o - | \
-    grep -v "ModuleID" > ${O}
-RES=$?
+RAN_CHECK=0
+CHECK_FAILED=0
 
-if [[ $RES -eq 0 ]]; then
-    echo "PASS"
-    if ! check_output $GO ${O} "^;"; then
-        exit 1
+$NTOPT ${PASSES} ${TEST_OPTS} $TEST -S -o "${OUTPUT_IR}.tmp" \
+  &>${OUTPUT_ERR}
+EXIT_CODE="$?"
+echo "Exit code $EXIT_CODE" >>"${OUTPUT_ERR}"
+egrep -v "^; ModuleID" "${OUTPUT_IR}.tmp" >"${OUTPUT_IR}"
+rm -f "${OUTPUT_IR}.tmp"
+
+if [ -e "${GOLDEN_ERR}" ] ; then
+    RAN_CHECK=1
+    if ! check_output "${GOLDEN_ERR}" "${OUTPUT_ERR}" ; then
+        CHECK_FAILED=1
     fi
-else
-    echo "FAIL Output: ${O}."
+elif [[ $EXIT_CODE -ne 0 ]] ; then
+    echo "FAIL: Exit code was ${EXIT_CODE}"
+    CHECK_FAILED=1
+fi
+
+if [ -e "${GOLDEN_IR}" ] ; then
+    RAN_CHECK=1
+    if ! check_output "${GOLDEN_IR}" "${OUTPUT_IR}" "^;" ; then
+        CHECK_FAILED=1
+    fi
+fi
+
+if [ -e "${GOLDEN_OUT}" ] ; then
+    RAN_CHECK=1
+    "${SRC_TOP}/scripts/locate_tool" --run clang \
+        "${OUTPUT_IR}" -o "${OUTPUT_BIN}"
+    if [[ $? -ne 0 ]] ; then
+        echo "FAIL: Compilation failed."
+        CHECK_FAILED=1
+    else
+        ("${OUTPUT_BIN}" ; echo "Exit code $?") &>"${OUTPUT_OUT}"
+        if ! check_output "${GOLDEN_OUT}" "${OUTPUT_OUT}" ; then
+            CHECK_FAILED=1
+        fi
+    fi
+fi
+
+if [[ $RAN_CHECK -eq 0 ]] ; then
+    echo "FAIL: No checks performed."
+    CHECK_FAILED=1
+fi
+
+if [[ $CHECK_FAILED -ne 0 ]] ; then
+    echo "FAIL Output: ${OUTPUT_IR}"
     exit 1
 fi
 
+echo "PASS"
 exit 0

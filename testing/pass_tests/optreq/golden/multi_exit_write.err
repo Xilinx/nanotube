@@ -1,0 +1,2 @@
+ERROR: Found multiple exit basic blocks: 'if.then' and 'if.else'.
+Exit code 1
