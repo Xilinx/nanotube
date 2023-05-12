@@ -971,7 +971,19 @@ static void get_accessed_mask(const merge_group& g, std::vector<bool>* accessed,
       (*count)++;
 }
 
-/* Find the largest gap */
+/** Find the largest gap in an access bitmask.
+ *
+ * Given bitmask of accessed bytes, find the largest span of bytes
+ * which aren't accessed.  In other words, find the longest block of
+ * zeros.
+ *
+ * The gap is assumed to not be at the end.  This is valid because the
+ * bitmask will by sized so that the final access is at the end.
+ *
+ * \param mask     The bitmask to examine.
+ * \param gap      An output which will hold the start of the gap.
+ * \param gap_len  An output which will hold the length of the gap.
+ */
 static void find_largest_gap(const std::vector<bool>& mask, unsigned *gap, unsigned *gap_len ) {
   unsigned cur_gap_start = 0;
   unsigned cur_gap_len  = 0;
