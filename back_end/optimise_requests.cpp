@@ -340,19 +340,30 @@ bool operator==(const scaled_value& lhs, const scaled_value& rhs) {
   return lhs.equals(rhs);
 }
 
-/** A vector of instructions. */
-typedef std::vector<Instruction*>                         ivec_t;
 
 /** An access instruction and range of offsets.
  *
- * The offsets are relative to the scaled_base of the merge_group it
- * is in.
- *
- * Element 0 is an instruction which performs an access.
- * Element 1 is the start offset of the access.
- * Element 2 is the number of bytes being accessed.
+ * The instruction calls an intrinsic which indirectly accesses
+ * memory.  The offsets are relative to the scaled_base of the
+ * merge_group it is in.
  */
-typedef std::tuple<Instruction*, int64_t, uint16_t>       inst_rng_t;
+struct inst_rng_t
+{
+  inst_rng_t(Instruction *i, int64_t s, uint16_t l):
+    inst(i), start(s), length(l) {}
+
+  /** An instruction which performs an access. */
+  Instruction *inst;
+
+  /** The start offset of the access. */
+  int64_t      start;
+
+  /** The number of bytes being accessed. */
+  uint16_t     length;
+};
+
+/** A vector of instructions. */
+typedef std::vector<Instruction*>                         ivec_t;
 
 /** A vector of instructions with their range of offsets. */
 typedef std::vector<inst_rng_t>                           inst_rng_vec_t;
@@ -392,8 +403,8 @@ static raw_ostream& operator<<(raw_ostream& os, const merge_group& g) {
     os << "<nullptr>";
   os << '\n';
   for( auto& inst_rng : g.accesses ) {
-    os << "  " << std::get<1>(inst_rng) << " " << std::get<2>(inst_rng)
-       << " " << *std::get<0>(inst_rng) << '\n';
+    os << "  " << inst_rng.start << " " << inst_rng.length
+       << " " << *inst_rng.inst << '\n';
   }
   return os;
 }
@@ -931,7 +942,7 @@ static void sort_group_start_offset(merge_group* g) {
   auto& offs_ivec = g->accesses;
   std::sort(offs_ivec.begin(), offs_ivec.end(),
             [](inst_rng_t& a, inst_rng_t& b) {
-               return std::get<1>(a) < std::get<1>(b);
+               return a.start < b.start;
             });
 }
 
@@ -939,14 +950,14 @@ static void get_accessed_mask(const merge_group& g, std::vector<bool>* accessed,
                               int64_t* start, int64_t* end, unsigned* count) {
   auto& offs_ivec = g.accesses;
   /* Determine which bytes are actually being read */
-  *start = std::get<1>(offs_ivec.front());
-  *end   = std::get<1>(offs_ivec.back()) +
-           std::get<2>(offs_ivec.back());
+  *start = offs_ivec.front().start;
+  *end   = offs_ivec.back().start +
+           offs_ivec.back().length;
 
   accessed->resize(*end - *start);
   for( auto& inst_rng : offs_ivec ) {
-    auto& s = std::get<1>(inst_rng);
-    auto& e = std::get<2>(inst_rng);
+    auto& s = inst_rng.start;
+    auto& e = inst_rng.length;
     for( int64_t i = s; i < s + e; i++ )
       (*accessed)[i - *start] = true;
   }
@@ -1001,7 +1012,7 @@ static void split_on_offset(const merge_group& g, int64_t offs,
   g1.key = g.key;
   g2.key = g.key;
   for( auto& a : g.accesses ) {
-    if( std::get<1>(a) < offs )
+    if( a.start < offs )
       g1.accesses.emplace_back(a);
     else
       g2.accesses.emplace_back(a);
@@ -1054,9 +1065,9 @@ static bool split_group_with_holes(merge_group* g, unsigned empty_factor,
              << " " << count << "/" << end - start
              << ":\n";
       for( auto& offs_inst : g->accesses )
-        dbgs() << "  " << std::get<1>(offs_inst)
-               << " " << std::get<2>(offs_inst)
-               << " " << *std::get<0>(offs_inst) << '\n';
+        dbgs() << "  " << offs_inst.start
+               << " " << offs_inst.length
+               << " " << *offs_inst.inst << '\n';
     );
     LLVM_DEBUG(dbgs() << "Needs split: " << needs_split << '\n');
 #endif
@@ -1160,7 +1171,7 @@ enum bypass_result_t {
 static bypass_result_t
 can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
                          nt_api_call nt_tgt ) {
-  auto* inst = cast<CallInst>(std::get<0>(*inst_rng));
+  auto* inst = cast<CallInst>(inst_rng->inst);
   nt_api_call nt_ins(inst);
 
   assert(nt_ins.is_packet() && nt_tgt.is_packet());
@@ -1213,8 +1224,8 @@ can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
   auto  offs = base.offs;
 
   /* Get the offset + length from the left access */
-  auto  offs2 = std::get<1>(*inst_rng);
-  auto  len2  = std::get<2>(*inst_rng);
+  auto  offs2 = inst_rng->start;
+  auto  len2  = inst_rng->length;
 
   bool same_id   = (id_ins == id_tgt);
   bool same_base = base.comparable(base2);
@@ -1251,7 +1262,7 @@ can_bypass_map_map(inst_rng_t* inst_rng, scaled_value& base2, nt_api_call nt_tgt
 static bypass_result_t
 can_bypass(inst_rng_t* inst_rng, scaled_value& base2, Instruction* target)  {
   bypass_result_t res = BYPASS;
-  auto* inst = cast<CallInst>(std::get<0>(*inst_rng));
+  auto* inst = cast<CallInst>(inst_rng->inst);
   /* An instruction can always bypass itself */
   if( inst == target )
     return BYPASS;
@@ -1330,7 +1341,7 @@ can_bypass(inst_rng_t* inst_rng, scaled_value& base2, Instruction* target)  {
  */
 static Instruction*
 trace_to(inst_rng_t* inst_rng, scaled_value& base, Instruction* to, bool to_front = true) {
-  auto* inst = std::get<0>(*inst_rng);
+  auto* inst = inst_rng->inst;
   ivec_t todo;
   todo.emplace_back(inst);
 
@@ -1471,7 +1482,7 @@ split_group_unsupported_intermediate(merge_group* g,
    * inst that prevents hoisting. */
   while( !todo.empty() ) {
     auto& inst_rng = todo.back();
-    auto* inst     = std::get<0>(inst_rng);
+    auto* inst     = inst_rng.inst;
 
     auto* block = trace_to(&inst_rng, base, ip, to_front);
     LLVM_DEBUG(
@@ -1502,7 +1513,7 @@ split_group_unsupported_intermediate(merge_group* g,
     for( auto* block : block_vec ) {
       dbgs() << "  Blocker: " << *block << " Accesses:\n";
       for( auto& inst_rng : block_map[block] )
-        dbgs() << "    " << *std::get<0>(inst_rng) << '\n';
+        dbgs() << "    " << *inst_rng.inst << '\n';
     }
   );
 
@@ -1548,7 +1559,7 @@ split_group_unsupported_intermediate(merge_group* g,
     bool block_doms = true;
     BasicBlock* lowest_dom = nullptr;
     for( auto& i : accesses ) {
-      auto* inst = std::get<0>(i);
+      auto* inst = i.inst;
       auto* bb   = inst->getParent();
       LLVM_DEBUG(dbgs() << "  " << *inst << '\n');
 
@@ -1658,7 +1669,7 @@ split_group_unsupported_intermediate(merge_group* g,
       /* Group accesses based on their containing BB */
       std::unordered_map<BasicBlock*, inst_rng_vec_t> bb2accs;
       for( auto& i : accesses ) {
-        auto* inst = std::get<0>(i);
+        auto* inst = i.inst;
         auto* bb = inst->getParent();
         bb2accs[bb].emplace_back(i);
       }
@@ -1725,7 +1736,7 @@ split_group_unsupported_intermediate(merge_group* g,
           for( auto* bb : bbs ) {
             dbgs() << "  " << bb->getName() << ":\n";
             for( auto& acc : bb2accs[bb] )
-              dbgs() << "    " << *std::get<0>(acc) << '\n';
+              dbgs() << "    " << *acc.inst << '\n';
           }
         }
       );
@@ -1794,7 +1805,7 @@ split_group_unsupported_intermediate(merge_group* g,
           for( auto* bb : bbs ) {
             dbgs() << "  " << bb->getName() << ":\n";
             for( auto& acc : bb2accs[bb] )
-              dbgs() << "    " << *std::get<0>(acc) << '\n';
+              dbgs() << "    " << *acc.inst << '\n';
           }
         }
       );
@@ -1930,7 +1941,7 @@ static Instruction* group_insertion_point(const merge_group& g,
 
   /* Find the lowest common dominator for all the accesses */
   for( auto& inst_rng : inst_rng_v ) {
-    auto* bb = std::get<0>(inst_rng)->getParent();
+    auto* bb = inst_rng.inst->getParent();
     insert_bb = find_nearest_common_dom(insert_bb, bb, dt, pdt, !to_front);
   }
 
@@ -1938,7 +1949,7 @@ static Instruction* group_insertion_point(const merge_group& g,
   auto* ip = to_front ? insert_bb->getTerminator()
                      : insert_bb->getFirstNonPHI();
   for( auto& inst_rng : inst_rng_v ) {
-    auto* inst = std::get<0>(inst_rng);
+    auto* inst = inst_rng.inst;
     if( !to_front )
       inst = inst->getNextNode();
     assert(inst != nullptr);
@@ -2022,7 +2033,7 @@ void optimise_requests::group_nt_calls(const ivec_t& prds,
     auto it = scv2todo.find(scv);
     if( it == scv2todo.end() ) {
       scv2todo.emplace(scv,
-                   inst_rng_vec_t(1, std::make_tuple(prd, offs, len)));
+                   inst_rng_vec_t(1, inst_rng_t(prd, offs, len)));
       todo.emplace_back(scv);
     } else {
 #if 0
@@ -2032,7 +2043,7 @@ void optimise_requests::group_nt_calls(const ivec_t& prds,
           dbgs() << "  " << i.first << " " << *i.second << '\n';
       );
 #endif
-      it->second.push_back(std::make_tuple(prd, offs, len));
+      it->second.push_back(inst_rng_t(prd, offs, len));
     }
   }
 
@@ -2102,7 +2113,7 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
   IRBuilder<> ir(g->insert_point);
 
   /* Do the read */
-  packet_read_args pra(std::get<0>(g->accesses[0]));
+  packet_read_args pra(g->accesses[0].inst);
   auto* nt_packet_read = create_nt_packet_read(*f->getParent());
   /* NOTE: One could also try to pull out the offset argument of the
    * left-most / first access in the group and use that offset rather than
@@ -2120,8 +2131,8 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
 
   /* Replace every access with a memcpy out from the big enough buffer */
   for( auto& inst_rng : g->accesses ) {
-    auto* inst = std::get<0>(inst_rng);
-    auto  from = std::get<1>(inst_rng);
+    auto* inst = inst_rng.inst;
+    auto  from = inst_rng.start;
     packet_read_args pra(inst);
     ir.SetInsertPoint(inst);
 
@@ -2161,7 +2172,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
 
   /* Create the final, merged write */
   ir.SetInsertPoint(g->insert_point);
-  packet_write_args pwa(std::get<0>(g->accesses[0]));
+  packet_write_args pwa(g->accesses[0].inst);
   auto* nt_packet_write = create_nt_packet_write_masked(*f->getParent());
   auto* scaled_base = g->key.to_ir(&ir);
   Value* args[] = { pwa.packet,
@@ -2187,8 +2198,8 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
                           nullptr,
                           nullptr };
   for( auto& inst_rng : g->accesses ) {
-    auto* inst = std::get<0>(inst_rng);
-    auto  from = std::get<1>(inst_rng);
+    auto* inst = inst_rng.inst;
+    auto  from = inst_rng.start;
     packet_write_args pwa(inst);
     ir.SetInsertPoint(inst);
 
@@ -2224,7 +2235,7 @@ static void merge_packet_group(merge_group* g) {
   unsigned len = end - start;
 
   /* Allocate big enough buffer */
-  auto id = get_intrinsic(std::get<0>(g->accesses[0]));
+  auto id = get_intrinsic(g->accesses[0].inst);
   auto* f = g->insert_point->getFunction();
   IRBuilder<> ir(&*f->getEntryBlock().getFirstInsertionPt());
   auto* buffer = ir.CreateAlloca(ir.getInt8Ty(), ir.getInt32(len),
