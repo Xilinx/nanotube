@@ -715,6 +715,9 @@ Value* scaled_value::to_ir(IRBuilder<>* ir) const {
   if( shr_amount < 0 )
     out = ir->CreateShl(out, ir->getInt32(-shr_amount));
   out = ir->CreateZExtOrTrunc(out, ir->getInt64Ty());
+  /* No need to create an add because the offset is always zero when
+   * this method is used. */
+  assert(offs == 0);
   out->setName(base->getName() + ".scaled");
   return out;
 }
