@@ -697,9 +697,9 @@ bool scaled_value::offset(Value* v, int64_t inc, const DataLayout& dl) {
 
 int64_t scaled_value::transform(int64_t raw) const {
   if( shr_amount > 0 )
-    return raw * factor / divider >> shr_amount;
+    return (raw * factor / divider) >> shr_amount;
   else if( shr_amount < 0 )
-    return raw * factor / divider << (-shr_amount);
+    return (raw * factor / divider) << (-shr_amount);
   else
     return raw * factor / divider;
 }
