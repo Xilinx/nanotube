@@ -960,8 +960,8 @@ static void get_accessed_mask(const merge_group& g, std::vector<bool>* accessed,
   accessed->resize(*end - *start);
   for( auto& inst_rng : offs_ivec ) {
     auto& s = inst_rng.start;
-    auto& e = inst_rng.length;
-    for( int64_t i = s; i < s + e; i++ )
+    auto& l = inst_rng.length;
+    for( int64_t i = s; i < s + l; i++ )
       (*accessed)[i - *start] = true;
   }
 
@@ -1098,28 +1098,29 @@ static bool split_group_with_holes(merge_group* g, unsigned empty_factor,
  * of them is returned and the others are pushed onto the todo
  * list. */
 static Instruction* prev_inst(Instruction* cur, ivec_t* todo) {
-  auto* prev = cur->getPrevNode();
-  if( prev != nullptr ) {
+  auto* prev_inst = cur->getPrevNode();
+  if( prev_inst != nullptr ) {
     /* Advance the scan: simple predecessor */
 #ifdef DETAILED_DEBUG_UNSUPPORTED
-    LLVM_DEBUG(dbgs() << "Direct predecessor: " << *prev << '\n');
+    LLVM_DEBUG(dbgs() << "Direct predecessor: " << *prev_inst << '\n');
 #endif
-    return prev;
+    return prev_inst;
   }
 
   /* Advance the scan: beginning of BB -> follow first, and enqueue other
    * entries */
-  for( auto* pred : predecessors(cur->getParent()) ) {
-    auto* t = pred->getTerminator();
-    if( prev == nullptr ) {
-      prev = t;
-      LLVM_DEBUG(dbgs() << "Predecessor BB tail:" << *prev << '\n');
+  for( auto* pred_bb : predecessors(cur->getParent()) ) {
+    // 
+    auto* t = pred_bb->getTerminator();
+    if( prev_inst == nullptr ) {
+      prev_inst = t;
+      LLVM_DEBUG(dbgs() << "Predecessor BB tail:" << *prev_inst << '\n');
       continue;
     }
     todo->emplace_back(t);
     LLVM_DEBUG(dbgs() << "Fan-in node, remembering " << *t << " for later.\n");
   }
-  return prev;
+  return prev_inst;
 }
 
 /* This is the same as getNextNode, except in the case where the
@@ -1127,28 +1128,28 @@ static Instruction* prev_inst(Instruction* cur, ivec_t* todo) {
  * first non-PHI of each successor basic blocks is examined.  One of
  * them is returned and the others are pushed onto the todo list. */
 static Instruction* next_inst(Instruction* cur, ivec_t* todo) {
-  auto* next = cur->getNextNode();
-  if( next != nullptr ) {
+  auto* next_inst = cur->getNextNode();
+  if( next_inst != nullptr ) {
     /* Advance the scan: simple successor */
 #ifdef DETAILED_DEBUG_UNSUPPORTED
-    LLVM_DEBUG(dbgs() << "Direct successor: " << *next << '\n');
+    LLVM_DEBUG(dbgs() << "Direct successor: " << *next_inst << '\n');
 #endif
-    return next;
+    return next_inst;
   }
 
   /* Advance the scan: end of BB -> follow first, and enqueue other
    * entries */
-  for( auto* succ : successors(cur->getParent()) ) {
-    auto* t = succ->getFirstNonPHI();
-    if( next == nullptr ) {
-      next = t;
-      LLVM_DEBUG(dbgs() << "Successor BB head:" << *next << '\n');
+  for( auto* succ_bb : successors(cur->getParent()) ) {
+    auto* t = succ_bb->getFirstNonPHI();
+    if( next_inst == nullptr ) {
+      next_inst = t;
+      LLVM_DEBUG(dbgs() << "Successor BB head:" << *next_inst << '\n');
       continue;
     }
     todo->emplace_back(t);
     LLVM_DEBUG(dbgs() << "Fan-out node, remembering " << *t << " for later.\n");
   }
-  return next;
+  return next_inst;
 }
 
 /**
