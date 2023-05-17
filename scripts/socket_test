@@ -17,7 +17,7 @@ import time
 script_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
 top_dir = os.path.dirname(script_dir)
 sys.path.append(os.path.join(top_dir, 'py-lib'))
-from hex_reader import HexReader
+from hex_file import HexReader
 from qemu_socket import QemuSocket, LISTEN, CONNECT
 from utils import dump_packet, parse_time
 
