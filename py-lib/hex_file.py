@@ -69,3 +69,26 @@ class HexReader:
       yield self.__buffer
       self.__buffer = bytearray()
 
+class HexWriter:
+  """Generates a hex file from packets.
+
+  The constructor accepts a filename as an argument.  The add_packet
+  method accepts a bytearray with the packet contents.  The close
+  method makes sure the packets have been written to the file.
+  """
+
+  def __init__(self, filename):
+    self.__fh = open(filename, "w")
+
+  def add_packet(self, data):
+    lines = []
+    for i in range(0, len(data), 16):
+      frag = data[i:min(len(data),i+16)]
+      lines.append(("%04x " % i) +
+                   ("".join(" %02x" % x for x in frag)) +
+                   "\n")
+    self.__fh.write("".join(lines)+"\n")
+
+  def close(self):
+    self.__fh.close()
+    self.__fh = None

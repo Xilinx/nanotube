@@ -17,7 +17,7 @@ import time
 script_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
 top_dir = os.path.dirname(script_dir)
 sys.path.append(os.path.join(top_dir, 'py-lib'))
-from hex_file import HexReader
+from hex_file import HexReader, HexWriter
 from qemu_socket import QemuSocket, LISTEN, CONNECT
 from utils import dump_packet, parse_time
 
@@ -52,6 +52,9 @@ class App:
 
     # The index of the next packet.
     self.__exp_index = 0
+
+    # The output file, if any.
+    self.__out_file = None
 
     # The current log line from the program.
     self.__log_line = b""
@@ -95,6 +98,10 @@ class App:
     p.add_argument("--input", "-i",
                    action="append", default=[],
                    help="Add an input file to process.")
+
+    p.add_argument("--output", "-o",
+                   action="store", default=None,
+                   help="Set an output file to generate.")
 
     p.add_argument("--expect", "-e",
                    action="append", default=[],
@@ -174,6 +181,8 @@ class App:
     self.__exp_iter = self.__exp_reader.iter_packets()
     self.__exp_packet = next(self.__exp_iter, None)
     self.__exp_index = 0
+    if self.__args.output is not None:
+      self.__out_file = HexWriter(self.__args.output)
 
   def create_socket(self):
     verbosity = self.__verbosity - 1
@@ -327,6 +336,9 @@ class App:
     self.__test_failed = True
 
   def handle_recv_packet(self, p):
+    if self.__out_file is not None:
+      self.__out_file.add_packet(p)
+
     if self.__exp_packet is None:
       if ( len(self.__args.expect) != 0 and
            not self.__recv_excess ):
@@ -537,6 +549,10 @@ class App:
     self.wait_proc(None)
     assert(self.__proc_exited)
 
+  def flush_output(self):
+    if self.__out_file is not None:
+      self.__out_file.close()
+
   def flush_log(self):
     if self.__proc is None:
       return
@@ -574,6 +590,7 @@ class App:
     self.do_running()
     self.do_waiting()
     self.end_program()
+    self.flush_output()
     self.flush_log()
     self.report_results()
 
