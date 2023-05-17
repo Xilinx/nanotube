@@ -328,7 +328,8 @@ class App:
 
   def handle_recv_packet(self, p):
     if self.__exp_packet is None:
-      if not self.__recv_excess:
+      if ( len(self.__args.expect) != 0 and
+           not self.__recv_excess ):
         sys.stderr.write("%s: Too many packets received.\n" %
                          sys.argv[0])
         self.__recv_excess = True
