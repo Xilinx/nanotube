@@ -200,6 +200,7 @@
 
 #include "Intrinsics.h"
 #include "Map_Packet_CFG.hpp"
+#include "utils.h"
 
 #define DEBUG_TYPE "optreq"
 using namespace llvm;
@@ -474,7 +475,10 @@ bool optimise_requests::runOnFunction(Function& f) {
 
   if( function_level ) {
   /* Per Function style */
-    LLVM_DEBUG(dbgs() << "Performing function-level analysis:\n");
+    LLVM_DEBUG(
+      dbgs() << formatv("Performing function-level analysis on {0}:\n",
+                        f.getName());
+    );
     bool changes = false;
 
     /* Make sure the control flow graph is valid. */
@@ -1369,6 +1373,12 @@ trace_to(inst_rng_t* inst_rng, scaled_value& base, Instruction* to, bool to_fron
   ivec_t todo;
   todo.emplace_back(inst);
 
+  LLVM_DEBUG(
+    dbgs() << formatv("Tracing from {0}\n  in {1}\n  to {2}\n  in {3}\n",
+                      *inst, as_operand(inst->getParent()),
+                      *to, as_operand(to->getParent()));
+  );
+
   std::unordered_set<Instruction*> visited;
   Instruction* block = nullptr;
 
@@ -1481,7 +1491,9 @@ split_group_unsupported_intermediate(merge_group* g,
                                      std::vector<merge_group>* out,
                                      DominatorTree* dt,
                                      PostDominatorTree* pdt, bool to_front = true) {
-  LLVM_DEBUG(dbgs() << "Checking for unsupported intermediates in group " << *g
+  LLVM_DEBUG(dbgs() << "Checking "
+                    << (to_front ? "to front" : "to back")
+                    << " for unsupported intermediates in group " << *g
                     << '\n');
   std::vector<merge_group> res;
 
@@ -1987,7 +1999,7 @@ static Instruction* group_insertion_point(const merge_group& g,
     bool my_bwd = is_reachable(ip, inst);
 
     if( my_fwd && my_bwd ) {
-      errs() << "ERROR: Something fishy is going on. Intruction " << *ip
+      errs() << "ERROR: Something fishy is going on. Instruction " << *ip
              << " is both before and after " << *inst << '\n'
              << "That is unsupported. Aborting!\n";
       errs() << "LLVM Fwd: " << llvm_fwd << " LLVM Bwd: " << llvm_bwd << '\n';
