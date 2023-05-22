@@ -722,13 +722,18 @@ Value* scaled_value::to_ir(IRBuilder<>* ir) const {
   return out;
 }
 
-/**
- * Given a value, strip off all constant offsets that this value has (i.e.,
- * additions / subtractions of constant values); basically the equivalent
- * of GetElementPtrInst::accumulateConstantOffset for non-GEPs, but
- * integers.
+/** Convert a Value to a scaled_value.
+ *
+ * Given a value, strip off offset and scaling instructions, representing
+ * them as members of scaled_value.  This handles constant offsets,
+ * constant shifts, multiplies and divides.  This is similar to
+ * GetElementPtrInst::accumulateConstantOffset, but for integers.
+ *
+ * \param in    The value to convert.
+ * \param dl    The data layout.
+ * \returns an equivalent scaled_value object.
  */
-static scaled_value strip_all_constants(Value* in, const DataLayout& dl) {
+static scaled_value make_scaled_value(Value* in, const DataLayout& dl) {
   scaled_value scv(in);
   bool cont = true;
   while( cont ) {
@@ -741,7 +746,7 @@ static scaled_value strip_all_constants(Value* in, const DataLayout& dl) {
       auto* ci = dyn_cast<ConstantInt>(in);
       if( ci == nullptr ) {
         errs() << "FIXME: unhandled non-integer constant case in "
-               << "strip_all_constants: " << *in << '\n';
+               << "make_scaled_value: " << *in << '\n';
         goto done;
       }
       scv.offset(Constant::getNullValue(in->getType()),
@@ -919,7 +924,7 @@ static scaled_value strip_all_constants(Value* in, const DataLayout& dl) {
         goto done;
       default:
         errs() << "WARNING: unhandled instruction case in "
-               << "strip_all_constants: " << *in
+               << "make_scaled_value: " << *in
                << "\nAssuming it cannot be merged.  Better reults might "
                << "be achieved when handling this instruction.\n";
 
@@ -1235,7 +1240,7 @@ can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
   }
   assert((vlen != nullptr) && (voff != nullptr));
   uint16_t len  = (uint16_t)cast<ConstantInt>(vlen)->getZExtValue();
-  scaled_value base = strip_all_constants(voff,
+  scaled_value base = make_scaled_value(voff,
                         inst->getModule()->getDataLayout());
   auto  offs = base.offs;
 
@@ -2034,7 +2039,7 @@ void optimise_requests::group_nt_calls(const ivec_t& prds,
     }
 
     uint16_t len = (uint16_t)cast<ConstantInt>(vlen)->getZExtValue();
-    scaled_value scv = strip_all_constants(voff,
+    scaled_value scv = make_scaled_value(voff,
                          prd->getModule()->getDataLayout());
     auto offs = scv.offs;
 
