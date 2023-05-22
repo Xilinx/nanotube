@@ -1203,7 +1203,7 @@ can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
   /* Packet length operations commute with everything (but resizes) */
   if( (id_ins == Intrinsics::packet_bounded_length) ||
       (id_tgt == Intrinsics::packet_bounded_length) )
-    return BLOCK;
+    return BYPASS;
 
   /* Two reads always commute with one another */
   if( (id_ins == Intrinsics::packet_read) &&
