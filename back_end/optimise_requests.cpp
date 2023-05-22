@@ -1928,25 +1928,27 @@ static bool is_reachable(BasicBlock* from, BasicBlock* to) {
    * then it is not reachable from itself. */
   if( from == to )
     return true;
+
   auto it = reachability_cache.find(from);
   if( it != reachability_cache.end() ) {
     return it->second.count(to);
-  } else {
-    std::unordered_set<BasicBlock*> visited, todo;
-    todo.insert(from);
-    while(!todo.empty()) {
-      auto it = todo.begin();
-      auto* bb = *it;
-      visited.insert(bb);
-      for( auto* succ : successors(bb) ) {
-        if( visited.count(succ) > 0 )
-          continue;
-        reachability_cache[from].insert(succ);
-        todo.insert(succ);
-      }
-      todo.erase(it);
-    }
   }
+
+  std::unordered_set<BasicBlock*> visited, todo;
+  todo.insert(from);
+  while(!todo.empty()) {
+    auto it = todo.begin();
+    auto* bb = *it;
+    visited.insert(bb);
+    for( auto* succ : successors(bb) ) {
+      if( visited.count(succ) > 0 )
+        continue;
+      reachability_cache[from].insert(succ);
+      todo.insert(succ);
+    }
+    todo.erase(it);
+  }
+
   return reachability_cache[from].count(to);
 }
 
@@ -1956,17 +1958,16 @@ static bool is_reachable(Instruction* from, Instruction* to) {
 
   if( from_bb != to_bb )
     return is_reachable(from_bb, to_bb);
-  else {
-    /* NOTE: Just checking order in the current BB implicitly relies on
-     * there not being any loops in the program */
-    // return from.comesBefore(to);
-    auto it = from->getIterator();
-    while( ++it != from_bb->end() ) {
-      if( &*it == to )
-        return true;
-    }
-    return false;
+
+  /* NOTE: Just checking order in the current BB implicitly relies on
+   * there not being any loops in the program */
+  // return from.comesBefore(to);
+  auto it = from->getIterator();
+  while( ++it != from_bb->end() ) {
+    if( &*it == to )
+      return true;
   }
+  return false;
 }
 static Instruction* group_insertion_point(const merge_group& g,
                                           DominatorTree& dt,
