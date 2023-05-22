@@ -1174,44 +1174,46 @@ enum bypass_result_t {
 };
 
 /**
- * Check whether the Nanotube access specified in inst_rng can be hoisted
- * past the target instruction.  No specific direction is specified, so we
- * are really asking whether inst_rng and target commute.  Actual data flow
- * does not have to be tracked between the two calls as that is done by the
- * code around can_bypass.  The only question is whether the "behind the
- * scenes" aspect of the access (accessing the packet / map) does commute.
+ * Check whether the Nanotube access specified in inst_rng_mov can be
+ * hoisted past the target instruction.  No specific direction is
+ * specified, so we are really asking whether inst_rng_mov and target
+ * commute.  Actual data flow does not have to be tracked between the two
+ * calls as that is done by the code around can_bypass.  The only question
+ * is whether the "behind the scenes" aspect of the access (accessing the
+ * packet / map) does commute.
  *
- * \param inst_rng   The instruction being moved, with its offset range.
- * \param base2      The base of the instruction being moved.
- * \param nt_tgt     The instruction being moved past.
+ * \param inst_rng_mov  The instruction being moved, with its offset range.
+ * \param base_mov      The base of the instruction being moved.
+ * \param nt_tgt        The instruction being moved past.
  *
  * \return Enum that says whether the two accesses commute (BYPASS), or can
  *  combined together but must stay in sequence (MERGE_SAME), or do not
  *  commute (BLOCK).
  */
 static bypass_result_t
-can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
+can_bypass_packet_packet(inst_rng_t* inst_rng_mov,
+                         scaled_value& base_mov,
                          nt_api_call nt_tgt ) {
-  auto* inst = cast<CallInst>(inst_rng->inst);
-  nt_api_call nt_ins(inst);
+  auto* moving = cast<CallInst>(inst_rng_mov->inst);
+  nt_api_call nt_mov(moving);
 
-  assert(nt_ins.is_packet() && nt_tgt.is_packet());
+  assert(nt_mov.is_packet() && nt_tgt.is_packet());
 
-  auto id_ins = nt_ins.get_intrinsic();
+  auto id_mov = nt_mov.get_intrinsic();
   auto id_tgt = nt_tgt.get_intrinsic();
 
   /* Resizes block everything */
-  if( (id_ins == Intrinsics::packet_resize) ||
+  if( (id_mov == Intrinsics::packet_resize) ||
       (id_tgt == Intrinsics::packet_resize) )
     return BLOCK;
 
   /* Packet length operations commute with everything (but resizes) */
-  if( (id_ins == Intrinsics::packet_bounded_length) ||
+  if( (id_mov == Intrinsics::packet_bounded_length) ||
       (id_tgt == Intrinsics::packet_bounded_length) )
     return BYPASS;
 
   /* Two reads always commute with one another */
-  if( (id_ins == Intrinsics::packet_read) &&
+  if( (id_mov == Intrinsics::packet_read) &&
       (id_tgt == Intrinsics::packet_read) )
     return BYPASS;
 
@@ -1220,41 +1222,41 @@ can_bypass_packet_packet(inst_rng_t* inst_rng, scaled_value& base2,
    *   - wr + rd (same as rd + wr!)
    *   - wr + wri
    */
-  assert((nt_ins.is_read()  && nt_tgt.is_write()) ||
-         (nt_ins.is_write() && nt_tgt.is_read())  ||
-         (nt_ins.is_write() && nt_tgt.is_write()));
+  assert((nt_mov.is_read()  && nt_tgt.is_write()) ||
+         (nt_mov.is_write() && nt_tgt.is_read())  ||
+         (nt_mov.is_write() && nt_tgt.is_write()));
 
   /* These may potentially conflict, so check the range accessed */
   /* Read off the offset + length of the target access */
   auto* target = nt_tgt.get_call();
-  Value* vlen = nullptr;
-  Value* voff = nullptr;
+  Value* vlen_tgt = nullptr;
+  Value* voff_tgt = nullptr;
   if( nt_tgt.is_write() ) {
     packet_write_args pwa(target);
-    vlen = pwa.length;
-    voff = pwa.offset;
+    vlen_tgt = pwa.length;
+    voff_tgt = pwa.offset;
   } else if( nt_tgt.is_read() ) {
     packet_read_args pra(target);
-    vlen = pra.length;
-    voff = pra.offset;
+    vlen_tgt = pra.length;
+    voff_tgt = pra.offset;
   }
-  assert((vlen != nullptr) && (voff != nullptr));
-  uint16_t len  = (uint16_t)cast<ConstantInt>(vlen)->getZExtValue();
-  scaled_value base = make_scaled_value(voff,
-                        inst->getModule()->getDataLayout());
-  auto  offs = base.offs;
+  assert((vlen_tgt != nullptr) && (voff_tgt != nullptr));
+  uint16_t len_tgt  = (uint16_t)cast<ConstantInt>(vlen_tgt)->getZExtValue();
+  scaled_value base_tgt = make_scaled_value(voff_tgt,
+                        moving->getModule()->getDataLayout());
+  auto  offs_tgt = base_tgt.offs;
 
   /* Get the offset + length from the left access */
-  auto  offs2 = inst_rng->start;
-  auto  len2  = inst_rng->length;
+  auto  offs_mov = inst_rng_mov->start;
+  auto  len_mov  = inst_rng_mov->length;
 
-  bool same_id   = (id_ins == id_tgt);
-  bool same_base = base.comparable(base2);
-  bool overlap   = range_overlap(offs, len, offs2, len2);
+  bool same_id   = (id_mov == id_tgt);
+  bool same_base = base_tgt.comparable(base_mov);
+  bool overlap   = range_overlap(offs_tgt, len_tgt, offs_mov, len_mov);
 
   /* Comparable (same base), non-overlapping accesses commute */
   if( same_base && !overlap ) {
-    LLVM_DEBUG(dbgs() << "Allowing " << *inst << " past access "
+    LLVM_DEBUG(dbgs() << "Allowing " << *moving << " past access "
                       << "that does not overlap: " << *target
                       << " DONE.\n");
     return BYPASS;
@@ -1281,11 +1283,12 @@ can_bypass_map_map(inst_rng_t* inst_rng, scaled_value& base2, nt_api_call nt_tgt
 }
 
 static bypass_result_t
-can_bypass(inst_rng_t* inst_rng, scaled_value& base2, Instruction* target)  {
+can_bypass(inst_rng_t* inst_rng_mov, scaled_value& base_mov,
+           Instruction* target)  {
   bypass_result_t res = BYPASS;
-  auto* inst = cast<CallInst>(inst_rng->inst);
+  auto* moving = cast<CallInst>(inst_rng_mov->inst);
   /* An instruction can always bypass itself */
-  if( inst == target )
+  if( moving == target )
     return BYPASS;
 
   /* Only call instructions can fiddle with the "behind the scenes" data.
@@ -1293,18 +1296,18 @@ can_bypass(inst_rng_t* inst_rng, scaled_value& base2, Instruction* target)  {
   if( !isa<CallInst>(target) )
     return BYPASS;
 
-  nt_api_call nt_ins(inst), nt_tgt(cast<CallInst>(target));
+  nt_api_call nt_mov(moving), nt_tgt(cast<CallInst>(target));
 
   /* Packet accesses commute with map accesses */
-  if( (nt_ins.is_packet() && nt_tgt.is_map()) ||
-      (nt_ins.is_map() && nt_tgt.is_packet()) )
+  if( (nt_mov.is_packet() && nt_tgt.is_map()) ||
+      (nt_mov.is_map() && nt_tgt.is_packet()) )
     return BYPASS;
 
   /* Outsource the interesting same-type commute checks */
-  if( nt_ins.is_packet() && nt_tgt.is_packet() )
-    return can_bypass_packet_packet(inst_rng, base2, nt_tgt);
-  if( nt_ins.is_map() && nt_tgt.is_map() )
-    return can_bypass_map_map(inst_rng, base2, nt_tgt);
+  if( nt_mov.is_packet() && nt_tgt.is_packet() )
+    return can_bypass_packet_packet(inst_rng_mov, base_mov, nt_tgt);
+  if( nt_mov.is_map() && nt_tgt.is_map() )
+    return can_bypass_map_map(inst_rng_mov, base_mov, nt_tgt);
 
   /* Check the left-overs not caught above */
   switch( nt_tgt.get_intrinsic() ) {
@@ -1345,7 +1348,7 @@ can_bypass(inst_rng_t* inst_rng, scaled_value& base2, Instruction* target)  {
       errs() << "IMPLEMENT ME: Unknown intrinsic "
              << intrinsic_to_string(nt_tgt.get_intrinsic())
              << " for instruction " << *target
-             << " starting walk at " << *inst << '\n';
+             << " starting walk at " << *moving << '\n';
       errs() << "Treating as a blocker!\n";
       res = BLOCK;
   }
