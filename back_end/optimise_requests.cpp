@@ -389,7 +389,7 @@ struct merge_group {
   merge_group(const scaled_value& k, Instruction* ip) : key(k), insert_point(ip),
     accesses() {}
   merge_group(const scaled_value& k, inst_rng_vec_t& acc) : key(k),
-    accesses(acc) {}
+    insert_point(nullptr), accesses(acc) {}
   merge_group(const scaled_value& k, Instruction* ip, inst_rng_vec_t& acc) : key(k),
     insert_point(ip), accesses(acc) {}
 };
