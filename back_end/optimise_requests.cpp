@@ -382,8 +382,18 @@ typedef std::unordered_map<scaled_value, inst_rng_vec_t>  v2inst_rng_vec_t;
  * - accesses: a vector of (instruction, start, length) tuples
  */
 struct merge_group {
+  /** The base address of the accesses in the group.
+   *
+   * The offs field will be zero. */
   scaled_value   key;
+
+  /** The insertion point of the group if one has been chosen.
+   *
+   * If this location is non-null then it dominates all the
+   * accesses. */
   Instruction*   insert_point;
+
+  /** The accesses in the group. */
   inst_rng_vec_t accesses;
   merge_group() : key(nullptr), insert_point(nullptr) {}
   merge_group(const scaled_value& k, Instruction* ip) : key(k), insert_point(ip),
@@ -1360,12 +1370,27 @@ can_bypass(inst_rng_t* inst_rng_mov, scaled_value& base_mov,
 }
 
 /**
- * Trace a single access backwards to a starting point, stopping at and
- * returning incompatible accesses.  Tracing backwards may encounter
- * control flow divergence (convergence in the normal forwards direction!).
- * This function will trace through all potential code paths and identify
- * any incompatible access if it exists.  The caller should check and
- * adjust the returned access for domination relationships.
+ * Trace an access to a starting point, stopping at any incompatible
+ * access.
+ *
+ * This function will trace through all potential code paths between <to>
+ * and the instruction in <inst_rng>.  The trace is performed in a forwards
+ * or backwards direction depending on the to_front parameter.  Tracing
+ * backwards may encounter control flow divergence and tracing forwards may
+ * encounter convergence.
+ *
+ * It will return a candidate insertion point.  In the case where there are
+ * no blocker instructions, it will simply be the <to> parameter.  In the
+ * case where there is a blocker, it will be an insertion point immediately
+ * before or after the blocker, depending on whether the search is
+ * performed forwards or backwards.  The returned instruction might not
+ * dominate the access, so the caller should check and adjust the returned
+ * access if necessary.
+ *
+ * \param inst_rng - The instruction to start from.
+ * \param base     - The base for the start instruction.
+ * \param to       - The instruction to search to.
+ * \param to_front - True to trace backwards.
  */
 static Instruction*
 trace_to(inst_rng_t* inst_rng, scaled_value& base, Instruction* to, bool to_front = true) {
