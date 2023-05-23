@@ -1205,8 +1205,8 @@ enum bypass_result_t {
  *  commute (BLOCK).
  */
 static bypass_result_t
-can_bypass_packet_packet(inst_rng_t* inst_rng_mov,
-                         scaled_value& base_mov,
+can_bypass_packet_packet(const inst_rng_t* inst_rng_mov,
+                         const scaled_value& base_mov,
                          nt_api_call nt_tgt ) {
   auto* moving = cast<CallInst>(inst_rng_mov->inst);
   nt_api_call nt_mov(moving);
@@ -1292,12 +1292,13 @@ can_bypass_packet_packet(inst_rng_t* inst_rng_mov,
 }
 
 static bypass_result_t
-can_bypass_map_map(inst_rng_t* inst_rng, scaled_value& base2, nt_api_call nt_tgt ) {
+can_bypass_map_map(const inst_rng_t* inst_rng, const scaled_value& base2,
+                   nt_api_call nt_tgt ) {
   return BLOCK;
 }
 
 static bypass_result_t
-can_bypass(inst_rng_t* inst_rng_mov, scaled_value& base_mov,
+can_bypass(const inst_rng_t* inst_rng_mov, const scaled_value& base_mov,
            Instruction* target)  {
   bypass_result_t res = BYPASS;
   auto* moving = cast<CallInst>(inst_rng_mov->inst);
@@ -1393,7 +1394,8 @@ can_bypass(inst_rng_t* inst_rng_mov, scaled_value& base_mov,
  * \param to_front - True to trace backwards.
  */
 static Instruction*
-trace_to(inst_rng_t* inst_rng, scaled_value& base, Instruction* to, bool to_front = true) {
+trace_to(const inst_rng_t* inst_rng, const scaled_value& base,
+         Instruction* to, bool to_front = true) {
   auto* inst = inst_rng->inst;
   ivec_t todo;
   todo.emplace_back(inst);
