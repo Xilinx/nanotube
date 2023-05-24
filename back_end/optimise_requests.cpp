@@ -1580,6 +1580,14 @@ split_group_unsupported_intermediate(merge_group* g,
     }
   );
 
+  /* Check for the case where all accesses can be moved to the
+   * original insertion point and the group does not need to be
+   * split. */
+  if ( block_vec.size() == 1 &&
+       block_vec[0] == g->insert_point ) {
+    return false;
+  }
+
   /* Go through all blocking / insertion points and the accesses that were
    * associated with them.  Make sure each block point is a valid insertion
    * point, as well, and if it is not, find a better insertion point!
@@ -1598,11 +1606,10 @@ split_group_unsupported_intermediate(merge_group* g,
     if( block == g->insert_point ) {
       LLVM_DEBUG(dbgs() << "Block point is original insert point.\n");
       block2ip[block] = block;
-      /* If we have other blockers, remember the "normal" group as one of
-       * the block results so that it gets output later on.  If it is just
-       * a single group, we simply tell the caller to keep it, instead. */
-      if( block_vec.size() > 1 )
-        block_res.emplace_back(block);
+      /* These accesses are not being blocked by any instruction.
+       * Remember this group as one of the results so that it gets
+       * output later on. */
+      block_res.emplace_back(block);
       continue;
     }
 
