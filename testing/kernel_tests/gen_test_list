@@ -52,6 +52,7 @@ src_combo_list = [
 
     [ "xdp_trivial.c",            "-bus=x3rx", ["ebpf2nt:hls"] ],
 
+    [ "firewall.xdp.c",           "", ["ebpf2nt:converge"] ],
     [ "ip_tunnel.xdp.cc",         "-bus=shb", ["ebpf2nt:link_taps",
                                              "ebpf2nt:optreq,flatten"] ],
     [ "ip_tunnel.cc",             "", ["mem2req:inline_opt",

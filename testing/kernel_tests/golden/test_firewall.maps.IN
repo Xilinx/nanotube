@@ -1,0 +1,31 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+# The source map.
+# ID=0 type=HASH key_sz=17 value_sz=4
+nanotube_map: 0 0 17 4
+key:   f2 b5 dc 8a  00 00 00 00  00 00 00 00  00 00 00 00    04
+value: 03 00 00 00
+key:   72 58 70 7f  61 a5 42 fd  22 42 dd 01  96 5d b7 fc    06
+value: 04 00 00 00
+end
+
+# The service map.
+# ID=1 type=HASH key_sz=20 value_sz=4
+nanotube_map: 1 0 20 4
+key:   35 66 37 65  00 00 00 00  00 00 00 00  00 00 00 00    04    01    00 00
+value: 05 00 00 00
+key:   08 a0 5e 05  00 00 00 00  00 00 00 00  00 00 00 00    04    06    c2 7e
+value: 06 00 00 00
+key:   5e c2 3f 38  00 00 00 00  00 00 00 00  00 00 00 00    04    11    fa f4
+value: 07 00 00 00
+key:   85 bb 11 21  5f fe 5a cb  01 e8 98 ed  f4 1b cf 9e    06    3a    00 00
+value: 08 00 00 00
+key:   b2 65 a5 27  14 b9 6e 18  82 90 a3 56  56 a8 46 50    06    06    5a 7f
+value: 09 00 00 00
+key:   22 67 14 a5  e5 3f 76 42  65 7c 54 5f  4f 08 83 91    06    11    70 c5
+value: 0a 00 00 00
+end
+
