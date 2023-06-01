@@ -1976,7 +1976,7 @@ static bool is_reachable(BasicBlock* from, BasicBlock* to) {
     todo.erase(it);
   }
 
-  return reachability_cache[from].count(to);
+  return reachability_cache[from].count(to) != 0;
 }
 
 static bool is_reachable(Instruction* from, Instruction* to) {
