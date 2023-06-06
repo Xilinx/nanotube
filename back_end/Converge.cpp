@@ -1498,6 +1498,12 @@ void converged_access_block::add_dummy_access(BasicBlock* src,
 void converged_access_block::simplify(DominatorTree& dt) {
   LLVM_DEBUG(dbgs() << "Converged access BB before simplify(): " << *bb
                     << '\n');
+  /* NOTE: We only iterate over the argument PHIs as the only other source
+   * for PHI nodes are those needed for repairing value-use dominance (from
+   * repair_def_dominance).  Those will look simplify-able, but the actual
+   * value will not dominate the use / the PHI node (hence the reason to
+   * have the PHI node in the first place!), and so they cannot be
+   * simplified!. */
   /* Remove constant PHI nodes */
   for( auto* phiv : arg_phis ) {
     auto* phi = cast<PHINode>(phiv);
