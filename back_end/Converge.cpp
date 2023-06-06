@@ -1504,6 +1504,7 @@ void converged_access_block::simplify(DominatorTree& dt) {
     bool const_undef = phi->hasConstantOrUndefValue();
 
     if( const_undef ) {
+      LLVM_DEBUG(dbgs() << "Const / undef PHI:" << *phi << '\n');
       /* Try to replace the entire PHINode with a single legal value */
       Value* v = nullptr;
       /* Get the first non-undef value */
@@ -1513,12 +1514,19 @@ void converged_access_block::simplify(DominatorTree& dt) {
           break;
         }
       }
+      LLVM_DEBUG(dbgs() << "Replacement: " << *v << '\n');
       /* Check the selected value can actually be used instead of the PHI */
       if( isa<Constant>(v) || isa<Argument>(v) ||
           dt.dominates(cast<Instruction>(v), phi) ) {
         phi->replaceAllUsesWith(v);
         phi->eraseFromParent();
         continue;
+      } else {
+        LLVM_DEBUG(
+          dbgs() << "Cannot simplify because replacement does not "
+                 << "dominate PHI. BB: "
+                 << cast<Instruction>(v)->getParent()->getName() << '\n');
+
       }
     }
   }
@@ -1563,7 +1571,8 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
   if( is_long_range_phi && phi->hasConstantOrUndefValue() ) {
     errs() << "ERROR: Used long-range simple PHI " << *phi
            << " defined in " << phi->getParent()->getName()
-           << "\nThese must be cleaned up before converging!\n";
+           << "\nThese must be cleaned up before converging!\n"
+           << "Consider the -move-alloca and -compact-geps passes.\n";
     exit(1);
   }
 
