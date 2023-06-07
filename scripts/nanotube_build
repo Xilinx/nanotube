@@ -38,6 +38,7 @@ step_specs = {
     'platform' : ('opt', '-platform -always-inline -constprop'),
     'ntattr' : ( 'opt', '-nt-attributes -O2' ),
     'optreq' :  ( 'opt',
+                  '-mergereturn '
                   '-optreq -enable-loop-unroll -always-inline '
                   '-constprop -loop-unroll -simplifycfg' ),
     'converge': ('opt', '-compact-geps -converge_mapa'),

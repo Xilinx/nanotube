@@ -33,8 +33,10 @@ pass_opts = {
     'mem2req' : '-mem2req',
     'platform' : '-platform -always-inline -constprop',
     'ntattr' : ( '-nt-attributes -O2' ),
-    'optreq' :  ('-optreq -enable-loop-unroll -always-inline '
-                 '-constprop -loop-unroll -simplifycfg' ),
+    'optreq' :  (
+        '-mergereturn '
+        '-optreq -enable-loop-unroll -always-inline '
+        '-constprop -loop-unroll -simplifycfg' ),
     'inline'  : ( '-always-inline -constprop' ),
     'inline_opt': ( '-always-inline'
                     ' -rewrite-setup -replace-malloc'
