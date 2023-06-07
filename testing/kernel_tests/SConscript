@@ -26,7 +26,10 @@ def run_gen_test_list(test_list, dir, args):
 
 # Translate pass names to the right command line parameter
 pass_opts = {
-    'converge': '-compact-geps -converge_mapa',
+    'converge': (
+        '-move-alloca -compact-geps '
+        '-converge_mapa'
+    ),
     'byteify' : '-byteify',
     'destruct': '-destruct',
     'ebpf2nt': '-ebpf2nanotube',

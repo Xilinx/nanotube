@@ -41,7 +41,9 @@ step_specs = {
                   '-mergereturn '
                   '-optreq -enable-loop-unroll -always-inline '
                   '-constprop -loop-unroll -simplifycfg' ),
-    'converge': ('opt', '-compact-geps -converge_mapa'),
+    'converge': ('opt',
+                 '-move-alloca -compact-geps '
+                 '-converge_mapa'),
     'inline_opt': ( 'opt',
                     '-always-inline'
                     ' -rewrite-setup -replace-malloc'
