@@ -56,7 +56,9 @@ step_specs = {
                    '-nanotube-aa -pipeline' ),
     'byteify' : ('opt', '-byteify'),
     'destruct': ('opt', '-destruct'),
-    'flatten' : ('opt', '-flatten-cfg'),
+    'flatten' : ('opt',
+                 '-move-alloca '
+                 '-flatten-cfg'),
 
     # Linking steps.
     'lower': ('link', 'nanotube_high_level.bc'),
