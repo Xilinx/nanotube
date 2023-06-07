@@ -35,6 +35,7 @@ pass_opts = {
     'ebpf2nt': '-ebpf2nanotube',
     'mem2req' : '-mem2req',
     'platform' : '-platform -always-inline -constprop',
+    'control' : '-control-capsule -always-inline',
     'ntattr' : ( '-nt-attributes -O2' ),
     'optreq' :  (
         '-mergereturn '

@@ -36,6 +36,7 @@ step_specs = {
     'mem2req' : ('opt', '-mem2req'),
     'inline'  : ('opt', '-always-inline -constprop'),
     'platform' : ('opt', '-platform -always-inline -constprop'),
+    'control' : ('opt', '-control-capsule -always-inline'),
     'ntattr' : ( 'opt', '-nt-attributes -O2' ),
     'optreq' :  ( 'opt',
                   '-mergereturn '
@@ -95,6 +96,7 @@ back_end_specs = {
         'lower',
         'inline',
         'platform',
+        'control',
         'ntattr',
         'optreq',
         'converge',
