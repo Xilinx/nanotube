@@ -1538,9 +1538,13 @@ void converged_access_block::simplify(DominatorTree& dt) {
   }
   LLVM_DEBUG(dbgs() << "Converged access BB after simplify(): " << *bb
                     << '\n');
-
 }
 
+/**
+ * Handle memory locations that are being used in this converged access
+ * block but are based on PHI nodes. These are converted to a new
+ * allocation and a memcpy opreration (in / out dependeing on is_input).
+ */
 bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_input) {
   LLVM_DEBUG(
     dbgs() << "convert_phi_of_addr() on call: " << *call.get_call() << '\n'
@@ -1554,6 +1558,7 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
   }
   assert(loc.Size.hasValue());
   unsigned loc_size = loc.Size.getValue();
+  LLVM_DEBUG(dbgs() << "  Location size: " << loc_size << " bytes\n");
 
   if( !isa<PHINode>(loc.Ptr)) {
     errs() << "ERROR: Value is not a phi node!\n"
@@ -1562,43 +1567,33 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
   }
   assert(isa<PHINode>(loc.Ptr));
 
-  auto* ci   = call.get_call();
-  auto* phi  = cast<PHINode>(const_cast<Value*>(loc.Ptr));
-  auto* func = ci->getFunction();
+  auto* loc_phi = cast<PHINode>(const_cast<Value*>(loc.Ptr));
+  auto* ci      = call.get_call();
+  auto* func    = ci->getFunction();
 
-  /* Ignore phis that are only here for weaving purposes */
-#if 0
-  if( phi->hasConstantOrUndefValue() )
+  /**
+   * This code only handles those pointer PHI nodes that were created by
+   * the Converge pass itself in a converged_access_block.  All other
+   * pointer phis will have to be dealt with elsewhere.
+   */
+  if( loc_phi->getParent() != bb ) {
+    LLVM_DEBUG(dbgs() << "Not handling memory location phi " << *loc_phi
+                      << " that was not added by the Converge pass.\n");
     return false;
-#endif
-
-  bool is_long_range_phi = (phi->getParent() != bb);
-  /* Ignore simple long-range phis for now */
-  if( is_long_range_phi && phi->hasConstantOrUndefValue() ) {
-    errs() << "ERROR: Used long-range simple PHI " << *phi
-           << " defined in " << phi->getParent()->getName()
-           << "\nThese must be cleaned up before converging!\n"
-           << "Consider the -move-alloca and -compact-geps passes.\n";
-    exit(1);
   }
 
-  /* NOTE: We ignore other, potentially long-range phi nodes here.  They
-   * may not be supported by the Pipeliner, but only if they are so far
-   * away from the usage that they end up in a different pipeline stage.
-   * That is impossible to check here; checking is_long_range is not good
-   * enough, because it triggers on cases where the phi node ends up in the
-   * same pipeline stage as the use, but in just a slightly different BB.
-   */
-
   /* Find the corresponding argument index for the parameter */
-  assert(ci->hasArgument(phi));
-  auto it = llvm::find(ci->args(), phi);
+  assert(ci->hasArgument(loc_phi));
+  auto it = llvm::find(ci->args(), loc_phi);
   unsigned arg_idx = it - ci->arg_begin();
 
   /* Get the associated request size */
   bool     req_size_bits = false;
   auto*    req_size_arg  = call.get_size_arg(arg_idx, &req_size_bits);
   PHINode* req_size_phi  = dyn_cast<PHINode>(req_size_arg);
+
+  LLVM_DEBUG(dbgs() << "  Call size argument: " << *req_size_arg
+                    << " Bits: " << req_size_bits << '\n');
 
   /* Construct the alloca that will hold the input / output data */
   IRBuilder<> ir(func->getEntryBlock().getFirstNonPHI());
@@ -1607,24 +1602,22 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
                                  ci->getName() + "_buffer");
   LLVM_DEBUG(dbgs() << "  Alloca: " << *alloca << '\n');
 
-  /* Convert each part of the phi into a memcpy in the correct preceeding /
-   * subsequent block */
-  for( unsigned i = 0; i < phi->getNumIncomingValues(); i++ ) {
-    auto* val = phi->getIncomingValue(i);
-    auto* bb  = phi->getIncomingBlock(i);
-    if( isa<UndefValue>(val) )
+  assert(loc_phi->getParent() == bb);
+  assert((req_size_phi == nullptr) || (req_size_phi->getParent() == bb));
+
+  /* Convert each part of the location phi into a memcpy in the correct
+   * preceeding / subsequent block */
+  for( unsigned i = 0; i < loc_phi->getNumIncomingValues(); i++ ) {
+    auto* loc_in_val = loc_phi->getIncomingValue(i);
+    auto* loc_in_bb  = loc_phi->getIncomingBlock(i);
+    if( isa<UndefValue>(loc_in_val) )
       continue;
 
     /* Extract the actual request size from the call which may be different
-     * on different path, but must always fit into the maximum loc_size
-     *
-     * XXX: This could also be the result of a more complex computation and
-     * not necessarily a constant int! We could just pull out the Value*
-     * and feed that to the memcpy! */
+     * on different path, but must always fit into the maximum loc_size. */
     unsigned req_size = loc_size;
     if( req_size_phi != nullptr ) {
-      assert(req_size_phi->getIncomingBlock(i) == bb);
-      auto* rzv   = req_size_phi->getIncomingValue(i);
+      auto* rzv   = req_size_phi->getIncomingValueForBlock(loc_in_bb);
       unsigned rz = cast<ConstantInt>(rzv)->getZExtValue();
       req_size = !req_size_bits ? rz : (rz + 7) / 8;
     }
@@ -1634,22 +1627,24 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
      * predecessor / beginning of the successor */
     if( is_input ) {
       /* Insert the copy-in at the end of the predecessor block. */
-      ir.SetInsertPoint(bb->getTerminator());
-      auto* memcpy = ir.CreateMemCpy(alloca, alloca->getAlignment(), val, 0, req_size);
+      ir.SetInsertPoint(loc_in_bb->getTerminator());
+      auto* memcpy = ir.CreateMemCpy(alloca, alloca->getAlignment(),
+                                     loc_in_val, 0, req_size);
       LLVM_DEBUG(dbgs() << "  Memcpy: " << *memcpy << '\n');
     } else {
       /* Insert copy-out out at the beginning of the right successor block */
-      auto* out_bb = get_successor_bb_for(bb);
+      auto* out_bb = get_successor_bb_for(loc_in_bb);
       ir.SetInsertPoint(out_bb, out_bb->getFirstInsertionPt());
-      auto* memcpy = ir.CreateMemCpy(val, 0, alloca, alloca->getAlignment(), req_size);
+      auto* memcpy = ir.CreateMemCpy(loc_in_val, 0, alloca,
+                                     alloca->getAlignment(), req_size);
       LLVM_DEBUG(dbgs() << "  Memcpy: " << *memcpy << '\n');
     }
   }
 
   /* Replace the phi-of-addr with the static alloca */
-  call.get_call()->replaceUsesOfWith(phi, alloca);
-  if( phi->use_empty() )
-    phi->eraseFromParent();
+  call.get_call()->replaceUsesOfWith(loc_phi, alloca);
+  if( loc_phi->use_empty() )
+    loc_phi->eraseFromParent();
 
   LLVM_DEBUG(dbgs() << "Converged access BB after convert_phi_of_addr(): "
                     << *bb << '\n');
