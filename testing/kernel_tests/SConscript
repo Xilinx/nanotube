@@ -51,10 +51,7 @@ pass_opts = {
                     ' -thread-const -constprop -simplifycfg' ),
     'pipeline' : ( '-compact-geps -basicaa -tbaa '
                    '-nanotube-aa -pipeline' ),
-    'flatten' : (
-        '-move-alloca '
-        '-flatten-cfg'
-    ),
+    'flatten' : ( '-flatten-cfg' ),
 }
 
 # Additional build steps for the tests

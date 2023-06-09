@@ -774,6 +774,10 @@ flatten_instruction(BasicBlock::iterator it, Value* pred, Instruction* ip,
     case Instruction::Call:
       flatten_side_effect(inst, ip, bb_pred);
       break;
+    case Instruction::Alloca:
+      /* Allocas can always be hoisted up */
+      inst->moveBefore(ip);
+      break;
     default:
       if( !isSafeToSpeculativelyExecute(inst) ) {
         errs() << "ERROR: Unsafe move of instruction " << *inst << '\n';
