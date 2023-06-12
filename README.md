@@ -76,7 +76,7 @@ To install the require packages, run these commands as root:
       apt-get install -y cmake g++ m4 libpcap-dev wireshark scons libelf-dev libpci-dev
       apt-get install -y libboost-dev libboost-doc libboost-program-options-dev
       apt-get install -y python-is-python2 libxml2-dev libboost-system-dev
-      apt-get install -y python3-yaml
+      apt-get install -y python3-yaml python3-scapy libbpf-dev
 
 Note that the python-is-python2 package changes the /usr/bin/python
 symlink to point to Python2, so it may affect other programs or
@@ -89,7 +89,7 @@ To install the require packages, run these commands as root:
       apt-get install -y cmake g++ m4 libpcap-dev wireshark scons libelf-dev libpci-dev
       apt-get install -y libboost-dev libboost-doc libboost-program-options-dev
       apt-get install -y libxml2-dev libboost-system-dev
-      apt-get install -y python3-yaml
+      apt-get install -y python3-yaml python3-scapy libbpf-dev
 
 ## Checking out the Nanotube repository
 
