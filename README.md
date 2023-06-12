@@ -91,18 +91,6 @@ To install the require packages, run these commands as root:
       apt-get install -y libxml2-dev libboost-system-dev
       apt-get install -y python3-yaml
 
-### Installing packages on CentOS 7
-
-To install the required packages, run these commands as root:
-
-      yum install -y https://cbs.centos.org/kojifiles/packages/scons/2.5.1/4.el7/noarch/scons-2.5.1-4.el7.noarch.rpm
-      yum install -y devtoolset-6 libpcap-devel wireshark
-      yum install -y boost-devel pciutils-devel
-      yum install -y python36-PyYAML
-
-Note that devtoolset-{5,6,7,8} should be fine, but the instructions
-below will need to be changed.
-
 ## Checking out the Nanotube repository
 
 To checkout the Nanotube repository, run this command:
@@ -117,10 +105,6 @@ are known to work.  Nanotube is built against LLVM 8.0.0 built from source,
 but we are planning to a more recent version of LLVM and explore the use of
 distribution packages.
 
-The instructions for building LLVM are slightly different for CentOS 7
-because the default g++ is not new enough.  The devtoolset-6 package
-is used instead, but requires modified steps.
-
 The script build_llvm accepts -j<N> like make does.
 
 ### Downloading LLVM
@@ -134,10 +118,6 @@ later commands.
       git clone -b llvmorg-8.0.0 https://github.com/llvm/llvm-project.git --depth 1  /scratch/$USER/nanotube-llvm
 
 ### Building LLVM
-
-To build LLVM on CentOS 7, run this command:
-
-      scl enable devtoolset-6 'scripts/build_llvm -j4 /scratch/$USER/nanotube-llvm'
 
 To build LLVM on other systems, run this command:
 
@@ -179,12 +159,6 @@ build process:
       run_tests               Build the project and run the tests.
       <path-to-file>          Build the specified file.
       <path-to-directory>     Build all the files in the specified directory.
-
-On CentOS 7, the first build of Nanotube must use a different command
-to make sure the correct C++ compiler is used.  Distributions with a
-more recent C++ compiler do not need this modification.
-
-      scl enable devtoolset-6 'scons -j4 [arguments]'
 
 The path to the llvm-config executable is specified using the
 LLVM_CONFIG variable on the scons command line and the path to the Vitis-HLS
