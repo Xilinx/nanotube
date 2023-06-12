@@ -1388,6 +1388,15 @@ can_bypass(const inst_rng_t* inst_rng_mov, const scaled_value& base_mov,
  * dominate the access, so the caller should check and adjust the returned
  * access if necessary.
  *
+ * NOTE: There may be more than one blocker between the start instruction
+ * and the place to trace to.  If these are on different code paths, then
+ * this code makes no guarantees for which one is returned.  That means..
+ * once a new insertion point has been selected, the block check needs to
+ * be run again.
+ *
+ * XXX: In the future, either stop tracing other paths when finding the
+ * first blocker, or return a list of the blockers on all open paths.
+ *
  * \param inst_rng - The instruction to start from.
  * \param base     - The base for the start instruction.
  * \param to       - The instruction to search to.
@@ -1407,29 +1416,31 @@ trace_to(const inst_rng_t* inst_rng, const scaled_value& base,
   );
 
   std::unordered_set<Instruction*> visited;
-  Instruction* block = nullptr;
+  Instruction* block = to;
 
+  /* Outer loop traces through control flow path options */
   while( !todo.empty() ) {
     auto* cur = todo.back();
     todo.pop_back();
 
+    /* Inner loop follows one path, adds other path entries to todo */
     while( true ) {
 #ifdef DETAILED_DEBUG_UNSUPPORTED
       LLVM_DEBUG(dbgs() << "Walking at " << *cur << " from "
                         << *inst << '\n');
 #endif
       /* If we reached the insertion point without hitting anything
-       * nefarious, then we are done with this instruction. */
+       * nefarious, then we are done with this path; continue tracing other
+       * paths */
       if( cur == to ) {
         LLVM_DEBUG(dbgs() << "Hit target " << *to << " DONE.\n");
-        block = to;
         break;
       }
 
       /* If we find a node that was already visited, this means that we
-       * have control flow convergence and it because we are walking only a
-       * single access backwards (rather than a group), it is safe to stop
-       * the walk here.
+       * have control flow convergence and because we are walking only a
+       * single Nanotube access backwards (rather than a group), it is safe
+       * to stop the walk here.
        */
       auto it = visited.find(cur);
       if( (it != visited.end()) ) {
@@ -1446,7 +1457,7 @@ trace_to(const inst_rng_t* inst_rng, const scaled_value& base,
       auto res = can_bypass(inst_rng, base, cur);
       if( res == BYPASS ) {
         /* We can push inst past cur -> keep pushing further in the
-         * direction of travel :) */
+         * direction of travel :) NOTE: Adds other paths to todo */
         cur = to_front ? prev_inst(cur, &todo) : next_inst(cur, &todo);
       } else if( res == BLOCK ) {
         /* Access inst must not be pushed past the cur instruction ->
