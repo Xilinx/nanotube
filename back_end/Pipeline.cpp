@@ -3528,6 +3528,8 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
   auto  bus_word_size = get_bus_word_size();
   auto  sideband_size = get_bus_sb_size();
   auto  sideband_signals = get_bus_sb_signals_size();
+  auto  input_interface_name = get_bus_input_interface();
+  auto  output_interface_name = get_bus_output_interface();
   static const size_t packet_fifo_depth = 140; // 9000 / 64
 
   std::vector<Value*> packet_chs(stages.size() + 1);
@@ -3553,6 +3555,10 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
       channel_set_attr(ch, NANOTUBE_CHANNEL_ATTR_SIDEBAND_BYTES, sideband_size, ir, *m);
     if (sideband_signals != 0)
       channel_set_attr(ch, NANOTUBE_CHANNEL_ATTR_SIDEBAND_SIGNALS, sideband_signals, ir, *m);
+    if (strcmp(input_interface_name, ""))
+      channel_set_attr_str(ch, NANOTUBE_CHANNEL_ATTR_INPUT_INTERFACE, input_interface_name, ir, *m);
+    if (strcmp(output_interface_name, ""))
+      channel_set_attr_str(ch, NANOTUBE_CHANNEL_ATTR_OUTPUT_INTERFACE, output_interface_name, ir, *m);
     packet_chs[n] = ch;
   }
 

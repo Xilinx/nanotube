@@ -819,7 +819,12 @@ setup_func_builder::process_channel_set_attr_str(CallBase& call)
   if (!channel_index_val.is_channel())
     report_fatal_errorv("Could not find channel for "
                         "nanotube_channel_set_attr_str {0}.", call);
-  // TODO handle some attributes
+  channel_index_t channel_index = channel_index_val.get_channel();
+  channel_info &info = m_setup_func.get_channel_info(channel_index);
+  if (args.attr_id == NANOTUBE_CHANNEL_ATTR_INPUT_INTERFACE)
+    info.set_input_interface(args.attr_val);
+  if (args.attr_id == NANOTUBE_CHANNEL_ATTR_OUTPUT_INTERFACE)
+    info.set_output_interface(args.attr_val);
   if (m_tracer != nullptr) {
     m_tracer->process_channel_set_attr_str(this, &call, channel_index_val,
                                            args.attr_id, args.attr_val);

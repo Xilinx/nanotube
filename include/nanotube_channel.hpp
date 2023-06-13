@@ -68,6 +68,12 @@ public:
   /*! Set the size of the sideband signals */
   void set_sideband_signals_size(size_t sideband_signals);
 
+  /*! Set the input plugin interface index to connect to */
+  void set_input_interface(const std::string& interface);
+
+  /*! Set the output plugin interface index to connect to */
+  void set_output_interface(const std::string& interface);
+
   /*! Get the name of the channel. */
   const std::string &get_name() const { return m_name; }
 
@@ -150,6 +156,12 @@ private:
 
   // The size of sideband signals in the vector (included in m_elem_size)
   size_t m_sideband_signals_size;
+
+  // The plugin input interface index to connect to
+  std::string m_input_interface;
+
+  // The plugin output interface index to connect to
+  std::string m_output_interface;
 
   // The lower bits, covered by ptr_mask, are the byte offset of the
   // next element to read.  The top bit flips every time the read

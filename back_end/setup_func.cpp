@@ -227,6 +227,8 @@ channel_info::channel_info(channel_index_t channel_index,
   m_args(call),
   m_sideband_size(0),
   m_sideband_signals_size(0),
+  m_input_interface(""),
+  m_output_interface(""),
   m_writer_context_index(context_index_none),
   m_writer_port_index(port_index_none),
   m_write_export_type(NANOTUBE_CHANNEL_TYPE_NONE),
@@ -264,6 +266,24 @@ void channel_info::set_sideband_signals_size(size_t sideband_signals)
            << ": Setting sideband signals to " << sideband_signals << "\n";
   );
   m_sideband_signals_size = sideband_signals;
+}
+
+void channel_info::set_input_interface(const std::string& interface)
+{
+  LLVM_DEBUG(
+    dbgs() << "Channel " << m_channel_index
+           << ": Setting plugin input interfaces to " << interface << "\n";
+  );
+  m_input_interface = interface;
+}
+
+void channel_info::set_output_interface(const std::string& interface)
+{
+  LLVM_DEBUG(
+    dbgs() << "Channel " << m_channel_index
+           << ": Setting plugin output interfaces to " << interface << "\n";
+  );
+  m_output_interface = interface;
 }
 
 void channel_info::set_writer(context_index_t context_index,

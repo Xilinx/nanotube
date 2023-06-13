@@ -139,6 +139,10 @@ typedef enum {
    * In AXIS terms these are strb/keep/last and their size is a function
    * of the data width of the axis bus */
   NANOTUBE_CHANNEL_ATTR_SIDEBAND_SIGNALS = 1,
+  /* Input interface for connecting to rest of NIC */
+  NANOTUBE_CHANNEL_ATTR_INPUT_INTERFACE = 2,
+  /* Output interface for connecting to rest of NIC */
+  NANOTUBE_CHANNEL_ATTR_OUTPUT_INTERFACE = 3,
 } nanotube_channel_attr_id_t;
 
 /******************** The setup function ********************/
@@ -224,6 +228,18 @@ int32_t
 nanotube_channel_set_attr(nanotube_channel_t *channel,
                           nanotube_channel_attr_id_t attr_id,
                           int32_t attr_val);
+
+/*!
+** Set string attributes on a channel
+**
+** \param channel The channel to modify the attributes of
+** \param attr_id The attribute to set
+** \param attr_val The value of the attribute
+**/
+int32_t 
+nanotube_channel_set_attr_str(nanotube_channel_t *channel,
+                              nanotube_channel_attr_id_t attr_id,
+                              const char* attr_val);
 
 /*!
 ** Make a channel available to the external environment.

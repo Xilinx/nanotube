@@ -581,6 +581,11 @@ void top_writer::write_stages()
 
 void top_writer::write_vitis_opts()
 {
+  // This is currently only needed for connectivity of plugin builds
+  // so would ideally only produce this output if plugin sockets are configured
+  // but these are set per-channel rather than globally
+  // so just generate sensible output even if they're not
+
   std::string filename = formatv("{0}/vitis_opts.ini",
                                  m_printer.get_output_dir());
   std::ofstream out_fstream(filename);
@@ -595,8 +600,13 @@ void top_writer::write_vitis_opts()
   }
 
 
-  channel_index_t channel_index = 0;
   for (auto &channel: m_setup_func.channels()) {
+    // Only generate this section if we have plugin sockets configured
+    const std::string &input_interface = channel.get_input_interface();
+    const std::string &output_interface = channel.get_output_interface();
+    if( input_interface.empty() && output_interface.empty() )
+      continue;
+
     if (channel.has_reader() && channel.has_writer()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
       context_info writer_context = m_setup_func.get_context_info(channel.get_writer_context());
@@ -608,7 +618,7 @@ void top_writer::write_vitis_opts()
     }
     else if (channel.has_reader() && !channel.has_writer()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
-      out << "sc=mae2p_kernel0" <<
+      out << "sc=" << input_interface <<
              ":stage_" << reader_context.get_thread_id() <<
              ".port" << channel.get_reader_port() << "\n";
     }
@@ -616,11 +626,9 @@ void top_writer::write_vitis_opts()
       context_info writer_context = m_setup_func.get_context_info(channel.get_writer_context());
       out << "sc=stage_" << writer_context.get_thread_id() <<
              ".port" << channel.get_writer_port() <<
-             ":p2vnr_kernel0\n";
+             ":" << output_interface << "\n";
     }
-    ++channel_index;
   }
-
 }
 
 void top_writer::write_json()
@@ -974,6 +982,20 @@ void top_writer::write_poll_thread()
       out << formatv("  nanotube_channel_set_attr(channels[{0}], "
                      "NANOTUBE_CHANNEL_ATTR_SIDEBAND_SIGNALS, {1});\n",
                      channel_index, channel.get_sideband_signals_size());
+    }
+    if (!channel.get_input_interface().empty()) {
+      out << formatv("  nanotube_channel_set_attr_str(channels[{0}], "
+                     "NANOTUBE_CHANNEL_ATTR_INPUT_INTERFACE, ",
+                     channel_index);
+      output_c_string(out, channel.get_input_interface());
+      out << formatv(");\n");
+    }
+    if (!channel.get_output_interface().empty()) {
+      out << formatv("  nanotube_channel_set_attr_str(channels[{0}], "
+                     "NANOTUBE_CHANNEL_ATTR_OUTPUT_INTERFACE, ",
+                     channel_index);
+      output_c_string(out, channel.get_output_interface());
+      out << formatv(");\n");
     }
 
     out << formatv("  nanotube_context_add_channel(context, {0},"

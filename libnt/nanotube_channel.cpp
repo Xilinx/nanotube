@@ -38,6 +38,8 @@ nanotube_channel::nanotube_channel(const std::string &name,
   m_elem_size(elem_size),
   m_sideband_size(0),
   m_sideband_signals_size(0),
+  m_input_interface(""),
+  m_output_interface(""),
   m_read_ptr(0),
   m_write_ptr(0),
   m_wait_flags(0),
@@ -98,6 +100,16 @@ void nanotube_channel::set_sideband_signals_size(size_t sideband_signals)
 {
   assert(sideband_signals < m_elem_size);
   m_sideband_signals_size = sideband_signals;
+}
+
+void nanotube_channel::set_input_interface(const std::string& interface)
+{
+  m_input_interface = interface;
+}
+
+void nanotube_channel::set_output_interface(const std::string& interface)
+{
+  m_output_interface = interface;
 }
 
 bool nanotube_channel::try_read(void* data, size_t data_size)
@@ -370,6 +382,12 @@ nanotube_channel_set_attr_str(nanotube_channel_t *channel,
                               const char* attr_val)
 {
   switch(attr_id) {
+    case NANOTUBE_CHANNEL_ATTR_INPUT_INTERFACE:
+      channel->set_input_interface(attr_val);
+      break;
+    case NANOTUBE_CHANNEL_ATTR_OUTPUT_INTERFACE:
+      channel->set_output_interface(attr_val);
+      break;
     default:
       return -EINVAL;
   }

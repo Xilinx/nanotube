@@ -145,6 +145,8 @@ public:
                        nanotube_channel_flags_t flags);
   void set_sideband_size(size_t sideband_size);
   void set_sideband_signals_size(size_t sideband_signals);
+  void set_input_interface(const std::string& interface);
+  void set_output_interface(const std::string& interface);
 
   bool has_writer() const { return m_writer_port_index != port_index_none; }
   bool has_reader() const { return m_reader_port_index != port_index_none; }
@@ -158,6 +160,8 @@ public:
   uint32_t get_sideband_size() const { return m_sideband_size; }
   uint32_t get_sideband_signals_size_bits() const { return 32; }
   uint32_t get_sideband_signals_size() const { return m_sideband_signals_size; }
+  const std::string& get_input_interface() const { return m_input_interface; }
+  const std::string& get_output_interface() const { return m_output_interface; }
 
   nanotube_channel_type_t get_write_export_type() const {
     return m_write_export_type;
@@ -191,6 +195,12 @@ private:
 
   // The number of bytes in each element that are sideband signals
   uint32_t m_sideband_signals_size;
+
+  // The name of the plugin input interface to connect to
+  std::string m_input_interface;
+
+  // The name of the plugin output interface to connect to
+  std::string m_output_interface;
 
   // The context of the port feeding data into the channel.
   context_index_t m_writer_context_index;

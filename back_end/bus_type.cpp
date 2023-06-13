@@ -153,3 +153,47 @@ nanotube_packet_size_t nanotube::get_bus_sb_signals_size()
                 "Wrong number of members in sideband_signals_sizes!");
   return sideband_signals_sizes[type];
 }
+
+///////////////////////////////////////////////////////////////////////////
+
+/* Names of input plugin sockets to connect to */
+const char* input_interface_names[] {
+  "",              // No plugin sockets for simple bus
+  "mae2p_kernel0", // SN1022 socket
+  "",              // No plugin sockets for eth bus
+  "MMacRx0",       // X3RX socket
+};
+
+const char* nanotube::get_bus_input_interface()
+{
+  auto type = get_bus_type();
+
+  assert(type < NANOTUBE_BUS_ID_TOTAL);
+  static_assert(NANOTUBE_BUS_ID_TOTAL ==
+                sizeof(input_interface_names) / sizeof(input_interface_names[0]),
+                "Wrong number of members in input_interface_names");
+  return input_interface_names[type];
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+/* Names of output plugin sockets to connect to */
+const char* output_interface_names[] {
+  "",              // No plugin sockets for simple bus
+  "p2vnr_kernel0", // SN1022 socket
+  "",              // No plugin sockets for eth bus
+  "SNicRx0",       // X3RX socket
+};
+
+const char* nanotube::get_bus_output_interface()
+{
+  auto type = get_bus_type();
+
+  assert(type < NANOTUBE_BUS_ID_TOTAL);
+  static_assert(NANOTUBE_BUS_ID_TOTAL ==
+                sizeof(output_interface_names) / sizeof(output_interface_names[0]),
+                "Wrong number of members in output_interface_names");
+  return output_interface_names[type];
+}
+
+///////////////////////////////////////////////////////////////////////////

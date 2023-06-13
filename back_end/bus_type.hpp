@@ -47,6 +47,12 @@ namespace nanotube
 
   // Return the width of a bus word of the currently selected bus
   nanotube_tap_offset_t get_bus_word_size();
+
+  // Return the name of the input interface index for this bus
+  const char* get_bus_input_interface();
+
+  // Return the name of the output interface index for this bus
+  const char* get_bus_output_interface();
 } // namespace nanotube
 
 #endif // NANOTUBE_BUS_TYPE_HPP
