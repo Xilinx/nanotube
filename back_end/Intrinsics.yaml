@@ -171,6 +171,14 @@
   - ModRef: N
   - ModRef: N
 
+- Name: channel_set_attr_str
+  Flags: Nanotube
+  Fmrb: UK
+  Args:
+  - ModRef: R
+  - ModRef: N
+  - ModRef: N
+
 - Name: channel_export
   Flags: Nanotube
   Fmrb: UK

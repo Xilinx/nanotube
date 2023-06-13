@@ -117,13 +117,23 @@ namespace nanotube
 
   // A structure used to unpack the arguments of calls to
   // nanotube_channel_set_attr
-   struct channel_set_attr_args
+  struct channel_set_attr_args
   {
     channel_set_attr_args(const Instruction *insn);
     Value *channel;
     nanotube_channel_attr_id_t attr_id;
     int32_t attr_val;
   }; 
+
+  // A structure used to unpack the arguments of calls to
+  // nanotube_channel_set_attr_str
+  struct channel_set_attr_str_args
+  {
+    channel_set_attr_str_args(const Instruction *insn);
+    Value *channel;
+    nanotube_channel_attr_id_t attr_id;
+    std::string attr_val;
+  };
 
   // A structure used to unpack the arguments of calls to
   // nanotube_channel_export.
@@ -430,6 +440,7 @@ namespace nanotube
   StructType*   get_nt_channel_ty(Module& m);
   FunctionType* get_nt_channel_create_ty(Module& m);
   FunctionType* get_nt_channel_set_attr_ty(Module& m);
+  FunctionType* get_nt_channel_set_attr_str_ty(Module& m);
   FunctionType* get_nt_channel_export_ty(Module& m);
 
   Constant* create_nt_channel_read(Module& m);
@@ -437,6 +448,7 @@ namespace nanotube
   Constant* create_nt_channel_write(Module& m);
   Constant* create_nt_channel_create(Module& m);
   Constant* create_nt_channel_set_attr(Module& m);
+  Constant* create_nt_channel_set_attr_str(Module& m);
   Constant* create_nt_channel_export(Module& m);
 
   /* Threads */

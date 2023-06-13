@@ -3365,6 +3365,27 @@ channel_set_attr(Value* channel, nanotube_channel_attr_id_t attr_id,
   auto rc = ir.CreateCall(ty , f, args);
   return rc;
 }
+static Value*
+channel_set_attr_str(Value* channel, nanotube_channel_attr_id_t attr_id,
+                     Value* attr_val, IRBuilder<>& ir, Module& m)
+{
+  Value* args[3];
+  args[0] = channel;
+  args[1] = ConstantInt::get(get_nt_channel_attr_id_ty(m), attr_id);
+  args[2] = attr_val;
+
+  auto* f  = create_nt_channel_set_attr_str(m);
+  auto* ty = get_nt_channel_set_attr_str_ty(m);
+  auto rc = ir.CreateCall(ty , f, args);
+  return rc;
+}
+static Value*
+channel_set_attr_str(Value* channel, nanotube_channel_attr_id_t attr_id,
+                     StringRef attr_val, IRBuilder<>& ir, Module& m)
+{
+  return channel_set_attr_str(channel, attr_id, ir.CreateGlobalStringPtr(attr_val),
+                              ir, m);
+}
 static void
 channel_export(Value* channel, nanotube_channel_type_t type,
                nanotube_channel_flags_t flags, IRBuilder<>& ir, Module& m)

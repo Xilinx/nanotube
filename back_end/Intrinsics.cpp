@@ -202,6 +202,15 @@ channel_set_attr_args::channel_set_attr_args(const Instruction *insn)
   attr_val = get_uint_arg(call, 2, 32);
 }
 
+channel_set_attr_str_args::channel_set_attr_str_args(const Instruction *insn)
+{
+  const CallBase &call = cast<CallBase>(*insn);
+  check_intrinsic_call(call, 3);
+  channel = call.getArgOperand(0);
+  attr_id = (nanotube_channel_attr_id_t)get_uint_arg(call, 1, 32);
+  attr_val = get_string_arg(call, 2);
+}
+
 channel_export_args::channel_export_args(const Instruction *insn)
 {
   const CallBase &call = cast<CallBase>(*insn);
@@ -1190,6 +1199,26 @@ FunctionType* get_nt_channel_set_attr_ty(Module& m) {
 Constant* create_nt_channel_set_attr(Module& m) {
   return m.getOrInsertFunction("nanotube_channel_set_attr",
                                get_nt_channel_set_attr_ty(m));
+}
+FunctionType* get_nt_channel_set_attr_str_ty(Module& m) {
+  LLVMContext& c = m.getContext();
+  /**
+  ** int
+  ** nanotube_channel_set_attr_str(nanotube_channel_t *channel,
+  **                               nanotube_channel_attr_id_t attr_id,
+  **                               const char* attr_val)
+  */
+  std::array<Type*, 3> args = {
+    get_nt_channel_ty(m)->getPointerTo(),
+    get_nt_channel_attr_id_ty(m),
+    Type::getInt8PtrTy(c),
+  };
+  return
+    FunctionType::get(Type::getInt32Ty(c), args, false);
+}
+Constant* create_nt_channel_set_attr_str(Module& m) {
+  return m.getOrInsertFunction("nanotube_channel_set_attr_str",
+                               get_nt_channel_set_attr_str_ty(m));
 }
 FunctionType* get_nt_channel_export_ty(Module& m) {
   LLVMContext& c = m.getContext();

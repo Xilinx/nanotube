@@ -95,6 +95,13 @@ public:
     nanotube_channel_attr_id_t attr_id,
     int32_t attr_val) override;
 
+  void process_channel_set_attr_str(
+    setup_func_builder *builder,
+    CallBase *insn,
+    setup_value index,
+    nanotube_channel_attr_id_t attr_id,
+    std::string attr_val) override;
+
   void process_channel_export(
     setup_func_builder *builder,
     CallBase *insn,
@@ -309,6 +316,26 @@ void rewrite_setup_tracer::process_channel_set_attr(
     index,
     setup_value::of_int(attr_id_ap),
     setup_value::of_int(attr_val_ap),
+  };
+  clone_call(builder, insn, args);
+}
+
+
+void rewrite_setup_tracer::process_channel_set_attr_str(
+  setup_func_builder *builder,
+  CallBase *insn,
+  setup_value index,
+  nanotube_channel_attr_id_t attr_id,
+  std::string attr_val)
+{
+  LLVM_DEBUG(dbgv("nanotube_channel_set_attr_str({0}, {1}, \"{2}\")\n",
+                  index, attr_id, attr_val););
+  auto attr_id_bits = get_nt_channel_attr_id_bits();
+  auto attr_id_ap = APInt(attr_id_bits, attr_id);
+  setup_value args[] = {
+    index,
+    setup_value::of_int(attr_id_ap),
+    setup_value::unknown(),
   };
   clone_call(builder, insn, args);
 }

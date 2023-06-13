@@ -113,6 +113,9 @@ private:
   // Process a call to nanotube_channel_set_attr.
   void process_channel_set_attr(CallBase &call);
 
+  // Process a call to nanotube_channel_set_attr_str.
+  void process_channel_set_attr_str(CallBase &call);
+
   // Process a call to nanotube_channel_export.
   void process_channel_export(CallBase &call);
 

@@ -546,6 +546,10 @@ void setup_func_builder::process_call(CallBase &insn)
     process_channel_set_attr(insn);
     break;
 
+  case Intrinsics::channel_set_attr_str:
+    process_channel_set_attr_str(insn);
+    break;
+
   case Intrinsics::channel_export:
     process_channel_export(insn);
     break;
@@ -797,6 +801,28 @@ setup_func_builder::process_channel_set_attr(CallBase &call)
   if (m_tracer != nullptr) {
     m_tracer->process_channel_set_attr(this, &call, channel_index_val,
                                        args.attr_id, args.attr_val);
+  }
+}
+
+void
+setup_func_builder::process_channel_set_attr_str(CallBase& call)
+{
+  channel_set_attr_str_args args(&call);
+  setup_value channel_index_val = eval_operand(args.channel);
+
+  LLVM_DEBUG(
+    dbgs() << "Setting attribute on channel " << channel_index_val
+           << " with id " << args.attr_id
+           << " and val " << args.attr_val << "\n";
+  );
+
+  if (!channel_index_val.is_channel())
+    report_fatal_errorv("Could not find channel for "
+                        "nanotube_channel_set_attr_str {0}.", call);
+  // TODO handle some attributes
+  if (m_tracer != nullptr) {
+    m_tracer->process_channel_set_attr_str(this, &call, channel_index_val,
+                                           args.attr_id, args.attr_val);
   }
 }
 

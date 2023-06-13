@@ -425,6 +425,13 @@ public:
     nanotube_channel_attr_id_t attr_id,
     int32_t attr_val) = 0;
 
+  virtual void process_channel_set_attr_str(
+    setup_func_builder *builder,
+    CallBase *insn,
+    setup_value index,
+    nanotube_channel_attr_id_t attr_id,
+    std::string attr_val) = 0;
+
   virtual void process_channel_export(
     setup_func_builder *builder,
     CallBase *insn,

@@ -364,6 +364,18 @@ nanotube_channel_set_attr(nanotube_channel_t *channel,
   return 0;
 }
 
+int32_t
+nanotube_channel_set_attr_str(nanotube_channel_t *channel,
+                              nanotube_channel_attr_id_t attr_id,
+                              const char* attr_val)
+{
+  switch(attr_id) {
+    default:
+      return -EINVAL;
+  }
+  return 0;
+}
+
 void
 nanotube_channel_export(nanotube_channel_t *channel,
                         nanotube_channel_type_t type,
