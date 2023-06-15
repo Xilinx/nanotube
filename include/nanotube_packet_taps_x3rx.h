@@ -139,6 +139,10 @@ void nanotube_tap_packet_resize_ingress_x3rx(
 ** \param state A pointer to the state buffer for the egress stage.
 ** This buffer is used to track progress through the packet.
 **
+** \param state_packet_word The bytes carried from the previous call to the
+**  next call. This buffer must live across invocations of the tap, and
+**  contain at least packet_word_len bytes.
+**
 ** \param cword A pointer to an input buffer which contains the
 ** control word from the ingress stage.
 **
@@ -152,7 +156,7 @@ void nanotube_tap_packet_resize_egress_x3rx(
   /* Outputs. */
   bool *input_done_out,
   bool *packet_done_out,
-  bool *packet_valid_out,
+  bool *word_valid_out,
   void *packet_word_out,
 
   /* State. */

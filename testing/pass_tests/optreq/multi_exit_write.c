@@ -12,6 +12,7 @@ enum nanotube_bus_id_t {
   NANOTUBE_BUS_ID_SHB = 1,
   NANOTUBE_BUS_ID_ETH = 2,
   NANOTUBE_BUS_ID_X3RX = 3,
+  NANOTUBE_BUS_ID_X3TX = 4,
   NANOTUBE_BUS_ID_TOTAL
 };
 typedef enum {

@@ -15,6 +15,7 @@
 #include "nanotube_packet_taps_sb.h"
 #include "nanotube_packet_taps_shb.h"
 #include "nanotube_packet_taps_x3rx.h"
+#include "nanotube_packet_taps_x3tx.h"
 #include "nanotube_packet_taps_bus.h"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,12 @@ void nanotube_tap_packet_length_bus(
       case NANOTUBE_BUS_ID_X3RX:
         assert(packet_word_len == x3rx_bus::total_bytes);
         return nanotube_tap_packet_length_x3rx(resp_out, state_inout,
+                                              packet_word_in,
+                                              req_in);
+        break;
+      case NANOTUBE_BUS_ID_X3TX:
+        assert(packet_word_len == x3tx_bus::total_bytes);
+        return nanotube_tap_packet_length_x3tx(resp_out, state_inout,
                                               packet_word_in,
                                               req_in);
         break;
@@ -111,6 +118,14 @@ void nanotube_tap_packet_read_bus(
       case NANOTUBE_BUS_ID_X3RX:
         assert(packet_word_len == x3rx_bus::total_bytes);
         return nanotube_tap_packet_read_x3rx(result_buffer_length,
+                                            result_buffer_index_bits, resp_out,
+                                            result_buffer_inout, state_inout,
+                                            packet_word_in,
+                                            req_in);
+        break;
+      case NANOTUBE_BUS_ID_X3TX:
+        assert(packet_word_len == x3tx_bus::total_bytes);
+        return nanotube_tap_packet_read_x3tx(result_buffer_length,
                                             result_buffer_index_bits, resp_out,
                                             result_buffer_inout, state_inout,
                                             packet_word_in,
@@ -178,6 +193,15 @@ void nanotube_tap_packet_write_bus(
                                              req_in, request_bytes_in,
                                              request_mask_in);
         break;
+      case NANOTUBE_BUS_ID_X3TX:
+        assert(packet_word_len == x3tx_bus::total_bytes);
+        return nanotube_tap_packet_write_x3tx(request_buffer_length,
+                                             request_buffer_index_bits,
+                                             packet_word_out, state_inout,
+                                             packet_word_in,
+                                             req_in, request_bytes_in,
+                                             request_mask_in);
+        break;
       default:
         assert(false);
   }
@@ -230,6 +254,15 @@ void nanotube_tap_packet_resize_ingress_bus(
       case NANOTUBE_BUS_ID_X3RX:
         assert(packet_word_len == x3rx_bus::total_bytes);
         return nanotube_tap_packet_resize_ingress_x3rx(packet_done_out,
+                                                      cword_out,
+                                                      packet_length_out,
+                                                      state,
+                                                      resize_req_in,
+                                                      packet_word_in);
+        break;
+      case NANOTUBE_BUS_ID_X3TX:
+        assert(packet_word_len == x3tx_bus::total_bytes);
+        return nanotube_tap_packet_resize_ingress_x3tx(packet_done_out,
                                                       cword_out,
                                                       packet_length_out,
                                                       state,
@@ -293,6 +326,16 @@ void nanotube_tap_packet_resize_egress_bus(
       case NANOTUBE_BUS_ID_X3RX:
         assert(packet_word_len == x3rx_bus::total_bytes);
         return nanotube_tap_packet_resize_egress_x3rx(input_done_out,
+                                                     packet_done_out,
+                                                     packet_valid_out,
+                                                     packet_word_out, state,
+                                                     state_packet_word,
+                                                     cword, packet_word_in,
+                                                     new_packet_len);
+        break;
+      case NANOTUBE_BUS_ID_X3TX:
+        assert(packet_word_len == x3tx_bus::total_bytes);
+        return nanotube_tap_packet_resize_egress_x3tx(input_done_out,
                                                      packet_done_out,
                                                      packet_valid_out,
                                                      packet_word_out, state,

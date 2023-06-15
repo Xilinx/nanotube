@@ -58,7 +58,7 @@ struct nanotube_tap_packet_length_state {
   uint8_t done;
 
   /*! A flag which indicates that we've seen the DATA_EOP bit set for 
-   *  this packet (only used by x3rx_bus) */
+   *  this packet (only used by x3rx_bus and x3tx_bus) */
   uint8_t data_eop_seen;
 };
 
@@ -146,7 +146,7 @@ struct nanotube_tap_packet_read_state {
   uint8_t  done;
 
   /*! A flag which indicates that we've seen the DATA_EOP bit set for 
-   *  this packet (only used by x3rx_bus) */
+   *  this packet (only used by x3rx_bus and x3tx_bus) */
   uint8_t data_eop_seen;
 };
 
@@ -234,7 +234,7 @@ struct nanotube_tap_packet_write_state {
   uint8_t  done;
 
   /*! A flag which indicates that we've seen the DATA_EOP bit set for 
-   *  this packet (only used by x3rx_bus) */
+   *  this packet (only used by x3rx_bus and x3tx_bus) */
   uint8_t data_eop_seen;
 };
 
@@ -397,7 +397,7 @@ struct nanotube_tap_packet_resize_ingress_state_t
   nanotube_tap_offset_t shifted_carried_len;
 
   /*! A flag which indicates that we've seen the DATA_EOP bit set for 
-   *  this packet (only used by x3rx_bus) */
+   *  this packet (only used by x3rx_bus and x3tx_bus) */
   uint8_t data_eop_seen;
 };
 
