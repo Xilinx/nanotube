@@ -1,0 +1,97 @@
+###########################################################################
+# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+# Non-IP, counter 0x1.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=ARP |<Raw  load='' |>>
+0000  00 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 06
+
+# Empty ICMPv4, counter 0x5.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  proto=icmp src=246.181.220.138 dst=53.102.55.101 |>>
+0000  02 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 14 00 01 00 00 40 01 3a dd f6 b5 dc 8a 35 66
+0020  37 65
+
+# Empty TCPv4, counter 0x6.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  frag=0 proto=tcp src=246.181.220.138 dst=8.160.94.5 |<TCP  sport=57323 dport=49790 |>>>
+0000  04 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 28 00 01 00 00 40 06 40 ea f6 b5 dc 8a 08 a0
+0020  5e 05 df eb c2 7e 00 00 00 00 00 00 00 00 50 02
+0030  20 00 b3 92 00 00
+
+# Empty UDPv4, counter 0x7.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  frag=0 proto=udp src=246.181.220.138 dst=94.194.63.56 |<UDP  sport=57323 dport=64244 |>>>
+0000  06 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 1c 00 01 00 00 40 11 09 96 f6 b5 dc 8a 5e c2
+0020  3f 38 df eb fa f4 00 08 b3 c2
+
+# Empty ICMPv6, counter 0x8.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=ICMPv6 src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=85bb:1121:5ffe:5acb:1e8:98ed:f41b:cf9e |>>
+0000  08 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 00 3a 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc 85 bb 11 21 5f fe 5a cb 01 e8
+0030  98 ed f4 1b cf 9e
+
+# Empty TCPv6, counter 0x9.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=TCP src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=b265:a527:14b9:6e18:8290:a356:56a8:4650 |<TCP  sport=50768 dport=23167 |>>>
+0000  0a 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 14 06 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc b2 65 a5 27 14 b9 6e 18 82 90
+0030  a3 56 56 a8 46 50 c6 50 5a 7f 00 00 00 00 00 00
+0040  00 00 50 02 20 00 f4 bb 00 00
+
+# Empty UDPv6, counter 0xa.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=UDP src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=2267:14a5:e53f:7642:657c:545f:4f08:8391 |<UDP  sport=50768 dport=28869 |>>>
+0000  0c 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 08 11 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc 22 67 14 a5 e5 3f 76 42 65 7c
+0030  54 5f 4f 08 83 91 c6 50 70 c5 00 08 cc ab
+
+# ICMPv4, Allowed, Known, counter 0x5.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  frag=0 proto=icmp src=246.181.220.138 dst=53.102.55.101 |<ICMP  |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>>
+0000  0f 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 2c 00 01 00 00 40 01 3a c5 f6 b5 dc 8a 35 66
+0020  37 65 08 00 a1 59 00 00 00 00 1e f2 b9 75 70 db
+0030  9c 9a 10 b4 f8 78 fc 16 6b 84
+
+# TCPv4, Allowed, Known, counter 0x6.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  frag=0 proto=tcp src=246.181.220.138 dst=8.160.94.5 |<TCP  sport=57323 dport=49790 |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>>
+0000  11 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 38 00 01 00 00 40 06 40 da f6 b5 dc 8a 08 a0
+0020  5e 05 df eb c2 7e 00 00 00 00 00 00 00 00 50 02
+0030  20 00 5c dc 00 00 1e f2 b9 75 70 db 9c 9a 10 b4
+0040  f8 78 fc 16 6b 84
+
+# UDPv4, Allowed, Known, counter 0x7.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv4 |<IP  frag=0 proto=udp src=246.181.220.138 dst=94.194.63.56 |<UDP  sport=57323 dport=64244 |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>>
+0000  13 05 e3 c1 c4 0a ee 28 06 55 6d 8f 08 00 45 00
+0010  00 2c 00 01 00 00 40 11 09 86 f6 b5 dc 8a 5e c2
+0020  3f 38 df eb fa f4 00 18 5c fc 1e f2 b9 75 70 db
+0030  9c 9a 10 b4 f8 78 fc 16 6b 84
+
+# ICMPv6, Allowed, Known, counter 0x8.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=ICMPv6 src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=85bb:1121:5ffe:5acb:1e8:98ed:f41b:cf9e |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>
+0000  15 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 10 3a 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc 85 bb 11 21 5f fe 5a cb 01 e8
+0030  98 ed f4 1b cf 9e 1e f2 b9 75 70 db 9c 9a 10 b4
+0040  f8 78 fc 16 6b 84
+
+# TCPv6, Allowed, Known, counter 0x9.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=TCP src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=b265:a527:14b9:6e18:8290:a356:56a8:4650 |<TCP  sport=50768 dport=23167 |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>>
+0000  17 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 24 06 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc b2 65 a5 27 14 b9 6e 18 82 90
+0030  a3 56 56 a8 46 50 c6 50 5a 7f 00 00 00 00 00 00
+0040  00 00 50 02 20 00 9e 05 00 00 1e f2 b9 75 70 db
+0050  9c 9a 10 b4 f8 78 fc 16 6b 84
+
+# UDPv6, Allowed, Known, counter 0xa.
+# <Ether  dst=00:05:e3:c1:c4:0a src=ee:28:06:55:6d:8f type=IPv6 |<IPv6  nh=UDP src=7a58:707f:61a5:42fd:2242:dd01:965d:b7fc dst=2267:14a5:e53f:7642:657c:545f:4f08:8391 |<UDP  sport=50768 dport=28869 |<Raw  load='\x1e\xf2\xb9up\xdb\x9c\x9a\x10\xb4\xf8x\xfc\x16k\x84' |>>>>
+0000  19 05 e3 c1 c4 0a ee 28 06 55 6d 8f 86 dd 60 00
+0010  00 00 00 18 11 40 7a 58 70 7f 61 a5 42 fd 22 42
+0020  dd 01 96 5d b7 fc 22 67 14 a5 e5 3f 76 42 65 7c
+0030  54 5f 4f 08 83 91 c6 50 70 c5 00 18 75 e5 1e f2
+0040  b9 75 70 db 9c 9a 10 b4 f8 78 fc 16 6b 84
+
