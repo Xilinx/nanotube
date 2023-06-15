@@ -79,7 +79,29 @@ namespace x3tx_bus
   static inline int get_sideband_data_eop_valid(const byte_t* sideband) {
     return (sideband[DATA_EOP_VALID_BYTE_INDEX] & DATA_EOP_VALID_BIT_MASK) >> DATA_EOP_VALID_OFFSET;
   }
-
+  // Same as get_sideband_data_eop_valid but converts the valid mask to 
+  // the number of bytes that are valid
+  static inline int get_sideband_data_eop_valid_nbytes(const byte_t *sideband) {
+    int valid = (sideband[DATA_EOP_VALID_BYTE_INDEX] & DATA_EOP_VALID_BIT_MASK) >> DATA_EOP_VALID_OFFSET;
+    int num_bytes = 0;
+    switch (valid) {
+    case 1:
+      num_bytes = 1;
+      break;
+    case 3:
+      num_bytes = 2;
+      break;
+    case 7:
+      num_bytes = 3;
+      break;
+    case 15:
+      num_bytes = 4;
+      break;
+    default:
+      assert(false);
+    }
+    return num_bytes;
+  }
   /* NB this is incomplete, exists mainly to support test harness,
    * and zeros other fields.  Extend as necessary */
   static inline void set_sideband_raw(byte_t* sideband,

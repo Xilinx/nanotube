@@ -837,23 +837,7 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     else if (x3rx_bus::get_sideband_data_eop(sideband)) {
       m_data_eop_seen = true;
 
-      int valid = x3rx_bus::get_sideband_data_eop_valid(sideband);
-      switch( valid ) {
-        case 1:
-          num_bytes = 1;
-          break;
-        case 3:
-          num_bytes = 2;
-          break;
-        case 7:
-          num_bytes = 3;
-          break;
-        case 15:
-          num_bytes = 4;
-          break;
-        default:
-          assert(false);
-      }
+      int num_bytes = x3rx_bus::get_sideband_data_eop_valid_nbytes(sideband);
 
       m_contents.insert(m_contents.end(), data, data+num_bytes);
     }
@@ -892,23 +876,7 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     else if (x3tx_bus::get_sideband_data_eop(sideband)) {
       m_data_eop_seen = true;
 
-      int valid = x3tx_bus::get_sideband_data_eop_valid(sideband);
-      switch( valid ) {
-        case 1:
-          num_bytes = 1;
-          break;
-        case 3:
-          num_bytes = 2;
-          break;
-        case 7:
-          num_bytes = 3;
-          break;
-        case 15:
-          num_bytes = 4;
-          break;
-        default:
-          assert(false);
-      }
+      int num_bytes = x3tx_bus::get_sideband_data_eop_valid_nbytes(sideband);
 
       m_contents.insert(m_contents.end(), data, data+num_bytes);
     }
