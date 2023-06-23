@@ -9,16 +9,17 @@
 ** Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 ** SPDX-License-Identifier: MIT
 **************************************************************************/
-#include <stdint.h>
-#include <string.h>
 #include <endian.h>
 #include <linux/bpf.h>
 #include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "bpf/bpf_helpers.h"
+#include "network_types.h"
 
 /*
  * This test acts as a simple IP firewall.  It has two rule tables,
@@ -113,54 +114,6 @@ struct bpf_map_def SEC("maps") stats_map = {
   .max_entries = 1024,
   .map_flags = 0,
 };
-
-///////////////////////////////////////////////////////////////////////////
-
-typedef struct {
-  uint8_t   ether_daddr[6];
-  uint8_t   ether_saddr[6];
-  uint16_t  ether_type_be16;
-} __attribute__((packed)) eth_header_t;
-
-typedef struct {
-  uint8_t   ip_ver_ihl;
-  uint8_t   ip_tos;
-  uint8_t   ip_tot_length[2];
-  uint16_t  ip_id;
-  uint16_t  ip_frag_off;
-  uint8_t   ip_ttl;
-  uint8_t   ip_proto;
-  uint16_t  ip_csum;
-  uint8_t   ip_saddr[4];
-  uint8_t   ip_daddr[4];
-} __attribute__((packed)) ipv4_header_t;
-
-typedef struct {
-  uint32_t  ip_ver_tc_label;
-  uint16_t  ip_len;
-  uint8_t   ip_next_hdr;
-  uint8_t   ip_hop_lim;
-  uint8_t   ip_saddr[16];
-  uint8_t   ip_daddr[16];
-} __attribute__((packed)) ipv6_header_t;
-
-typedef struct {
-  uint16_t  tcp_source;
-  uint16_t  tcp_dest;
-  uint32_t  tcp_seq;
-  uint32_t  tcp_ack;
-  uint16_t  tcp_flags;
-  uint16_t  tcp_window;
-  uint16_t  tcp_csum;
-  uint16_t  tcp_urg;
-} __attribute__((packed)) tcp_header_t;
-
-typedef struct {
-  uint16_t  udp_source;
-  uint16_t  udp_dest;
-  uint16_t  udp_length;
-  uint16_t  udp_csum;
-} __attribute__((packed)) udp_header_t;
 
 ///////////////////////////////////////////////////////////////////////////
 

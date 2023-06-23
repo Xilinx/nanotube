@@ -12,9 +12,12 @@
 #include <cstdint>
 #include <cstring>
 #include <linux/bpf.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+
+#include "network_types.h"
 
 /*
  * This test acts as a GRE tunnel endpoint on a stick.  In one
@@ -53,47 +56,6 @@ static const uint8_t gre_ep_mac[6] = { 2,0,0,0,1,1 };
 static const uint8_t gre_ep_ip[4] = { 192,168,1,1 };
 static const uint8_t remote_ip[3] = { 192,168,2 };
 
-typedef struct {
-  uint8_t ether_daddr[6];
-  uint8_t ether_saddr[6];
-  uint8_t ether_type[2];
-} __attribute__((packed)) eth_header;
-
-typedef struct {
-  uint8_t arp_htype[2];
-  uint8_t arp_ptype[2];
-  uint8_t arp_hlen;
-  uint8_t arp_plen;
-  uint8_t arp_oper[2];
-  uint8_t arp_sha[6];
-  uint8_t arp_spa[4];
-  uint8_t arp_tha[6];
-  uint8_t arp_tpa[4];
-} __attribute__((packed)) arp_header;
-
-typedef struct {
-  uint8_t ip_ver_ihl;
-  uint8_t ip_tos;
-  uint8_t ip_tot_length[2];
-  uint16_t ip_id;
-  uint16_t ip_frag_off;
-  uint8_t ip_ttl;
-  uint8_t ip_proto;
-  uint16_t ip_csum;
-  uint8_t ip_saddr[4];
-  uint8_t ip_daddr[4];
-} __attribute__((packed)) ip_header;
-
-typedef struct {
-  uint8_t type;
-  uint8_t code;
-  uint16_t checksum;
-} __attribute__((packed)) icmp_header;
-
-typedef struct {
-  uint16_t gre_flags;
-  uint8_t gre_proto[2];
-} __attribute__((packed)) gre_header;
 
 int ipt_memcmp(const void *p1, const void *p2, size_t n)
 #if __clang__
@@ -119,7 +81,7 @@ bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
   __attribute__((always_inline))
 #endif
 {
-  arp_header *arp = (arp_header*)l3_header;
+  arp_header_t *arp = (arp_header_t*)l3_header;
   if (end - l3_header < sizeof(*arp)) {
     return false;
   }
@@ -142,7 +104,7 @@ bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
 
   // Send the packet back to where it came from.
   char *data = (char*)(uint64_t)(ctx->data);
-  eth_header *eth = (eth_header*)data;
+  eth_header_t *eth = (eth_header_t*)data;
   memcpy(eth->ether_daddr, eth->ether_saddr, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
 
@@ -159,7 +121,7 @@ bool handle_encap(struct xdp_md *ctx, char *end)
   __attribute__((always_inline))
 #endif
 {
-  int extra_size = sizeof(ip_header) + sizeof(gre_header);
+  int extra_size = sizeof(ipv4_header_t) + sizeof(gre_header_t);
 
   int orig_length = end-(char*)(uint64_t)(ctx->data);
 
@@ -172,17 +134,16 @@ bool handle_encap(struct xdp_md *ctx, char *end)
   }
 
   // Write the Ethernet header.
-  auto *eth = (eth_header*)(uint64_t)(ctx->data);
+  auto *eth = (eth_header_t*)(uint64_t)(ctx->data);
   memcpy(eth->ether_daddr, gre_ep_mac, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
-  eth->ether_type[0] = 0x08;
-  eth->ether_type[1] = 0x00;
+  eth->ether_type_be16 = htobe16(ETHERTYPE_IP);
 
   // Write the IP header.
-  auto *ip = (ip_header*)(eth+1);
+  auto *ip = (ipv4_header_t*)(eth+1);
   ip->ip_ver_ihl = 0x45;
   ip->ip_tos = 0;
-  int ip_length = orig_length + (extra_size - sizeof(eth_header));
+  int ip_length = orig_length + (extra_size - sizeof(eth_header_t));
   ip->ip_tot_length[0] = ip_length >> 8;
   ip->ip_tot_length[1] = ip_length >> 0;
   ip->ip_id = 0;
@@ -212,7 +173,7 @@ bool handle_encap(struct xdp_md *ctx, char *end)
   ip->ip_csum = csum;
 
   // Write the GRE header.
-  auto *gre = (gre_header*)(ip+1);
+  auto *gre = (gre_header_t*)(ip+1);
   gre->gre_flags = 0;
   gre->gre_proto[0] = 0x08;
   gre->gre_proto[1] = 0x00;
@@ -221,7 +182,7 @@ bool handle_encap(struct xdp_md *ctx, char *end)
 }
 
 static
-bool handle_decap(xdp_md *ctx, gre_header *gre, char *end)
+bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
 #if __clang__
   __attribute__((always_inline))
 #endif
@@ -233,24 +194,23 @@ bool handle_decap(xdp_md *ctx, gre_header *gre, char *end)
   }
 
   // Replace the Eth/IP/GRE headers with an Ethernet header.
-  int removed_size = (sizeof(ip_header) + sizeof(gre_header));
+  int removed_size = (sizeof(ipv4_header_t) + sizeof(gre_header_t));
   auto fail = bpf_xdp_adjust_head(ctx, removed_size);
   if (fail) {
     return false;
   }
 
-  auto *eth = (eth_header*)(uint64_t)(ctx->data);
+  auto *eth = (eth_header_t*)(uint64_t)(ctx->data);
   memcpy(eth->ether_daddr, router_mac, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
-  eth->ether_type[0] = 0x08;
-  eth->ether_type[1] = 0x00;
+  eth->ether_type_be16 = htobe16(ETHERTYPE_IP);
 
   return true;
 }
 
 static
-bool handle_icmp(struct xdp_md *ctx, ip_header *ip,
-                 icmp_header *icmp, char *end)
+bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
+                 icmp_header_t *icmp, char *end)
 {
   if ((end - (char*)icmp) < sizeof(*icmp)) {
     return false;
@@ -294,7 +254,7 @@ bool handle_icmp(struct xdp_md *ctx, ip_header *ip,
 
     // Swap the Ethernet addresses.
     char *data = (char*)(uint64_t)(ctx->data);
-    eth_header *eth = (eth_header*)data;
+    eth_header_t *eth = (eth_header_t*)data;
     memcpy(eth->ether_daddr, eth->ether_saddr, sizeof(eth->ether_daddr));
     memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
     return true;
@@ -310,7 +270,7 @@ bool handle_ip(xdp_md *ctx, char *l3_header, char *end)
   __attribute__((always_inline))
 #endif
 {
-  ip_header *ip = (ip_header*)l3_header;
+  ipv4_header_t *ip = (ipv4_header_t*)l3_header;
   if ((end - l3_header) < sizeof(*ip)) {
     return false;
   }
@@ -347,13 +307,13 @@ bool handle_ip(xdp_md *ctx, char *l3_header, char *end)
   int saddr_is_gre_ep = ipt_memcmp(ip->ip_saddr, gre_ep_ip, sizeof(gre_ep_ip)) == 0;
   if (ip->ip_proto == IPPROTO_GRE && daddr_is_local && saddr_is_gre_ep &&
       (ip->ip_frag_off & ~ntohs(IP_DF)) == 0) {
-    auto *gre = (gre_header*)(ip+1);
+    auto *gre = (gre_header_t*)(ip+1);
     return handle_decap(ctx, gre, end);
   }
 
   if (ip->ip_proto == IPPROTO_ICMP && daddr_is_local &&
       (ip->ip_frag_off & ~ntohs(IP_DF)) == 0) {
-    auto *icmp = (icmp_header*)(ip+1);
+    auto *icmp = (icmp_header_t*)(ip+1);
     return handle_icmp(ctx, ip, icmp, end);
   }
 
@@ -368,7 +328,7 @@ int ip_tunnel(struct xdp_md *ctx)
   char *end = (char*)(uint64_t)(ctx->data_end);
 
   // Check that the packet is long enough for an Ethernet header.
-  eth_header *eth = (eth_header*)data;
+  eth_header_t *eth = (eth_header_t*)data;
   if (end - data < sizeof(*eth)) {
     return XDP_DROP;
   }
@@ -383,14 +343,14 @@ int ip_tunnel(struct xdp_md *ctx)
   char *l3_header = (char*)(eth+1);
 
   // Check the Ether-type.
-  if (eth->ether_type[0] == 0x08 && eth->ether_type[1] == 0x06) {
+  if (eth->ether_type_be16 == htobe16(ETHERTYPE_ARP)) {
     if (handle_arp(ctx, l3_header, end))
       return XDP_PASS;
     return XDP_DROP;
 
   }
 
-  if (eth->ether_type[0] == 0x08 && eth->ether_type[1] == 0x00) {
+  if (eth->ether_type_be16 == htobe16(ETHERTYPE_IP)) {
     if (handle_ip(ctx, l3_header, end))
       return XDP_PASS;
     return XDP_DROP;
