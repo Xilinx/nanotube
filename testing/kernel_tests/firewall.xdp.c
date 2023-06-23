@@ -186,7 +186,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
   char *l4_header = NULL;
   uint8_t discr = 0;
   uint8_t ip_proto = 0;
-  if (ether_type_be16 == be16toh(ETHERTYPE_IP)) {
+  if (ether_type_be16 == htobe16(ETHERTYPE_IP)) {
     ipv4_header_t *ipv4 = (ipv4_header_t*)(eth+1);
     if (end - (char*)ipv4 < sizeof(*ipv4)) {
       return STATS_ID_MALFORMED;
@@ -199,7 +199,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
     ip_proto = ipv4->ip_proto;
     l4_header = (char*)(ipv4+1);
 
-   } else if (ether_type_be16 == be16toh(ETHERTYPE_IPV6)) {
+   } else if (ether_type_be16 == htobe16(ETHERTYPE_IPV6)) {
     ipv6_header_t *ipv6 = (ipv6_header_t*)(eth+1);
     if (end - (char*)ipv6 < sizeof(*ipv6)) {
       return STATS_ID_MALFORMED;
