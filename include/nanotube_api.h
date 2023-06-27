@@ -335,6 +335,7 @@ int nanotube_channel_has_space(nanotube_context_t* context,
 /******************** Packets ********************/
 
 typedef uint16_t nanotube_packet_size_t;
+static const nanotube_packet_size_t NANOTUBE_PACKET_SIZE_INVALID = -1;
 //XXX: Convert interfaces below!
 
 /*!

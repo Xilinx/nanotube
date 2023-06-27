@@ -271,6 +271,11 @@ void cc_code_builder::read_capsule()
   auto md_size = get_bus_md_size();
   auto offset = ConstantInt::get(size_ty, md_size);
 
+  if (md_size == NANOTUBE_PACKET_SIZE_INVALID) {
+    report_fatal_errorv("Unsupported bus type '{0}' for the control capsule pass.",
+                        get_bus_name());
+  }
+
   auto *packet_read = create_nt_packet_read(*m_module);
   Value *args[] = {
     m_packet_arg,
@@ -286,6 +291,11 @@ void cc_code_builder::write_capsule()
   auto *size_ty = m_length_val->getType();
   auto md_size = get_bus_md_size();
   auto offset = ConstantInt::get(size_ty, md_size);
+
+  if (md_size == NANOTUBE_PACKET_SIZE_INVALID) {
+    report_fatal_errorv("Unsupported bus type '{0}' for the control capsule pass.",
+                        get_bus_name());
+  }
 
   auto *packet_write = create_nt_packet_write(*m_module);
   Value *args[] = {

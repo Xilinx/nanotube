@@ -217,6 +217,10 @@ bool platform::runOnModule(Module &module)
 {
   // Determine the metadata size.
   m_md_size = get_bus_md_size();
+  if (m_md_size == NANOTUBE_PACKET_SIZE_INVALID) {
+    report_fatal_errorv("Unsupported bus type '{0}' for the platform pass.",
+                        get_bus_name());
+  }
 
   // Find calls to nanotube_add_plain_packet_kernel.
   bool changes = false;

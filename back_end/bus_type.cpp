@@ -32,11 +32,19 @@ opt_bus("bus", llvm::cl::desc("Which bus format to use"),
 
 std::unordered_map<std::string, enum nanotube_bus_id_t> bus_types = {
   // Recommended names.
+  { "eth", NANOTUBE_BUS_ID_ETH },
   { "sb", NANOTUBE_BUS_ID_SB },
   { "shb", NANOTUBE_BUS_ID_SHB },
   { "x3rx", NANOTUBE_BUS_ID_X3RX },
   { "x3tx", NANOTUBE_BUS_ID_X3TX },
 };
+
+///////////////////////////////////////////////////////////////////////////
+
+const std::string &nanotube::get_bus_name()
+{
+  return opt_bus;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +110,7 @@ nanotube_packet_size_t nanotube::get_bus_md_size()
   nanotube_packet_size_t packet_sizes[] = {
     sizeof(simple_bus::header),
     sizeof(softhub_bus::header),
-    0,
+    NANOTUBE_PACKET_SIZE_INVALID, // Variable metadata size.
     sizeof(x3rx_bus::header),
     sizeof(x3tx_bus::header),
   };

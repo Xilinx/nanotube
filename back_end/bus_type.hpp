@@ -19,16 +19,23 @@
 
 #include "bus_id.h"
 
+#include <string>
+
 ///////////////////////////////////////////////////////////////////////////
 
 namespace nanotube
 {
+  // Return the name of the currently selected bus type.
+  const std::string &get_bus_name();
+
   // Return the currently selected bus type.
   enum nanotube_bus_id_t get_bus_type();
 
   // Return the size of the metadata.  This is a bus-defined header
   // that typically precedes each packet. E.g. for the keystone
-  // streaming sub-system this is the capsule header.
+  // streaming sub-system this is the capsule header.  Returns
+  // NANOTUBE_PACKET_SIZE_INVALID if the bus does not have a constant
+  // md size.
   nanotube_packet_size_t get_bus_md_size();
   
   // Return the size of the sideband.
