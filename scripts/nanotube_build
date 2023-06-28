@@ -32,7 +32,7 @@ step_specs = {
     'clang-nanotube': ('clang',),
 
     # Steps which use opt.
-    'ebpf2nt': ('opt', '-ebpf2nanotube'),
+    'ebpf2nt': ('opt', '-codegenprepare -constprop -dce -ebpf2nanotube'),
     'mem2req' : ('opt', '-mem2req'),
     'inline'  : ('opt', '-always-inline -constprop'),
     'platform' : ('opt', '-platform -always-inline -constprop'),
