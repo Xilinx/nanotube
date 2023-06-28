@@ -1101,6 +1101,24 @@ void cleanup_graph(std::vector<Value*>& cleanup, Value* stop = nullptr) {
   }
 }
 
+/* Byte offsets of interesting fields in eBPF's XDP context structure */
+enum xdp_context_offsets {
+  XDP_CTX_OFF_DATA     = 0,
+  XDP_CTX_OFF_DATA_END = 4,
+  XDP_CTX_OFF_META     = 8,
+  XDP_CTX_OFF_ILLEGAL  = 0xdeafbeef,
+};
+
+/**
+ * Checks whether the supplied byte offset is understood by this pass.
+ */
+static
+bool is_legal_xdp_ctx_offset(unsigned offset) {
+  return offset == XDP_CTX_OFF_DATA ||
+         offset == XDP_CTX_OFF_DATA_END ||
+         offset == XDP_CTX_OFF_META;
+}
+
 Function* ebpf_to_NT::convert_kernel_params(Function& f) {
   Module&      m = *f.getParent();
   LLVMContext& C = m.getContext();
@@ -1148,21 +1166,28 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
   /* Follow all data flow from xdp_ctx, track computations, convert
    * leaves */
   std::vector<Value*> todo;
-  v2offs_ty val_to_offset;
   todo.emplace_back(xdp_ctx);
+  v2offs_ty val_to_offset;
+  val_to_offset[nt_packet] = XDP_CTX_OFF_DATA;
   std::vector<Value*> cleanup;
   while( !todo.empty() ) {
     auto* v = todo.back();
-    unsigned offset = 0;
+    unsigned offset = XDP_CTX_OFF_ILLEGAL;
     todo.pop_back();
     LLVM_DEBUG(dbgs() << "Tracing value " << *v << '\n');
 
-    /* BitCasts don't change the offset and don't need conversion */
-    if( isa<BitCastInst>(v) )
-      goto cont;
+    /* BitCasts don't change but propagate the offset */
+    if( isa<BitCastInst>(v) ) {
+      auto* bc = cast<BitCastInst>(v);
+      auto it = val_to_offset.find(bc->getOperand(0));
+      assert(it != val_to_offset.end());
+      offset = it->second;
+      LLVM_DEBUG(dbgs() << "Parsing BC " << *bc << " offset: " << offset
+                        << '\n');
+    }
 
     /* GEPs compute the constant offset and track it */
-    if( isa<GetElementPtrInst>(v) ) {
+    else if( isa<GetElementPtrInst>(v) ) {
       auto* gep = cast<GetElementPtrInst>(v);
       APInt gep_offs(64, 0, true);
       bool success = gep->accumulateConstantOffset(m.getDataLayout(),
@@ -1177,11 +1202,10 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
       offset = it->second + gep_offs.getSExtValue();
       LLVM_DEBUG(dbgs() << "Parsing GEP " << *gep << " offset: " << offset
                         << '\n');
-      goto cont;
     }
 
     /* Loads from the context need manual conversion */
-    if( isa<LoadInst>(v) ) {
+    else if( isa<LoadInst>(v) ) {
       auto* ld = cast<LoadInst>(v);
       auto  it = val_to_offset.find(ld->getPointerOperand());
       assert(it != val_to_offset.end());
@@ -1193,15 +1217,20 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
     }
 
     /* Calls that use the context need manual conversion */
-    if( isa<CallInst>(v) ) {
+    else if( isa<CallInst>(v) ) {
       auto* call = cast<CallInst>(v);
       LLVM_DEBUG(dbgs() << "Call " << *call << " using context.\n");
       convert_context_call(&m, call, val_to_offset, ctx_arg, pkt_arg);
       cleanup.emplace_back(call);
       continue;
     }
+    else {
+      errs() << "IMPLEMENT ME: Unknown value " << *v << " using the "
+             << "context.\nAborting!\n";
+      exit(1);
+    }
 
-    cont:
+    assert(is_legal_xdp_ctx_offset(offset));
     val_to_offset.emplace(v, offset);
     for( auto* u : v->users() )
       todo.emplace_back(u);
@@ -1256,7 +1285,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
    * %foo = XYZ %ld
    * %bar = ABC %ld
    *
-   * There are two interesting offsets in ctx:
+   * There are three interesting offsets in ctx:
    * 0 .. packet data start
    * 4 .. packet data end
    * 8 .. meta data start
@@ -1267,7 +1296,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
    * Note that the meta data end is implicitly the packet start.
    */
 
-  if( offset != 0 && offset != 4 && offset != 8 ) {
+  if( !is_legal_xdp_ctx_offset(offset) ) {
     errs() << "ERROR: Unknown xdp_ctx offset " << offset
            << " in load " << *ld << "; not converting!\n";
     errs() << "Aborting!\n";
@@ -1286,7 +1315,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
     todo.pop_back();
     LLVM_DEBUG(dbgs() << "Tracing " << *v << " read from offset " << offset
                       << '\n');
-    if( isa<ZExtInst>(v) ) {
+    if( isa<ZExtInst>(v) || isa<TruncInst>(v)) {
       /* Fall-through and follow flow */
     } else if( isa<IntToPtrInst>(v) ) {
       /* Pointer users will be fed the correct packet pointer */
@@ -1300,8 +1329,12 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
       continue;
     } else {
       errs() << "IMPLEMENT ME: Unknown user " << *v
-             << " of context offset " << offset
+             << " of XDP context offset " << offset
              << "\nAborting!\n";
+      errs() << "Value: " << *u->get() << '\n'
+             << "BB: " << *dyn_cast<Instruction>(u->get())->getParent() << '\n'
+             << "User: " << *v << '\n'
+             << "BB: " << *dyn_cast<Instruction>(v)->getParent() << '\n';
       exit(1);
     }
     /* Continue following the data flow */
@@ -1315,13 +1348,13 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
 
   /* Call the respective Nanotube function */
   switch( offset ) {
-    case 0:
+    case XDP_CTX_OFF_DATA:
       nt_packet_func = create_nt_packet_data(*m);
       name = "packet_data"; break;
-    case 4:
+    case XDP_CTX_OFF_DATA_END:
       nt_packet_func = create_nt_packet_end(*m);
       name = "packet_end"; break;
-    case 8:
+    case XDP_CTX_OFF_META:
       nt_packet_func = create_nt_packet_meta(*m);
       name = "packet_meta"; break;
     default:
