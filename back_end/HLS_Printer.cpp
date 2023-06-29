@@ -601,11 +601,8 @@ void top_writer::write_vitis_opts()
 
 
   for (auto &channel: m_setup_func.channels()) {
-    // Only generate this section if we have plugin sockets configured
     const std::string &input_interface = channel.get_input_interface();
     const std::string &output_interface = channel.get_output_interface();
-    if( input_interface.empty() && output_interface.empty() )
-      continue;
 
     if (channel.has_reader() && channel.has_writer()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
@@ -616,13 +613,13 @@ void top_writer::write_vitis_opts()
              ":stage_" << reader_context.get_thread_id() <<
              ".port" << channel.get_reader_port() << ":16\n";
     }
-    else if (channel.has_reader() && !channel.has_writer()) {
+    else if (channel.has_reader() && !channel.has_writer() && !input_interface.empty()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
       out << "sc=" << input_interface <<
              ":stage_" << reader_context.get_thread_id() <<
              ".port" << channel.get_reader_port() << "\n";
     }
-    else if (channel.has_writer() && !channel.has_reader()) {
+    else if (channel.has_writer() && !channel.has_reader() && !output_interface.empty()) {
       context_info writer_context = m_setup_func.get_context_info(channel.get_writer_context());
       out << "sc=stage_" << writer_context.get_thread_id() <<
              ".port" << channel.get_writer_port() <<
