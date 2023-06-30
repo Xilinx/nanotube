@@ -43,6 +43,9 @@ using namespace nanotube;
 
 #define DEBUG_TYPE "ebpf2nanotube"
 
+static std::string packet_kernel_sig();
+static void print_name_type(raw_ostream& os, ArrayRef<Function*> funcs);
+
 namespace {
 struct ebpf_to_NT : public ModulePass {
   static char ID;
@@ -155,6 +158,8 @@ struct ebpf_to_NT : public ModulePass {
 
     return classic || btf;
   }
+
+  bool is_packet_kernel(LLVMContext& C, const Function& f);
 
   unsigned get_struct_entry(const ConstantStruct* cs, unsigned op) {
     return cast<ConstantInt>(cs->getOperand(op))->getZExtValue();
@@ -931,18 +936,6 @@ struct ebpf_to_NT : public ModulePass {
     return made_changes;
   }
 
-  bool is_packet_kernel(LLVMContext& C, const Function& f) {
-    PointerType* pty;
-    StructType* sty;
-
-    return ( f.getReturnType() == Type::getInt32Ty(C) ) &&
-             f.arg_size() == 1 &&
-           ( (pty = dyn_cast<PointerType>(f.arg_begin()->getType())) != nullptr ) &&
-           ( (sty = dyn_cast<StructType>(pty->getElementType())) != nullptr ) &&
-             sty->hasName() &&
-             sty->getName().equals("struct.xdp_md");
-  }
-
   FunctionType* get_nt_packet_kernel_type(Module& m, unsigned num_maps) {
     LLVMContext& C = m.getContext();
 
@@ -1007,10 +1000,15 @@ struct ebpf_to_NT : public ModulePass {
     made_changes |= convert_ebpf_map_defs(m);
     get_nt_context_type(m);
 
-    SmallVector<Function*, 4> converted_kernels;
+    unsigned found_kernels = 0;
+    std::vector<Function*> non_kernel_funcs;
+
     for( auto& f : m ) {
-      if( !is_packet_kernel(C, f) )
+      if( !is_packet_kernel(C, f) ) {
+        non_kernel_funcs.emplace_back(&f);
         continue;
+      }
+      found_kernels++;
       Function* f_new = convert_kernel_params(f);
       made_changes |= convert_ebpf_map_calls(*f_new);
       made_changes |= register_kernel(f_new, f.getName());
@@ -1020,10 +1018,55 @@ struct ebpf_to_NT : public ModulePass {
 
     remove_ebpf_globals(m);
 
+    /* Complain if we didn't find any suitable functions */
+    if( found_kernels == 0 ) {
+      errs() << "ERROR: No eBPF XDP packet kernels were found!\n"
+             << "These must have this signature: " << packet_kernel_sig()
+             << "\nFound functions:\n";
+      print_name_type(errs(), non_kernel_funcs);
+      errs() << "Aborting!\n";
+      exit(1);
+    }
+
     return made_changes;
   }
 };
 } // anonymous namespace
+
+static
+void print_name_type(raw_ostream& os, ArrayRef<Function*> funcs) {
+  for( auto* f : funcs ) {
+    if( f->isDeclaration() )
+      continue;
+    os << "  " << *f->getReturnType() << " " << f->getName()
+           << '(';
+    for( auto it = f->arg_begin(); it != f->arg_end(); it++ ) {
+      if( it != f->arg_begin() )
+        os << ", ";
+      os << *it->getType() << " " << it->getName();
+    }
+    os << ")\n";
+  }
+}
+
+bool ebpf_to_NT::is_packet_kernel(LLVMContext& C, const Function& f) {
+  PointerType* pty;
+  StructType* sty;
+
+  return ( f.getReturnType() == Type::getInt32Ty(C) ) &&
+           f.arg_size() == 1 &&
+         ( (pty = dyn_cast<PointerType>(f.arg_begin()->getType())) != nullptr ) &&
+         ( (sty = dyn_cast<StructType>(pty->getElementType())) != nullptr ) &&
+           sty->hasName() &&
+           sty->getName().equals("struct.xdp_md");
+}
+
+static
+std::string packet_kernel_sig() {
+  // NOTE: This should match is_packet_kernel :)
+  std::string out = "i32 kernel_name(struct.xdp_md*)";
+  return out;
+}
 
 static
 void cleanup_graph(std::vector<Value*>& cleanup, Value* stop = nullptr) {
