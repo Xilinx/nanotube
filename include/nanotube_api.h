@@ -70,6 +70,10 @@ typedef enum {
 
 /******************** Types ********************/
 
+/*! For testing only, an Ethertype to identify an Ethernet packet as
+** an encapsulated control message. */
+#define ETHERTYPE_NANOTUBE_CONTROL 0xf00d
+
 typedef uint32_t nanotube_channel_id_t;
 
 typedef uint8_t nanotube_packet_port_t;
@@ -481,6 +485,17 @@ extern nanotube_capsule_class_t
 nanotube_capsule_classify(nanotube_packet_t* packet,
                           size_t *offset_out);
 
+/*! Determine whether this is an Ethernet encapsuled control capsule.
+**  \param packet      The packet to examine.
+**  \param md_size     The size of the packet metadata.
+**  \param offset_out  The location to store the offset to the
+**                     control payload (for control capsules).
+**  \return            The capsule class.
+*/
+extern nanotube_capsule_class_t
+nanotube_capsule_classify_eth_encap(nanotube_packet_t* packet,
+                                    size_t md_size,
+                                    size_t *offset_out);
 
 /******************** Maps ********************/
 enum map_type_t {

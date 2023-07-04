@@ -10,6 +10,9 @@
 ** SPDX-License-Identifier: MIT
 **************************************************************************/
 #include <alloca.h>
+#include <endian.h>
+#include <net/ethernet.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +54,28 @@ nanotube_merge_data_mask(uint8_t* inout_data, uint8_t* inout_mask,
       inout_mask[out_maskidx] |= (1 << out_bitidx);
     }
   }
+}
+
+#ifdef __clang__
+__attribute__((always_inline))
+#endif
+nanotube_capsule_class_t
+nanotube_capsule_classify_eth_encap(nanotube_packet_t* packet,
+                                    size_t md_size,
+                                    size_t *offset_out)
+{
+  uint16_t ether_type;
+  size_t offset = md_size + offsetof(struct ether_header, ether_type);
+
+  (void)nanotube_packet_read(packet, (uint8_t*)&ether_type, offset,
+                             sizeof(ether_type));
+
+  *offset_out = md_size + sizeof(struct ether_header);
+
+  if (ether_type == htobe16(ETHERTYPE_NANOTUBE_CONTROL))
+    return NANOTUBE_CAPSULE_CLASS_CONTROL;
+
+  return NANOTUBE_CAPSULE_CLASS_NETWORK;
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

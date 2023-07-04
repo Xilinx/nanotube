@@ -33,6 +33,7 @@ nanotube_capsule_classify_x3tx(nanotube_packet_t* packet,
                                size_t *offset_out)
 {
   // No metadata on X3TX.
-  *offset_out = 0;
-  return NANOTUBE_CAPSULE_CLASS_NETWORK;
+  size_t md_size = 0;
+  return nanotube_capsule_classify_eth_encap(packet, md_size,
+                                             offset_out);
 }
