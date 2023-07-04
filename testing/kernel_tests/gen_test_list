@@ -79,6 +79,7 @@ src_combo_list = [
     [ "pipeline_maps.cc",         "", ["inline"] ],
     [ "length_resize_pipeline.cc", "", ["pipeline"] ],
     [ "length_resize_pipeline_shb.cc", "-bus=shb", ["pipeline"] ],
+    [ "length_resize_pipeline_x3rx.cc", "-bus=x3rx", ["pipeline"] ],
 
     #[ "pipeline_phi_maps.cc",      "", ["pipeline"] ],
     [ "pipeline_phi_maps.cc",      "", ["inline"] ],

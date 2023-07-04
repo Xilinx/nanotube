@@ -1,0 +1,7 @@
+Reading maps
+Read 2 packets
+Expecting 2 packets.
+Testing kernel packets_in
+  Packet 0 Length 45 Result 0
+  Packet 1 Length 45 Result 0
+Test passed!
