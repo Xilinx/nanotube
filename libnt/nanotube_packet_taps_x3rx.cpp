@@ -271,6 +271,7 @@ void nanotube_tap_packet_resize_egress_x3rx(
   nanotube_tap_offset_t word_length_out;
 
   bool input_eop = x3rxw_in->get_meta_eop();
+  bool input_sop = x3rxw_in->get_data_sop();
 
   nanotube_tap_packet_resize_egress_core(
     x3rx_bus::data_bytes, x3rx_bus::log_data_bytes,
@@ -288,6 +289,9 @@ void nanotube_tap_packet_resize_egress_x3rx(
     /* Assume first word_length_out bytes are valid and rest are not */
     x3rxw_out->set_tkeep(word_length_out);
     x3rxw_out->set_tstrb(word_length_out);
+    /* This assumes meta and data are aligned, and that input_sop hasn't changed.  Really need to track
+     * whether we've seen a valid word */
+    x3rxw_out->set_sideband(input_sop, word_eop_out, word_length_out, input_sop, word_eop_out, 0);
   }
 }
 
