@@ -154,6 +154,7 @@ namespace {
     Value *m_capsule_buffer = nullptr;
     Value *m_length_val = nullptr;
     Value *m_offset_buf = nullptr;
+    Value *m_offset_val = nullptr;
     SwitchInst *m_map_switch = nullptr;
   };
 
@@ -269,20 +270,11 @@ void cc_code_builder::create_pass_through_bb()
 
 void cc_code_builder::read_capsule()
 {
-  auto *size_ty = m_length_val->getType();
-  auto md_size = get_bus_md_size();
-  auto offset = ConstantInt::get(size_ty, md_size);
-
-  if (md_size == NANOTUBE_PACKET_SIZE_INVALID) {
-    report_fatal_errorv("Unsupported bus type '{0}' for the control capsule pass.",
-                        get_bus_name());
-  }
-
   auto *packet_read = create_nt_packet_read(*m_module);
   Value *args[] = {
     m_packet_arg,
     m_capsule_buffer,
-    offset,
+    m_offset_val,
     m_length_val,
   };
   m_builder.CreateCall(packet_read, args, "");
@@ -290,20 +282,11 @@ void cc_code_builder::read_capsule()
 
 void cc_code_builder::write_capsule()
 {
-  auto *size_ty = m_length_val->getType();
-  auto md_size = get_bus_md_size();
-  auto offset = ConstantInt::get(size_ty, md_size);
-
-  if (md_size == NANOTUBE_PACKET_SIZE_INVALID) {
-    report_fatal_errorv("Unsupported bus type '{0}' for the control capsule pass.",
-                        get_bus_name());
-  }
-
   auto *packet_write = create_nt_packet_write(*m_module);
   Value *args[] = {
     m_packet_arg,
     m_capsule_buffer,
-    offset,
+    m_offset_val,
     m_length_val,
   };
   m_builder.CreateCall(packet_write, args, "");
@@ -362,6 +345,12 @@ void cc_code_builder::create_capsule_read_bb()
   BasicBlock *bb = BasicBlock::Create(*m_context, "control_capsule_read",
                                       m_func, m_capsule_bad_resource_bb);
   m_builder.SetInsertPoint(bb);
+
+  auto *size_ty = m_length_val->getType();
+  m_offset_val =
+    m_builder.CreateLoad(size_ty, m_offset_buf, /*volatile*/false,
+                         "capsule_message_offset");
+
   read_capsule();
 
   static_assert(NANOTUBE_CAPSULE_RESOURCE_ID_SIZE == 2);

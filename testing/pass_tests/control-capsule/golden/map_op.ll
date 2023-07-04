@@ -53,7 +53,8 @@ pass_through_capsule:                             ; preds = %entry
   ret i32 0
 
 control_capsule_read:                             ; preds = %entry
-  %0 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 1, i64 20)
+  %capsule_message_offset = load i64, i64* %control_offset_buffer
+  %0 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 %capsule_message_offset, i64 20)
   %cc.res_id0.get = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 2
   %cc.res_id0.load = load i8, i8* %cc.res_id0.get
   %cc.res_id0.zext = zext i8 %cc.res_id0.load to i16
@@ -78,7 +79,7 @@ control_capsule_bad_resource:                     ; preds = %control_capsule_rea
   br label %control_capsule_write
 
 control_capsule_write:                            ; preds = %control_capsule_map0_bb, %control_capsule_bad_resource
-  %1 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 1, i64 20)
+  %1 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 %capsule_message_offset, i64 20)
   ret i32 0
 
 process_net_packet:                               ; preds = %entry
