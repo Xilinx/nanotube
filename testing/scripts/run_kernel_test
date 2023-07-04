@@ -63,11 +63,17 @@ OM="${OUTPUT_PREFIX}.maps.OUT"
 
 check_kernel() {
     check_output $GO $O;   A=$?
-    check_output $GMO $OM "^#"; B=$?
+    if [ -f "$GMO" ]; then
+      check_output $GMO $OM "^#"; B=$?
+    else
+      echo "WARNING: no maps.OUT file, skipping checks - $GMO"; B=0
+    fi
     return $(( A || B ))
 }
 
-if ! check_files $GMI $GPI $GMO $GPO $GO; then
+# NB: we don't enforce presence of $GMO as maps currently can't be examined
+# after the pipeline pass (c.f. NANO-498).
+if ! check_files $GMI $GPI $GPO $GO; then
     exit 1;
 fi
 echo "  Inputs $GMI and $GPI."
