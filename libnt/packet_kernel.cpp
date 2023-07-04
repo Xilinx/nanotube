@@ -419,7 +419,7 @@ bool channel_packet_kernel::try_read_x3rx_word()
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
 
   // Clear the buffer for the next packet.
-  m_read_packet.reset(m_bus_type);
+  m_read_packet.reset(m_bus_type, true);
 
   // Indicate that a word was read.
   return true;
@@ -449,7 +449,7 @@ bool channel_packet_kernel::try_read_x3tx_word()
   m_system.receive_packet(&m_read_packet, NANOTUBE_PACKET_PASS);
 
   // Clear the buffer for the next packet.
-  m_read_packet.reset(m_bus_type);
+  m_read_packet.reset(m_bus_type, true);
 
   // Indicate that a word was read.
   return true;
