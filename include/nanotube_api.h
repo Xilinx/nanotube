@@ -471,9 +471,15 @@ typedef enum {
   NANOTUBE_CAPSULE_CLASS_CONTROL,
 } nanotube_capsule_class_t;
 
-/*! Determine the class of a capsule. */
+/*! Determine the class of a capsule.
+**  \param packet      The packet to examine.
+**  \param offset_out  The location to store the offset to the
+**                     control payload (for control capsules).
+**  \return            The capsule class.
+*/
 extern nanotube_capsule_class_t
-nanotube_capsule_classify(nanotube_packet_t* packet);
+nanotube_capsule_classify(nanotube_packet_t* packet,
+                          size_t *offset_out);
 
 
 /******************** Maps ********************/

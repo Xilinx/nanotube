@@ -21,6 +21,7 @@ nanotube_packet_set_port_shb(nanotube_packet_t* packet,
                              nanotube_packet_port_t port);
 
 extern "C" nanotube_capsule_class_t
-nanotube_capsule_classify_shb(nanotube_packet_t* packet);
+nanotube_capsule_classify_shb(nanotube_packet_t* packet,
+                              size_t *offset_out);
 
 #endif // NANOTUBE_PACKET_METADATA_SHB_H

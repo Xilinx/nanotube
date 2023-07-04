@@ -75,24 +75,26 @@ nanotube_packet_set_port(nanotube_packet_t* packet,
 
 
 nanotube_capsule_class_t
-nanotube_capsule_classify(nanotube_packet_t* packet)
+nanotube_capsule_classify(nanotube_packet_t* packet,
+                          size_t *offset_out)
 {
   switch (packet->get_bus_type()) {
   default:
   case NANOTUBE_BUS_ID_ETH:
+    *offset_out = 0;
     return NANOTUBE_CAPSULE_CLASS_NETWORK;
 
   case NANOTUBE_BUS_ID_SB:
-    return nanotube_capsule_classify_sb(packet);
+    return nanotube_capsule_classify_sb(packet, offset_out);
 
   case NANOTUBE_BUS_ID_SHB:
-    return nanotube_capsule_classify_shb(packet);
+    return nanotube_capsule_classify_shb(packet, offset_out);
 
   case NANOTUBE_BUS_ID_X3RX:
-    return nanotube_capsule_classify_x3rx(packet);
+    return nanotube_capsule_classify_x3rx(packet, offset_out);
 
   case NANOTUBE_BUS_ID_X3TX:
-    return nanotube_capsule_classify_x3tx(packet);
+    return nanotube_capsule_classify_x3tx(packet, offset_out);
   }    
 }
 

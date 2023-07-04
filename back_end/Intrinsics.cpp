@@ -1058,11 +1058,13 @@ FunctionType* get_capsule_classify_ty(Module& m) {
   LLVMContext& c = m.getContext();
   /**
    ** nanotube_capsule_class nanotube_capsule_classify(
-   **   nanotube_packet_t* p);
+   **   nanotube_packet_t* p,
+   **   size_t* offset_out);
    **/
   auto* res_ty   = Type::getInt32Ty(c);
   Type* arg_ty[] = {
     get_nt_packet_type(m)->getPointerTo(),
+    Type::getInt64Ty(c)->getPointerTo(),
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }

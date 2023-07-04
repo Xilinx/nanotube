@@ -36,13 +36,15 @@ nanotube_packet_set_port_sb(nanotube_packet_t* packet,
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t
-nanotube_capsule_classify_sb(nanotube_packet_t* packet)
+nanotube_capsule_classify_sb(nanotube_packet_t* packet,
+                             size_t *offset_out)
 {
   static_assert(sizeof(simple_bus::header::port) == 1,
                 "port field size is incorrect");
   uint8_t buffer[1] = {0};
   unsigned offset = offsetof(simple_bus::header, port);
   nanotube_packet_read(packet, buffer, offset, 1);
+  *offset_out = sizeof(simple_bus::header);
   switch (buffer[0]) {
   case NANOTUBE_PORT_CONTROL: return NANOTUBE_CAPSULE_CLASS_CONTROL;
   default:                    return NANOTUBE_CAPSULE_CLASS_NETWORK;

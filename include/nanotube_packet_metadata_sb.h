@@ -22,6 +22,7 @@ nanotube_packet_set_port_sb(nanotube_packet_t* packet,
 
 /*! Determine the class of a capsule. */
 extern "C" nanotube_capsule_class_t
-nanotube_capsule_classify_sb(nanotube_packet_t* packet);
+nanotube_capsule_classify_sb(nanotube_packet_t* packet,
+                             size_t *offset_out);
 
 #endif // NANOTUBE_PACKET_METADATA_SB_H

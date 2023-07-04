@@ -152,6 +152,7 @@ namespace {
     SwitchInst *m_resource_switch = nullptr;
     Value *m_capsule_buffer = nullptr;
     Value *m_length_val = nullptr;
+    Value *m_offset_buf = nullptr;
     SwitchInst *m_map_switch = nullptr;
   };
 
@@ -445,6 +446,8 @@ void cc_code_builder::create_entry_bb()
   auto int8_ty = Type::getInt8Ty(*m_context);
   m_capsule_buffer = m_builder.CreateAlloca(int8_ty, m_length_val,
                                             "control_capsule_buffer");
+  auto one = ConstantInt::get(size_ty, 1);
+  m_offset_buf = m_builder.CreateAlloca(size_ty, one, "control_offset_buffer");
 }
 
 void cc_code_builder::finish_entry_bb()
@@ -452,7 +455,7 @@ void cc_code_builder::finish_entry_bb()
   // Build the entry basic block.
   m_builder.SetInsertPoint(m_new_entry_bb);
   auto *classify_func = create_bus_capsule_classify(*m_module, m_bus_type);
-  Value *args[] = { m_packet_arg, };
+  Value *args[] = { m_packet_arg, m_offset_buf, };
   auto *capsule_class = m_builder.CreateCall(classify_func,
                                              args, "capsule_class");
   auto *cc_ty = cast<IntegerType>(capsule_class->getType());

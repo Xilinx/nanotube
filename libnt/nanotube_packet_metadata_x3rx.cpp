@@ -29,7 +29,10 @@ nanotube_packet_set_port_x3rx(nanotube_packet_t* packet,
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t
-nanotube_capsule_classify_x3rx(nanotube_packet_t* packet)
+nanotube_capsule_classify_x3rx(nanotube_packet_t* packet,
+                               size_t *offset_out)
 {
+  // No metadata on X3RX.
+  *offset_out = 0;
   return NANOTUBE_CAPSULE_CLASS_NETWORK;
 }

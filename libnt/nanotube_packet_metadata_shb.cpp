@@ -37,7 +37,9 @@ nanotube_packet_set_port_shb(nanotube_packet_t* packet,
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t
-nanotube_capsule_classify_shb(nanotube_packet_t* packet)
+nanotube_capsule_classify_shb(nanotube_packet_t* packet,
+                              size_t *offset_out)
 {
+  *offset_out = sizeof(softhub_bus::header);
   return NANOTUBE_CAPSULE_CLASS_NETWORK;
 }

@@ -42,7 +42,8 @@ declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanot
 define private i32 @simple(%struct.nanotube_context* %context, %struct.nanotube_packet* nocapture readnone %packet) #2 {
 entry:
   %control_capsule_buffer = alloca i8, i64 20
-  %capsule_class = call i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet* %packet)
+  %control_offset_buffer = alloca i64, i64 1
+  %capsule_class = call i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet* %packet, i64* %control_offset_buffer)
   switch i32 %capsule_class, label %pass_through_capsule [
     i32 1, label %process_net_packet
     i32 2, label %control_capsule_read
@@ -109,7 +110,7 @@ declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
 declare void @nanotube_map_process_capsule(%struct.nanotube_context*, i16, i8*, i64, i64)
 
-declare i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet*)
+declare i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet*, i64*)
 
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
