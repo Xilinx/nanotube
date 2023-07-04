@@ -25,14 +25,16 @@
 #define DEBUG_DUPLICATE   0
 #define DEBUG_PACKET_READ 0
 #define DEBUG_PACKET_WRITE 0
-#define DEBUG_RESIZE_TAP  0
+#define DEBUG_RESIZE_IN_TAP  0
+#define DEBUG_RESIZE_EG_TAP  0
 
 #if ( DEBUG_ROTATE_DOWN || \
       DEBUG_CLASSIFY || \
       DEBUG_DUPLICATE || \
       DEBUG_PACKET_READ || \
       DEBUG_PACKET_WRITE || \
-      DEBUG_RESIZE_TAP )
+      DEBUG_RESIZE_IN_TAP || \
+      DEBUG_RESIZE_EG_TAP )
 #include <iomanip>
 #include <iostream>
 #endif
@@ -1269,7 +1271,7 @@ void nanotube_tap_packet_resize_ingress_core(
 
   bool sop = state->new_req;
   if (state->new_req) {
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
     std::cout << "New request:"
               << " write_offset=" << unsigned(resize_req.write_offset)
               << " insert_length=" << unsigned(resize_req.insert_length)
@@ -1285,7 +1287,7 @@ void nanotube_tap_packet_resize_ingress_core(
   state->new_req = (word_eop_in != 0);
   *packet_done_out = (word_eop_in != 0);
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
   std::cout << "Received word:"
             << " SOP=" << unsigned(sop)
             << " EOP=" << unsigned(word_eop_in)
@@ -1345,7 +1347,7 @@ void nanotube_tap_packet_resize_ingress_core(
 
   state->unshifted_length = state->unshifted_length - packet_word_length;
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
   std::cout << "unshifted: "
             << "out[" << output_insert_start
             << ".." << output_insert_end
@@ -1432,7 +1434,7 @@ void nanotube_tap_packet_resize_ingress_core(
   if (state->edit_started)
     state->edit_delete_length -= (edit_input_end_offset - edit_input_start_offset);
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
   std::cout << "edit: "
             << "out[" << output_insert_start
             << ".." << output_insert_end
@@ -1522,7 +1524,7 @@ void nanotube_tap_packet_resize_ingress_core(
     state->shifted_carried_len = 0;
   }
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
   std::cout << "shifted: "
             << "out[" << output_insert_start
             << ".." << output_insert_end
@@ -1571,7 +1573,7 @@ void nanotube_tap_packet_resize_ingress_core(
                             : word_length_in )
                         : packet_word_length );
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_IN_TAP
   std::cout << "Classification:"
             << " edit: " << unsigned(edit_prev_started)
             << "->" << unsigned(state->edit_started)
@@ -1662,7 +1664,7 @@ void nanotube_tap_packet_resize_egress_core(
                        rot_input_data, packet_data_in,
                        cword->packet_rot);
 
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_EG_TAP
   std::cout << "cword: eop=" << unsigned(cword->eop)
             << " word_length=" << unsigned(cword->word_length)
             << " push_1=" << unsigned(cword->push_1)
@@ -1723,7 +1725,7 @@ void nanotube_tap_packet_resize_egress_core(
   }
 
   if (cword->push_1) {
-#if DEBUG_RESIZE_TAP
+#if DEBUG_RESIZE_EG_TAP
     std::cout << "Output word: eop=" << unsigned(*word_eop_out)
               << " length=" << unsigned(*word_length_out)
               << "\n";
