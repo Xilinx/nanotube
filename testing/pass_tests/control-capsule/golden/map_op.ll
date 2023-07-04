@@ -104,13 +104,13 @@ process_net_packet:                               ; preds = %entry
   ret i32 0
 }
 
-declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)
-
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
 declare void @nanotube_map_process_capsule(%struct.nanotube_context*, i16, i8*, i64, i64)
 
 declare i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet*, i64*)
+
+declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)
 
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }

@@ -120,6 +120,7 @@ namespace {
     void read_capsule();
     void write_capsule();
     void create_capsule_write_bb();
+    void finish_capsule_write_bb();
     void write_response_code(uint16_t code);
     void create_capsule_bad_resource_bb();
     void create_capsule_read_bb();
@@ -310,13 +311,17 @@ void cc_code_builder::write_capsule()
 
 void cc_code_builder::create_capsule_write_bb()
 {
-  BasicBlock *bb = BasicBlock::Create(*m_context, "control_capsule_write",
-                                      m_func, m_old_entry_bb);
-  m_builder.SetInsertPoint(bb);
+  m_capsule_write_bb =
+    BasicBlock::Create(*m_context, "control_capsule_write",
+                       m_func, m_old_entry_bb);
+}
+
+void cc_code_builder::finish_capsule_write_bb()
+{
+  m_builder.SetInsertPoint(m_capsule_write_bb);
   write_capsule();
   auto ret_val = m_builder.getInt32(NANOTUBE_PACKET_PASS);
   m_builder.CreateRet(ret_val);
-  m_capsule_write_bb = bb;
 }
 
 void cc_code_builder::write_response_code(uint16_t resp_code)
@@ -479,6 +484,7 @@ void cc_code_builder::build()
   create_capsule_read_bb();
   create_map_bbs();
   finish_entry_bb();
+  finish_capsule_write_bb();
 }
 
 ///////////////////////////////////////////////////////////////////////////
