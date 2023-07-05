@@ -444,9 +444,9 @@ void packet_resize_test::compare()
 
       if (dut_word.get_empty() != exp_word.get_empty()) {
         std::cerr << "Received word " << word_index
-                  << " had " << dut_word.get_empty()
+                  << " had " << (int)dut_word.get_empty()
                   << " empty bytes but expected "
-                  << exp_word.get_empty() << "\n";
+                  << (int)exp_word.get_empty() << "\n";
         test_failed = true;
       }
     }
