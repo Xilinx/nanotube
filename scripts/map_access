@@ -8,6 +8,7 @@ import os
 import os.path
 import re
 import selectors
+import socket
 import struct
 import sys
 import time
@@ -19,7 +20,7 @@ sys.path.append(os.path.join(top_dir, 'py-lib'))
 from qemu_socket import QemuSocket, LISTEN, CONNECT
 from utils import dump_packet, parse_time
 
-_address_re = re.compile(r'([^:]*):(\d+)\Z')
+_qemu_address_re = re.compile(r'(?:qemu:)?([^:]*):(\d+)\Z')
 
 _int_re = re.compile(r'[0-9]+\Z')
 _byte_array_re = re.compile(r'[0-9a-f]{1,2}(:[0-9a-f]{1,2})*\Z')
@@ -184,6 +185,68 @@ class CapsuleFormat:
 
 ###########################################################################
 
+class RawSocket:
+  def __init__(self, dev_name):
+    self.__socket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+    self.__socket.bind((dev_name, 3))
+    self.__socket.setblocking(False)
+    self.__packet = None
+
+  def fileno(self):
+    return self.__socket.fileno()
+
+  def send(self, packet=None):
+    """Send some packet data.
+
+    Either send a new packet or continue sending a previous packet.
+    The first call to this method should pass a packet as an argument.
+    Subsequent calls for the same packet should not provide an
+    argument.  The method will return a flag indicating whether it is
+    ready to accept the next packet.  If it returns false then the
+    caller should keep calling the method with no argument when the
+    socket is writable.  If it returns true then the caller may call
+    the method again with another packet to send.
+    """
+
+    # The underlying send operation will not send a partial packet, so
+    # we just need to identify the packet to send and make sure
+    # there's exactly one.
+    if packet is not None:
+      # Send a new packet
+      assert self.__packet is None
+    else:
+      # Continue sending the previous packet.
+      assert self.__packet is not None
+      packet = self.__packet
+      self.__packet = None
+
+    # Try to send the packet.  Store for later if it fails.
+    try:
+      self.__socket.send(packet)
+    except socket.timeout:
+      self.__packet = packet
+      return False
+
+    return True
+
+  def receive(self):
+    """Receive some packet data.
+
+    Called when data can be read from the socket.  Returns an
+    interator over received packets.  Each packet is represented as a
+    bytearray.  If the iterator yields None then EOF has been reached
+    and the receive method should not be called again.
+    """
+
+    while True:
+      try:
+        p = self.__socket.recv(65536)
+        yield bytearray(p)
+      except BlockingIOError:
+        return
+
+###########################################################################
+
 class ParseError(RuntimeError):
   __slots__ = []
 
@@ -328,14 +391,27 @@ class app:
 
     self.__actions = Actions(self.__capsule_format)
 
-    m = _address_re.match(self.__args.address[0])
-    if m is None:
-      sys.stderr.write("%s: Invalid address %r.\n" %
-                       (self.__prog, self.__args.address))
-    self.__hostname = m.group(1)
-    self.__port = self.__actions.parse_int("port", m.group(2))
+    self.parse_address()
 
     self.process_args()
+
+  def parse_address(self):
+    addr_str = self.__args.address[0]
+    raw_prefix = "raw:"
+    if addr_str.startswith(raw_prefix):
+      self.__socket_mode = "raw"
+      self.__netdev = addr_str[len(raw_prefix):]
+      return
+
+    m = _qemu_address_re.match(addr_str)
+    if m is None:
+      sys.stderr.write("%s: Invalid address %r.\n" %
+                       (self.__prog, addr_str))
+      sys.exit(1)
+
+    self.__socket_mode = "qemu"
+    self.__hostname = m.group(1)
+    self.__port = self.__actions.parse_int("port", m.group(2))
 
   def process_args(self):
     failed=False
@@ -384,23 +460,13 @@ class app:
   def get_time(self):
     return time.clock_gettime(time.CLOCK_MONOTONIC)
 
-  def connect_socket(self):
-    if self.__verbosity >= 1:
-      sys.stderr.write("Connecting to %s.\n" %
-                       (self.__args.address[0],))
-
-    self.__start_time = self.get_time()
-    self.__end_time = self.__start_time + self.__timeout
-
+  def connect_qemu_socket(self):
     self.__socket = QemuSocket(hostname=self.__hostname,
                                port=self.__port,
                                mode=CONNECT,
                                mtu=self.__args.mtu,
                                timeout=self.__args.timeout,
                                verbosity=self.__verbosity-1)
-
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    self.__sel.register(self.__socket, events)
 
     while True:
       self.__time_now = self.get_time()
@@ -416,6 +482,27 @@ class app:
       elapsed = self.__time_now - self.__start_time
       if elapsed > 0:
         time.sleep(min(elapsed/4, 1))
+
+  def connect_raw_socket(self):
+    self.__socket = RawSocket(self.__netdev)
+
+  def connect_socket(self):
+    if self.__verbosity >= 1:
+      sys.stderr.write("Connecting to %s.\n" %
+                       (self.__args.address[0],))
+
+    self.__start_time = self.get_time()
+    self.__end_time = self.__start_time + self.__timeout
+
+    if self.__socket_mode == "qemu":
+      self.connect_qemu_socket()
+    else:
+      assert self.__socket_mode == "raw"
+      self.connect_raw_socket()
+
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    self.__sel.register(self.__socket, events)
+
 
   def send_capsules(self):
     if self.__verbosity >= 1:
