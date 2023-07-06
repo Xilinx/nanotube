@@ -16,6 +16,9 @@
 SEC("prog")
 int xdp_trivial_benchmark_traffic(struct xdp_md *ctx)
 {
+	void *data = (void *)(long)ctx->data;
+	if (((char *)data)[0] != 0)
+		return XDP_DROP;
 	return XDP_PASS;
 }
 
