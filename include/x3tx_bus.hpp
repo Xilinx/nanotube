@@ -27,11 +27,6 @@ namespace x3tx_bus
   static inline unsigned data_offset(unsigned index) { return 0+index; }
   static inline unsigned sideband_offset(unsigned index) { return data_bytes+index; }
 
-  struct header {
-    /* Track the destination port */
-    byte_t port;
-  };
-
   /* Metadata format is as follows:
    * TUSER 64 bits
    * [0] DATA_SOP - set on first valid data word

@@ -111,8 +111,8 @@ nanotube_packet_size_t nanotube::get_bus_md_size()
     sizeof(simple_bus::header),
     sizeof(softhub_bus::header),
     NANOTUBE_PACKET_SIZE_INVALID, // Variable metadata size.
-    sizeof(x3rx_bus::header),
-    sizeof(x3tx_bus::header),
+    0, // No metadata on X3RX
+    0, // No metadata on X3TX
   };
 
   auto type = get_bus_type();

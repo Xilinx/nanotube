@@ -22,12 +22,7 @@ void
 nanotube_packet_set_port_x3rx(nanotube_packet_t* packet,
                               nanotube_packet_port_t port)
 {
-  static_assert(sizeof(x3rx_bus::header::port) == 1,
-                "port field size is incorrect");
-  uint8_t buffer[1] = {port};
-  static const uint8_t mask[1] = { 0xff };
-  unsigned offset = offsetof(x3rx_bus::header, port);
-  nanotube_packet_write_masked(packet, buffer, mask, offset, 1);
+  // Not yet supported.  No metadata on X3RX to store the port in
 }
 
 #ifdef __clang__

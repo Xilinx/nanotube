@@ -15,7 +15,7 @@
 #include "nanotube_packet_taps_bus.h"
 #include "x3rx_bus.hpp"
 
-static const uint16_t platform_offset = sizeof(x3rx_bus::header);
+static const uint16_t platform_offset = 0;
 //static const uint16_t platform_header = 0;
 
 nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
