@@ -971,15 +971,25 @@ static void sort_group_start_offset(merge_group* g) {
 static void get_accessed_mask(const merge_group& g, std::vector<bool>* accessed,
                               int64_t* start, int64_t* end, unsigned* count) {
   auto& offs_ivec = g.accesses;
-  /* Determine which bytes are actually being read */
+  /* Determine which bytes are actually being read.  The group is sorted
+   * based on the offset of the access; get that from the first entry. */
   *start = offs_ivec.front().start;
-  *end   = offs_ivec.back().start +
-           offs_ivec.back().length;
-
+  /* Scan through the group for the end. */
+  *end   = *start + offs_ivec.front().length;
+  for( auto& inst_rng : offs_ivec ) {
+    assert(*start <= inst_rng.start);
+    auto e = inst_rng.start + inst_rng.length;
+    if( e > *end)
+      *end = e;
+  }
   accessed->resize(*end - *start);
+
+  /* Scan again and set the bits for which bytes were actually accessed. */
   for( auto& inst_rng : offs_ivec ) {
     auto& s = inst_rng.start;
     auto& l = inst_rng.length;
+    assert(*start <= s);
+    assert(s + l <= *end);
     for( int64_t i = s; i < s + l; i++ )
       (*accessed)[i - *start] = true;
   }
