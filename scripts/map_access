@@ -66,6 +66,16 @@ class SbCapsuleFormat(HeaderFormat):
     ('port', 0xfe),
   ]
 
+class EthEncapFormat(HeaderFormat):
+  __slots__ = []
+  name = 'EthEncap'
+  format = '!6s6sH'
+  field_defs = [
+    ('dhost',      b'\xff\xff\xff\xff\xff\xff'),
+    ('shost',      b'\x00\x00\x00\x00\x00\x00'),
+    ('ethertype',  0xf00d),
+  ]
+
 class NanotubeControlFormat(HeaderFormat):
   __slots__ = []
   name = 'NanotubeControl'
@@ -116,9 +126,14 @@ class MapControlFormat(HeaderFormat):
     fields.append(('value', bytes(view[key_len:data_len])))
     return (fields, prefix_len + data_len)
 
+encap_class_dict = {
+  'sb': SbCapsuleFormat,
+  'eth': EthEncapFormat,
+}
+
 class CapsuleFormat:
-  def __init__(self):
-    self.__layers = [ SbCapsuleFormat(),
+  def __init__(self, encap_format):
+    self.__layers = [ encap_format,
                       NanotubeControlFormat(),
                       MapControlFormat() ]
 
@@ -145,7 +160,8 @@ class ParseError(RuntimeError):
   __slots__ = []
 
 class Actions:
-  def __init__(self):
+  def __init__(self, capsule_format):
+    self.__capsule_format = capsule_format
     self.__params = {}
     self.__send_capsules = []
     self.__expect_params = []
@@ -205,25 +221,25 @@ class Actions:
   def do_read(self):
     params = dict(self.__params)
     params['opcode'] = OPCODE_READ
-    buf = CapsuleFormat().pack(params)
+    buf = self.__capsule_format.pack(params)
     self.__send_capsules.append((buf, params))
 
   def do_insert(self):
     params = dict(self.__params)
     params['opcode'] = OPCODE_INSERT
-    buf = CapsuleFormat().pack(params)
+    buf = self.__capsule_format.pack(params)
     self.__send_capsules.append((buf, params))
 
   def do_update(self):
     params = dict(self.__params)
     params['opcode'] = OPCODE_UPDATE
-    buf = CapsuleFormat().pack(params)
+    buf = self.__capsule_format.pack(params)
     self.__send_capsules.append((buf, params))
 
   def do_write(self):
     params = dict(self.__params)
     params['opcode'] = OPCODE_WRITE
-    buf = CapsuleFormat().pack(params)
+    buf = self.__capsule_format.pack(params)
     self.__send_capsules.append((buf, params))
 
 ###########################################################################
@@ -234,10 +250,11 @@ class Actions:
 
 class app:
   def __init__(self, argv):
-    self.__actions = Actions()
-
     p = argparse.ArgumentParser()
 
+    p.add_argument("-e", "--encap",
+                   action="store", default="sb",
+                   help="Set the encap format.")
     p.add_argument("-m", "--mtu",
                    action="store", type=int, default=1514,
                    help="Set the Maximum Transmit Unit.")
@@ -269,6 +286,16 @@ class app:
     self.__fail = False
     self.__time_now = None
     self.__end_time = None
+
+    encap_class = encap_class_dict.get(self.__args.encap)
+    if encap_class is None:
+      sys.stderr.write("%s: Unknown encap format %r.\n" %
+                       (self.__prog, self.__args.encap))
+      sys.exit(1)
+
+    self.__capsule_format = CapsuleFormat(encap_class())
+
+    self.__actions = Actions(self.__capsule_format)
 
     m = _address_re.match(self.__args.address[0])
     if m is None:
@@ -393,7 +420,7 @@ class app:
         sys.exit(1)
 
       print("Received response:")
-      fields, tot_len = CapsuleFormat().unpack(params, pkt, 0)
+      fields, tot_len = self.__capsule_format.unpack(params, pkt, 0)
       for name,val in fields:
         print("  %-16s %s" % (name+":", val))
 
