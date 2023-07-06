@@ -95,7 +95,12 @@ To install the require packages, run these commands as root:
 
 To checkout the Nanotube repository, run this command:
 
+      git clone https://github.com/Xilinx/nanotube.git
+
+or (if you are logged into Github):
+
       git clone git@github.com:Xilinx/nanotube.git
+
 
 ## Downloading and building LLVM
 
