@@ -26,6 +26,9 @@ _byte_array_re = re.compile(r'[0-9a-f]{1,2}(:[0-9a-f]{1,2})*\Z')
 
 ###########################################################################
 
+SB_CONTROL_PORT = 0xfe
+ETHERTYPE_NANOTUBE_CONTROL = 0xf00d
+
 class CapsuleError(RuntimeError):
   __slots__ = []
 
@@ -63,8 +66,19 @@ class SbCapsuleFormat(HeaderFormat):
   name = 'SbCapsule'
   format = '<B'
   field_defs = [
-    ('port', 0xfe),
+    ('port', SB_CONTROL_PORT),
   ]
+
+  def unpack(self, params, buf, offset):
+    res = super().unpack(params, buf, offset)
+    if res == None:
+      return None
+
+    fields, hdr_len = res
+    if dict(fields)['port'] != SB_CONTROL_PORT:
+      return None
+
+    return res
 
 class EthEncapFormat(HeaderFormat):
   __slots__ = []
@@ -73,8 +87,19 @@ class EthEncapFormat(HeaderFormat):
   field_defs = [
     ('dhost',      b'\xff\xff\xff\xff\xff\xff'),
     ('shost',      b'\x00\x00\x00\x00\x00\x00'),
-    ('ethertype',  0xf00d),
+    ('ethertype',  ETHERTYPE_NANOTUBE_CONTROL),
   ]
+
+  def unpack(self, params, buf, offset):
+    res = super().unpack(params, buf, offset)
+    if res == None:
+      return None
+
+    fields, hdr_len = res
+    if dict(fields)['ethertype'] != ETHERTYPE_NANOTUBE_CONTROL:
+      return None
+
+    return res
 
 class NanotubeControlFormat(HeaderFormat):
   __slots__ = []
@@ -147,7 +172,10 @@ class CapsuleFormat:
     all_fields = []
     total_len = 0
     for layer in self.__layers:
-      l_fields, l_hdr_len = layer.unpack(params, buf, offset)
+      res = layer.unpack(params, buf, offset)
+      if res == None:
+        return None
+      l_fields, l_hdr_len = res
       all_fields.extend(l_fields)
       offset += l_hdr_len
       total_len += l_hdr_len
@@ -173,6 +201,9 @@ class Actions:
     buf,params = self.__send_capsules.pop(0)
     self.__expect_params.append(params)
     return buf
+
+  def peek_expect_params(self):
+    return self.__expect_params[0]
 
   def pop_expect_params(self):
     return self.__expect_params.pop(0)
@@ -412,7 +443,7 @@ class app:
         self.__fail = True
         return
 
-      params = self.__actions.pop_expect_params()
+      params = self.__actions.peek_expect_params()
       if params is None:
         sys.stderr.write("%s: Received unexpected capsule.\n" %
                          self.__prog)
@@ -420,9 +451,15 @@ class app:
         sys.exit(1)
 
       print("Received response:")
-      fields, tot_len = self.__capsule_format.unpack(params, pkt, 0)
+      res = self.__capsule_format.unpack(params, pkt, 0)
+      if res == None:
+        return
+
+      fields, tot_len = res
       for name,val in fields:
         print("  %-16s %s" % (name+":", val))
+
+      self.__actions.pop_expect_params()
 
   def handle_write_event(self):
     if self.__verbosity >= 1:
