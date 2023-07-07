@@ -169,7 +169,7 @@ The path to the llvm-config executable is specified using the
 LLVM_CONFIG variable on the scons command line and the path to the Vitis-HLS
 installation is specified using the XILINX_VITIS_HLS variable:
 
-      scons LLVM_CONFIG=/scratch/$USER/llvm-project/build/bin/llvm-config XILINX_VITIS_HLS=/scratch/$USER/Vitis_HLS_2022.2 [args...]
+      scons LLVM_CONFIG=/scratch/$USER/nanotube-llvm/build/bin/llvm-config XILINX_VITIS_HLS=/scratch/$USER/Vitis_HLS_2022.2 [args...]
 
 (NOTE: When building on a machine inside the AMD / Xilinx network, we use an
 existing Vitis-HLS install and XILINX_VITIS_HLS is auto-detected and can be
