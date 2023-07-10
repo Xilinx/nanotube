@@ -611,7 +611,7 @@ void top_writer::write_vitis_opts()
       out << "sc=stage_" << writer_context.get_thread_id() <<
              ".port" << channel.get_writer_port() <<
              ":stage_" << reader_context.get_thread_id() <<
-             ".port" << channel.get_reader_port() << ":16\n";
+             ".port" << channel.get_reader_port() << ":" << channel.get_num_elem() << "\n";
     }
     else if (channel.has_reader() && !channel.has_writer() && !input_interface.empty()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());

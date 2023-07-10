@@ -3530,7 +3530,8 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
   auto  sideband_signals = get_bus_sb_signals_size();
   auto  input_interface_name = get_bus_input_interface();
   auto  output_interface_name = get_bus_output_interface();
-  static const size_t packet_fifo_depth = 140; // 9000 / 64
+  /* 1024 is the largest size we can support for realistic plugins on SN1022 */
+  size_t packet_fifo_depth = (1024 / (bus_word_size - sideband_size - sideband_signals));
 
   std::vector<Value*> packet_chs(stages.size() + 1);
   for( unsigned n = 0; n <= stages.size(); n++ ) {
