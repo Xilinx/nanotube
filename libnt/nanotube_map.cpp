@@ -370,6 +370,10 @@ size_t nanotube_map_op(nanotube_context_t* ctx, nanotube_map_id_t id,
                        size_t key_length, const uint8_t* data_in,
                        uint8_t* data_out, const uint8_t* mask,
                        size_t offset, size_t data_length) {
+  /* When we can, overwrite the output */
+  if( data_out != nullptr)
+    memset(data_out, 0, data_length);
+
   /* Short circuit no-ops, as they may have random other parameters */
   if( type == NANOTUBE_MAP_NOP )
     return 0;
@@ -390,10 +394,6 @@ size_t nanotube_map_op(nanotube_context_t* ctx, nanotube_map_id_t id,
   if (data_in != nullptr) {
     memcpy(value_in, data_in, data_length);
   }
-
-  /* When we can, overwrite the output */
-  if( data_out != nullptr)
-    memset(data_out, 0, data_length);
 
   if( key == nullptr )
     return 0;
