@@ -503,6 +503,9 @@ class app:
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     self.__sel.register(self.__socket, events)
 
+  def disable_tx(self):
+    events = selectors.EVENT_READ
+    self.__sel.modify(self.__socket, events)
 
   def send_capsules(self):
     if self.__verbosity >= 1:
@@ -516,8 +519,8 @@ class app:
 
     if self.__verbosity >= 1:
       sys.stderr.write("No more capsules to send.\n")
-    events = selectors.EVENT_READ
-    self.__sel.modify(self.__socket, events)
+
+    self.disable_tx()
 
   def handle_read_event(self):
     if self.__verbosity >= 1:
@@ -582,8 +585,7 @@ class app:
     self.__time_now = self.get_time()
     self.__end_time = self.__time_now + self.__wait_time
 
-    events = selectors.EVENT_READ
-    self.__sel.modify(self.__socket, events)
+    self.disable_tx()
 
     while not self.__done:
       self.__time_now = self.get_time()
