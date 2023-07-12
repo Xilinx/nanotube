@@ -20,6 +20,7 @@ sys.path.append(os.path.join(top_dir, 'py-lib'))
 from qemu_socket import QemuSocket, LISTEN, CONNECT
 from utils import dump_packet, parse_time
 
+_raw_address_re = re.compile(r'raw:([^:]+)(?::([^:]+))?\Z')
 _qemu_address_re = re.compile(r'(?:qemu:)?([^:]*):(\d+)\Z')
 
 _int_re = re.compile(r'[0-9]+\Z')
@@ -186,9 +187,12 @@ class CapsuleFormat:
 ###########################################################################
 
 class RawSocket:
-  def __init__(self, dev_name):
+  def __init__(self, dev_name, rx_enable):
+    ether_type = 0
+    if rx_enable:
+      ether_type = 3
     self.__socket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
-    self.__socket.bind((dev_name, 3))
+    self.__socket.bind((dev_name, ether_type))
     self.__socket.setblocking(False)
     self.__packet = None
 
@@ -240,8 +244,10 @@ class RawSocket:
 
     while True:
       try:
-        p = self.__socket.recv(65536)
-        yield bytearray(p)
+        res = self.__socket.recvmsg(65536)
+        pkt,anc,flags,addr = res
+        if addr[2] != socket.PACKET_OUTGOING:
+          yield bytearray(pkt)
       except BlockingIOError:
         return
 
@@ -375,7 +381,8 @@ class app:
     self.__wait_time = parse_time(self.__args.wait_time)
 
     self.__sel = selectors.DefaultSelector()
-    self.__socket = None
+    self.__tx_socket = None
+    self.__rx_socket = None
     self.__done = False
     self.__fail = False
     self.__time_now = None
@@ -397,10 +404,11 @@ class app:
 
   def parse_address(self):
     addr_str = self.__args.address[0]
-    raw_prefix = "raw:"
-    if addr_str.startswith(raw_prefix):
+    m = _raw_address_re.match(addr_str)
+    if m is not None:
       self.__socket_mode = "raw"
-      self.__netdev = addr_str[len(raw_prefix):]
+      self.__tx_netdev = m.group(1)
+      self.__rx_netdev = m.group(2)
       return
 
     m = _qemu_address_re.match(addr_str)
@@ -461,17 +469,18 @@ class app:
     return time.clock_gettime(time.CLOCK_MONOTONIC)
 
   def connect_qemu_socket(self):
-    self.__socket = QemuSocket(hostname=self.__hostname,
-                               port=self.__port,
-                               mode=CONNECT,
-                               mtu=self.__args.mtu,
-                               timeout=self.__args.timeout,
-                               verbosity=self.__verbosity-1)
+    sk = QemuSocket(hostname=self.__hostname,
+                    port=self.__port,
+                    mode=CONNECT,
+                    mtu=self.__args.mtu,
+                    timeout=self.__args.timeout,
+                    verbosity=self.__verbosity-1)
+    self.__tx_socket = sk
 
     while True:
       self.__time_now = self.get_time()
       timeout = self.__end_time - self.__time_now
-      if self.__socket.try_connect():
+      if sk.try_connect():
         return
 
       if timeout < 0:
@@ -484,7 +493,11 @@ class app:
         time.sleep(min(elapsed/4, 1))
 
   def connect_raw_socket(self):
-    self.__socket = RawSocket(self.__netdev)
+    if self.__rx_netdev is not None:
+      self.__tx_socket = RawSocket(self.__tx_netdev, False)
+      self.__rx_socket = RawSocket(self.__rx_netdev, True)
+    else:
+      self.__tx_socket = RawSocket(self.__tx_netdev, True)
 
   def connect_socket(self):
     if self.__verbosity >= 1:
@@ -500,12 +513,27 @@ class app:
       assert self.__socket_mode == "raw"
       self.connect_raw_socket()
 
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    self.__sel.register(self.__socket, events)
+    if self.__rx_socket is None:
+      events = selectors.EVENT_READ | selectors.EVENT_WRITE
+      self.__sel.register(self.__tx_socket, events)
+      self.__rx_socket = self.__tx_socket
+    else:
+      events = selectors.EVENT_WRITE
+      self.__sel.register(self.__tx_socket, events)
+      events = selectors.EVENT_READ
+      self.__sel.register(self.__rx_socket, events)
 
   def disable_tx(self):
-    events = selectors.EVENT_READ
-    self.__sel.modify(self.__socket, events)
+    if self.__tx_socket is None:
+      return
+
+    key = self.__sel.get_key(self.__tx_socket)
+    events = key.events & ~selectors.EVENT_WRITE
+    if events == 0:
+      self.__sel.unregister(self.__tx_socket)
+      self.__tx_socket = None
+    else:
+      self.__sel.modify(self.__tx_socket, events)
 
   def send_capsules(self):
     if self.__verbosity >= 1:
@@ -514,7 +542,7 @@ class app:
 
     while self.__actions.get_num_capsules() != 0:
       p = self.__actions.pop_send_capsule()
-      if not self.__socket.send(p):
+      if not self.__tx_socket.send(p):
         return
 
     if self.__verbosity >= 1:
@@ -525,7 +553,7 @@ class app:
   def handle_read_event(self):
     if self.__verbosity >= 1:
       sys.stderr.write("Receiving capsules.\n")
-    for pkt in self.__socket.receive():
+    for pkt in self.__rx_socket.receive():
       if pkt is None:
         sys.stderr.write("%s: Unexpected EOF from the socket.\n" %
                          self.__prog)
@@ -554,7 +582,7 @@ class app:
   def handle_write_event(self):
     if self.__verbosity >= 1:
       sys.stderr.write("Continuing send operation.\n")
-    if self.__socket.send():
+    if self.__tx_socket.send():
       self.send_capsules()
 
   def recv_capsules(self):
@@ -563,10 +591,11 @@ class app:
       timeout = self.__end_time - self.__time_now
       results = self.__sel.select(max(timeout, 0))
       for key,events in results:
-        assert key.fileobj is self.__socket
         if (events & selectors.EVENT_READ) != 0:
+          assert key.fileobj is self.__rx_socket
           self.handle_read_event()
         if (events & selectors.EVENT_WRITE) != 0:
+          assert key.fileobj is self.__tx_socket
           self.handle_write_event()
 
       if self.__actions.done():
@@ -592,7 +621,7 @@ class app:
       timeout = self.__end_time - self.__time_now
       results = self.__sel.select(max(timeout, 0))
       for key,events in results:
-        assert key.fileobj is self.__socket
+        assert key.fileobj is self.__rx_socket
         if (events & selectors.EVENT_READ) != 0:
           self.handle_read_event()
 
