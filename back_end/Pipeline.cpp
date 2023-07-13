@@ -3531,7 +3531,12 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
   auto  input_interface_name = get_bus_input_interface();
   auto  output_interface_name = get_bus_output_interface();
   /* 1024 is the largest size we can support for realistic plugins on SN1022 */
+  /* packet_fifo_depth must also be a power of 2 between 16 and 32768 for FIFO IP */
   size_t packet_fifo_depth = (1024 / (bus_word_size - sideband_size - sideband_signals));
+  packet_fifo_depth = std::min(packet_fifo_depth, (size_t)32768);
+  size_t pow = 16;
+  while (pow < packet_fifo_depth) pow = pow << 1;
+  packet_fifo_depth = pow;
 
   std::vector<Value*> packet_chs(stages.size() + 1);
   for( unsigned n = 0; n <= stages.size(); n++ ) {
@@ -3596,7 +3601,7 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
                std::to_string(n + 1);
     assert(stout->get_live_out_ty() == stin->get_live_in_ty());
     size_t live_size = dl.getTypeStoreSize(stout->get_live_out_ty());
-    static const size_t live_fifo_depth = 10;
+    static const size_t live_fifo_depth = 16;  // 16 is smallest supported size for FIFO IP in hw
     auto* ch = channel_create(ch_name, live_size, live_fifo_depth, ir, *m);
     app_state_chs[n] = ch;
   }
