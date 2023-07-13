@@ -49,11 +49,11 @@ declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #0
 define dso_local void @nanotube_setup() local_unnamed_addr #2 {
 entry:
   %call1 = tail call %struct.nanotube_context* @nanotube_context_create()
-  %packet_in = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), i64 65, i64 140)
-  %packets_0_to_1 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @0, i32 0, i32 0), i64 65, i64 140)
-  %packets_1_to_2 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @1, i32 0, i32 0), i64 65, i64 140)
-  %packets_2_to_3 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @2, i32 0, i32 0), i64 65, i64 140)
-  %packets_out = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([12 x i8], [12 x i8]* @3, i32 0, i32 0), i64 65, i64 140)
+  %packet_in = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), i64 65, i64 15)
+  %packets_0_to_1 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @0, i32 0, i32 0), i64 65, i64 15)
+  %packets_1_to_2 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @1, i32 0, i32 0), i64 65, i64 15)
+  %packets_2_to_3 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @2, i32 0, i32 0), i64 65, i64 15)
+  %packets_out = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([12 x i8], [12 x i8]* @3, i32 0, i32 0), i64 65, i64 15)
   call void @nanotube_channel_export(%struct.nanotube_channel* %packet_in, i32 1, i32 2)
   call void @nanotube_channel_export(%struct.nanotube_channel* %packets_out, i32 1, i32 1)
   %state_0_to_1 = call %struct.nanotube_channel* @nanotube_channel_create(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @4, i32 0, i32 0), i64 4, i64 10)
