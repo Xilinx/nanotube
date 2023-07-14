@@ -607,11 +607,17 @@ void top_writer::write_vitis_opts()
     if (channel.has_reader() && channel.has_writer()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
       context_info writer_context = m_setup_func.get_context_info(channel.get_writer_context());
+      auto num_elem = channel.get_num_elem();
 
       out << "sc=stage_" << writer_context.get_thread_id() <<
              ".port" << channel.get_writer_port() <<
              ":stage_" << reader_context.get_thread_id() <<
-             ".port" << channel.get_reader_port() << ":" << channel.get_num_elem() << "\n";
+             ".port" << channel.get_reader_port();
+      // Only ask for a FIFO if we need to support more than one element
+      if (num_elem > 1) {
+        out << ":" << num_elem;
+      }
+      out << "\n";
     }
     else if (channel.has_reader() && !channel.has_writer() && !input_interface.empty()) {
       context_info reader_context = m_setup_func.get_context_info(channel.get_reader_context());
