@@ -117,6 +117,7 @@ OPCODE_READ=0
 OPCODE_INSERT=1
 OPCODE_UPDATE=2
 OPCODE_WRITE=3
+OPCODE_REMOVE=4
 
 class MapControlFormat(HeaderFormat):
   __slots__ = []
@@ -342,11 +343,17 @@ class Actions:
     buf = self.__capsule_format.pack(params)
     self.__send_capsules.append((buf, params))
 
+  def do_remove(self):
+    params = dict(self.__params)
+    params['opcode'] = OPCODE_REMOVE
+    buf = self.__capsule_format.pack(params)
+    self.__send_capsules.append((buf, params))
+
 ###########################################################################
 
 # Usage:
-#   map_access :12345 map=3 key=1,2,3,4 val_len=8 read
-#   map_access :12345 map=3 key=4,3,2,1 val=9,8,7,6,5,4,3,2 write
+#   map_access :12345 map_id=3 key=1:bf:3:cd val_len=8 read
+#   map_access :12345 map_id=3 key=4:3:2:1 value=9:8:7:6:5:4:3:2 write
 
 class app:
   def __init__(self, argv):

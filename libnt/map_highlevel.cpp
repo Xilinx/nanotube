@@ -97,7 +97,7 @@ void nanotube_map_process_capsule(nanotube_context_t *ctxt,
     break;
 
   case NANOTUBE_CAPSULE_MAP_OPCODE_REMOVE:
-    access = NANOTUBE_MAP_READ;
+    access = NANOTUBE_MAP_REMOVE;
     break;
 
   case NANOTUBE_CAPSULE_MAP_OPCODE_NEXT_KEY:
