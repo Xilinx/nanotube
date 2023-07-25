@@ -3160,6 +3160,9 @@ Pipeline::create_stage_epilogue(stage_function_t* stage, Value* packet_word,
       args[5] = ir.CreateBitCast(moa.data_in, ir.getInt8PtrTy(),
                                  moa.data_in->getName() + "_voidp");
 
+      /* FIXME: The taps currently don't support masks or offsets! NANO-279
+       * and NANO-519. We alert the user in split_map_op */
+
       auto* send_f = create_nt_tap_map_send_req(*m);
       auto* ty = get_nt_tap_map_send_req_ty(*m);
 
@@ -3872,6 +3875,29 @@ split_map_op(Instruction* call) {
   LLVM_DEBUG(dbgs() << "Splitting map_op " << *call << '\n');
   map_op_args moa(call);
   IRBuilder<> ir(call);
+
+  /* FIXME: The tap interface currently is not handling masks and offsets;
+   * alert the user. */
+  if( !isa<ConstantPointerNull>(moa.mask) ) {
+    errs() << "FIXME: The map tap interface currently does not "
+           << "support masks.  The mask supplied here is " << *moa.mask
+           << " in map-op " << *call
+           << "\nTracked as NANO-279.  Assuming the mask is all ones.\n";
+    //exit(1);
+  }
+
+  if( !isa<Constant>(moa.offset) ||
+      !cast<Constant>(moa.offset)->isZeroValue()) {
+    errs() << "FIXME: The map tap interface currently does not "
+           << "support non-zero offsets.  The supplied offset is "
+           << *moa.offset << " in map-op " << *call
+           << "\nTracked as NANO-279.\n"
+           << "You may work around this in your application by using "
+           << "memcpy to read the entire value into a local variable / "
+           << "buffer, modify the copy, and use memcpy to write it "
+           << "back.\nAborting!\n";
+    exit(1);
+  }
 
   auto zero_size = ConstantInt::get(moa.data_length->getType(), 0);
   auto req_buf_size = ( isa<ConstantPointerNull>(moa.data_in)
