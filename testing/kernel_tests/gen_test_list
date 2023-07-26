@@ -81,11 +81,15 @@ src_combo_list = [
     [ "length_resize_pipeline_shb.cc", "-bus=shb", ["pipeline"] ],
     [ "length_resize_pipeline_x3rx.cc", "-bus=x3rx", ["pipeline"] ],
 
-    #[ "pipeline_phi_maps.cc",      "", ["pipeline"] ],
-    [ "pipeline_phi_maps.cc",      "", ["inline"] ],
-    #[ "compute_pipeline.cc",      "", ["pipeline"] ],
-    [ "optreq_arithmetic.cc",     "", ["ntattr,optreq,flatten"] ],
-    [ "flatten_phi.cc",           "", ["mem2req,flatten"] ],
+    #[ "pipeline_phi_maps.cc",        "", ["pipeline"] ],
+    [ "pipeline_phi_maps.cc",        "", ["inline"] ],
+    #[ "compute_pipeline.cc",         "", ["pipeline"] ],
+    [ "optreq_arithmetic.cc",        "", ["ntattr,optreq,flatten"] ],
+    [ "flatten_phi.cc",              "", ["mem2req,flatten"] ],
+    [ "pipeline_map_offset.mem.cc",  "", ["mem2req:converge"] ],
+    # This should not fail in the pipeline pass, but be handled by mem2req;
+    # tracked as NANO-521. Until that is done, it fails in the Pipeliner
+    #[ "pipeline_map_offset.mem.cc",  "", ["mem2req:pipeline"] ],
 ]
 
 import os.path
