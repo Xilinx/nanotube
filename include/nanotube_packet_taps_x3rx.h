@@ -107,7 +107,7 @@ void nanotube_tap_packet_resize_ingress_x3rx(
   /* Outputs. */
   bool *packet_done_out,
   nanotube_tap_packet_resize_cword_t *cword_out,
-  nanotube_tap_offset_t *packe_length_out,
+  nanotube_tap_offset_t *packet_length_out,
 
   /* State. */
   nanotube_tap_packet_resize_ingress_state_t *state,
