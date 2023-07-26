@@ -32,7 +32,8 @@ init_test() {
 
     # the calling script lives in <repo>/testing/scripts
     # derive from that the build file location
-    local SCRIPT_DIR_REL=$(dirname "$0")
+    local SCRIPT_DIR=$(dirname "$0")
+    local SCRIPT_DIR_REL=${SCRIPT_DIR#${PWD}/}
     SRC_TESTING=$(dirname "${SCRIPT_DIR_REL}")
     SRC_TOP=$(dirname "${SRC_TESTING}")
     local BUILD_TOP_DOT="${SRC_TOP}/build"
