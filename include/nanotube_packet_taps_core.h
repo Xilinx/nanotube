@@ -47,9 +47,9 @@ extern "C" {
 **
 ** \param rot_amount  The rotation amount as a number of bytes.
 **
-** Reads buffer_in_length bytes from buffer_in, pads them up to
-** rot_buffer_length, rotates them by rot_amount bytes and writes the
-** first buffer_out_length of them to buffer_out.
+** Reads buffer_in_length bytes from buffer_in, pads them with zeros
+** up to rot_buffer_length, rotates them by rot_amount bytes and
+** writes the first buffer_out_length of them to buffer_out.
 **
 ** The value written to rot_buffer[i] is:
 **   rot_buffer[i] = (i >= buffer_in_length ? 0 : buffer_in[i])
