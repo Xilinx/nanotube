@@ -1,0 +1,9 @@
+FIXME: The map tap interface currently does not support masks.  The mask supplied here is   %one_mask = alloca i8, align 1 in map-op   %call1 = call i64 @nanotube_map_op(%struct.nanotube_context* %nt_ctx, i16 zeroext 0, i32 0, i8* nonnull %2, i64 4, i8* null, i8* nonnull %0, i8* nonnull %one_mask, i64 0, i64 8), !dbg !1191
+Tracked as NANO-279.  Assuming the mask is all ones.
+FIXME: The map tap interface currently does not support masks.  The mask supplied here is   %one_mask = alloca i8, align 1 in map-op   %call2 = call i64 @nanotube_map_op(%struct.nanotube_context* %nt_ctx, i16 zeroext 0, i32 0, i8* nonnull %3, i64 4, i8* null, i8* nonnull %1, i8* nonnull %one_mask, i64 8, i64 8), !dbg !1192
+Tracked as NANO-279.  Assuming the mask is all ones.
+FIXME: The map tap interface currently does not support non-zero offsets.  The supplied offset is i64 8 in map-op   %call2 = call i64 @nanotube_map_op(%struct.nanotube_context* %nt_ctx, i16 zeroext 0, i32 0, i8* nonnull %3, i64 4, i8* null, i8* nonnull %1, i8* nonnull %one_mask, i64 8, i64 8), !dbg !1192
+Tracked as NANO-279.
+You may work around this in your application by using memcpy to read the entire value into a local variable / buffer, modify the copy, and use memcpy to write it back.
+Aborting!
+Exit code 1
