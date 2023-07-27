@@ -472,6 +472,7 @@ struct optimise_requests : public FunctionPass {
 };
 
 static void merge_packet_group(merge_group* g);
+static void delete_group_accesses(merge_group* g);
 
 bool optimise_requests::runOnFunction(Function& f) {
   if( !is_nt_packet_kernel(f) )
@@ -502,6 +503,8 @@ bool optimise_requests::runOnFunction(Function& f) {
 
     for( auto& g : groups )
       merge_packet_group(&g);
+    for( auto& g : groups )
+      delete_group_accesses(&g);
 
     changes |= !groups.empty();
 
@@ -522,6 +525,8 @@ bool optimise_requests::runOnFunction(Function& f) {
     );
     for( auto& g : groups )
       merge_packet_group(&g);
+    for( auto& g : groups )
+      delete_group_accesses(&g);
 
     return changes;
   } else {
@@ -2234,15 +2239,7 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
                                    pra.length);
     LLVM_DEBUG(dbgs() << "Replacing " << *inst << " with\n"
                       << *buf_gep << '\n' << *memcpy << '\n');
-
-    if( !inst->use_empty() ) {
-      errs() << "IMPLEMENT ME: Merged packet_read " << *inst
-             << " has uses which we do not support here:\n";
-      for( auto* u : inst->users() )
-        errs() << "  " << *u << '\n';
-      exit(1);
-    }
-    inst->eraseFromParent();
+    /* NOTE: Delete original accesses after all groups have been merged */
   }
 }
 
@@ -2303,15 +2300,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
 
     LLVM_DEBUG(dbgs() << "Replacing " << *inst << " with\n"
                       << *mrg << '\n');
-
-    if( !inst->use_empty() ) {
-      errs() << "IMPLEMENT ME: Merged packet_write " << *inst
-             << " has uses which we do not support here:\n";
-      for( auto* u : inst->users() )
-        errs() << "  " << *u << '\n';
-      exit(1);
-    }
-    inst->eraseFromParent();
+    /* NOTE: Delete original accesses after all groups are merged */
   }
 }
 
@@ -2342,6 +2331,20 @@ static void merge_packet_group(merge_group* g) {
     errs() << "ERROR: Unknown Intrinsic " << intrinsic_to_string(id)
            << "for group " << *g << "\nAborting!\n";
     abort();
+  }
+}
+
+static void delete_group_accesses(merge_group* g) {
+  for( auto& inst_rng : g->accesses ) {
+    auto* inst = inst_rng.inst;
+    if( !inst->use_empty() ) {
+      errs() << "IMPLEMENT ME: Merged access " << *inst
+             << " has uses which we do not support here:\n";
+      for( auto* u : inst->users() )
+        errs() << "  " << *u << '\n';
+      exit(1);
+    }
+    inst->eraseFromParent();
   }
 }
 
