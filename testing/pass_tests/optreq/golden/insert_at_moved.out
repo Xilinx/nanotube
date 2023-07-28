@@ -1,0 +1,10 @@
+read(0, 8)
+write(32, 8)
+  00 01 02 03 04 05 06 07
+Mask:
+  ff
+write(2, 8)
+  00 01 02 03 40 00 00 00
+Mask:
+  0f
+Exit code 0
