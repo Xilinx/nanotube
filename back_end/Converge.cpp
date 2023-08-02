@@ -354,12 +354,14 @@ public:
   bool remove_pointer_phis();
   bool convert_phi_of_addr(MemoryLocation& loc, bool is_input);
   BasicBlock* get_successor_bb_for(BasicBlock* pred);
+  bool is_mem_out_arg(unsigned idx);
 private:
   BasicBlock*         bb;
   unsigned            fan_io;
   unsigned            cur_path;
   PHINode*            path_phi;
-  std::vector<Value*> arg_phis;
+  std::vector<Value*> args;
+  std::vector<unsigned> mem_out_idxs;
   nt_api_call         call;
   SwitchInst*         switch_inst;
   BasicBlock*         unreachable_bb;
@@ -1395,6 +1397,15 @@ void Converge::execute_converge_plan(const std::vector<access_set_t>& converge_p
   );
 }
 
+/**
+ * Checks whether the given argument index to the Nanotube API call is a
+ * memory out value.  NOTE: Needs an initialised and sorted mem_out_idxs.
+ */
+bool converged_access_block::is_mem_out_arg(unsigned idx) {
+  auto b = mem_out_idxs.begin();
+  auto e = mem_out_idxs.end();
+  return std::binary_search(b, e, idx);
+}
 
 converged_access_block::converged_access_block(CallInst* example,
                                                unsigned fan_io)
@@ -1411,18 +1422,39 @@ converged_access_block::converged_access_block(CallInst* example,
   path_phi = ir.CreatePHI(ir.getInt32Ty(), fan_io, "path");
   path_phi->setDebugLoc(example_dl);
 
-  /* PHI nodes for earch argument to the call */
-  unsigned arg_count = 0;
-  for( auto& arg : example->args() ) {
+  /* Collect all arguments that are output buffers; these are not phi-ed,
+   * but instead have a new output buffer allocated */
+  mem_out_idxs = std::move(ex.get_output_mem_arg_idx_vec());
+  std::sort(mem_out_idxs.begin(), mem_out_idxs.end());
+
+  /* PHI nodes for each non-out-mem argument to the call */
+  for( unsigned idx = 0; idx < example->arg_size(); idx++ ) {
+    /* Out-memory is handled after creating phis */
+    if( is_mem_out_arg(idx) ) {
+      args.emplace_back(nullptr);
+      continue;
+    }
+
+    auto* arg = example->getArgOperand(idx);
     auto* phi = ir.CreatePHI(arg->getType(), fan_io,
-                             "arg_phi" + std::to_string(arg_count));
+                             Twine("arg_phi") + Twine(args.size()));
     phi->setDebugLoc(example_dl);
-    arg_phis.push_back(phi);
-    arg_count++;
+    args.push_back(phi);
+  }
+
+  /* Create separate buffers for all output memory locations */
+  for( auto mem_out : mem_out_idxs ) {
+    /* Create single byte allocas for now and fix up afterwards to be the
+     * max of all the converged access sizes */
+    auto* alloca = ir.CreateAlloca(ir.getInt8Ty(), ir.getInt32(1),
+                                   Twine(name) + "_arg" +
+                                   std::to_string(mem_out) + "_out_buf");
+    assert(args[mem_out] == nullptr);
+    args[mem_out] = alloca;
   }
 
   /* The call itself */
-  CallInst* c = ir.CreateCall(example->getCalledFunction(), arg_phis,
+  CallInst* c = ir.CreateCall(example->getCalledFunction(), args,
                               name + "_call");
   c->setDebugLoc(example_dl);
   call.initialise_from(c);
@@ -1446,15 +1478,32 @@ void converged_access_block::add_access(BasicBlock* src, CallInst* access,
   auto* our_const = cast<ConstantInt>(ConstantInt::get(path_phi->getType(),
                                                        our_id));
 
+  nt_api_call nt_acc(access);
+
   LLVM_DEBUG(dbgs() << "Adding access\n"
                     << "  " << *access << '\n'
                     << "  ID: " << our_id << '\n');
   path_phi->addIncoming(our_const, src);
 
-  assert(access->arg_size() == arg_phis.size());
-  for( unsigned a = 0; a < access->arg_size(); ++a) {
-    auto* phi = cast<PHINode>(arg_phis[a]);
-    phi->addIncoming(access->getOperand(a), src);
+  assert(access->arg_size() == args.size());
+  for( unsigned idx = 0; idx < access->arg_size(); idx++ ) {
+    auto* phi = dyn_cast<PHINode>(args[idx]);
+
+    if( phi != nullptr ) {
+      /* Phi-ed arguments simply add a new case */
+      phi->addIncoming(access->getOperand(idx), src);
+    } else {
+      /* Alloca-ed mem-out buffers copy out to the allication buffer */
+      auto* access_mem_out = access->getOperand(idx);
+      if( isa<ConstantPointerNull>(access_mem_out) )
+        continue;
+
+      auto* alloca = cast<AllocaInst>(args[idx]);
+      unsigned access_sz = nt_acc.get_max_size(idx);
+
+      IRBuilder<> ir(dst->getFirstNonPHI());
+      ir.CreateMemCpy(access_mem_out, 0, alloca, 0, access_sz);
+    }
   }
 
   if( our_id > 0) {
@@ -1477,10 +1526,12 @@ void converged_access_block::add_dummy_access(BasicBlock* src,
   LLVM_DEBUG(dbgs() << "Adding dummy access ID: " << our_id << '\n');
   path_phi->addIncoming(our_const, src);
 
-  assert(call.arg_size() == arg_phis.size());
+  assert(call.arg_size() == args.size());
   /* XXX: Could also go to a more data driven mode */
   for( unsigned a = 0; a < call.arg_size(); ++a) {
-    auto* phi = cast<PHINode>(arg_phis[a]);
+    auto* phi = dyn_cast<PHINode>(args[a]);
+    if( phi == nullptr )
+      continue;
     phi->addIncoming(call.get_dummy_arg(a), src);
   }
 
@@ -1504,12 +1555,13 @@ void converged_access_block::simplify(DominatorTree& dt) {
    * value will not dominate the use / the PHI node (hence the reason to
    * have the PHI node in the first place!), and so they cannot be
    * simplified!. */
-  /* Remove constant PHI nodes */
-  for( auto* phiv : arg_phis ) {
-    auto* phi = cast<PHINode>(phiv);
-    bool const_undef = phi->hasConstantOrUndefValue();
 
-    if( const_undef ) {
+  for( unsigned idx = 0; idx < args.size(); idx++ ) {
+    auto* arg = args[idx];
+
+    /* Collapse the phi node to a single value if possible */
+    auto* phi = dyn_cast<PHINode>(arg);
+    if( phi && phi->hasConstantOrUndefValue() ) {
       LLVM_DEBUG(dbgs() << "Const / undef PHI:" << *phi << '\n');
       /* Try to replace the entire PHINode with a single legal value */
       Value* v = nullptr;
@@ -1534,6 +1586,18 @@ void converged_access_block::simplify(DominatorTree& dt) {
                  << cast<Instruction>(v)->getParent()->getName() << '\n');
 
       }
+    }
+
+    /* Update output-buffer allocas to the right size after all acceses
+     * have been converged. */
+    auto* alloca = dyn_cast<AllocaInst>(arg);
+    if( alloca ) {
+      /* Update the size of the alloca to match the maximum size of the
+       * request */
+      unsigned access_sz = call.get_max_size(idx);
+      auto* int32_ty = Type::getInt32Ty(alloca->getContext());
+      auto* sz_new = ConstantInt::get(int32_ty, access_sz);
+      alloca->setOperand(0, sz_new);
     }
   }
   LLVM_DEBUG(dbgs() << "Converged access BB after simplify(): " << *bb
