@@ -738,7 +738,7 @@ bool Converge::get_memory_inputs(Value* val,
           /* NOTE: I am very unsure how AA and MemorySSA interact.  Would I
            * have to walk the def chain upwards, i.e., look at the previous
            * def now in case that aliases with this pointer? */
-          // XXX: Probably the right thing to do here is to let hte caller
+          // XXX: Probably the right thing to do here is to let the caller
           // walk the chain backwards, but only to the first merge
           // candidate!  I.e., return the MemoryDef as a thing to walk?
           LLVM_DEBUG(dbgs() << "    No-Alias: " << *st << '\n');
@@ -1256,7 +1256,7 @@ void Converge::execute_converge_plan(const std::vector<access_set_t>& converge_p
   //     very simple converge as suggested above.  Or, the other way
   //     around: converge only the things that are in the plan and let the
   //     weave code handle the rest (not sure if it is capable of
-  //     untangling the resuling mess, however!)  Maybe the cleanest verion
+  //     untangling the resulting mess, however!)  Maybe the cleanest version
   //     would be to add dummy accesses and not just in the cases where the
   //     next packet / map access isn't the next in the converge plan, but
   //     also in those cases where there are no more map / packet accesses.
@@ -1307,7 +1307,7 @@ void Converge::execute_converge_plan(const std::vector<access_set_t>& converge_p
         BasicBlock* from_bb = &f.getEntryBlock();
 
         LLVM_DEBUG(
-          dbgs() << "Checking for bypasing control-flow edges\n"
+          dbgs() << "Checking for bypassing control-flow edges\n"
                  << "  From-BB: " << from_bb->getName() << '\n'
                  << "  To-BB: " << to_bb->getName() << '\n'
                  << "  dom(from, to): " << dt.dominates(from_bb, to_bb)
@@ -1493,7 +1493,7 @@ void converged_access_block::add_access(BasicBlock* src, CallInst* access,
       /* Phi-ed arguments simply add a new case */
       phi->addIncoming(access->getOperand(idx), src);
     } else {
-      /* Alloca-ed mem-out buffers copy out to the allication buffer */
+      /* Alloca-ed mem-out buffers copy out to the allocation buffer */
       auto* access_mem_out = access->getOperand(idx);
       if( isa<ConstantPointerNull>(access_mem_out) )
         continue;
@@ -1588,7 +1588,7 @@ void converged_access_block::simplify(DominatorTree& dt) {
       }
     }
 
-    /* Update output-buffer allocas to the right size after all acceses
+    /* Update output-buffer allocas to the right size after all accesses
      * have been converged. */
     auto* alloca = dyn_cast<AllocaInst>(arg);
     if( alloca ) {
@@ -1607,7 +1607,7 @@ void converged_access_block::simplify(DominatorTree& dt) {
 /**
  * Handle memory locations that are being used in this converged access
  * block but are based on PHI nodes. These are converted to a new
- * allocation and a memcpy opreration (in / out dependeing on is_input).
+ * allocation and a memcpy operation (in / out depending on is_input).
  */
 bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_input) {
   LLVM_DEBUG(
@@ -1670,7 +1670,7 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
   assert((req_size_phi == nullptr) || (req_size_phi->getParent() == bb));
 
   /* Convert each part of the location phi into a memcpy in the correct
-   * preceeding / subsequent block */
+   * preceding / subsequent block */
   for( unsigned i = 0; i < loc_phi->getNumIncomingValues(); i++ ) {
     auto* loc_in_val = loc_phi->getIncomingValue(i);
     auto* loc_in_bb  = loc_phi->getIncomingBlock(i);
@@ -1726,7 +1726,7 @@ BasicBlock* converged_access_block::get_successor_bb_for(BasicBlock* pred) {
 bool converged_access_block::remove_pointer_phis() {
   /**
    * The idea here is to (1) pull out the input / output pointer locations
-   * and their sizes.  Then, (2a) for all inputs, create a separate alloaca
+   * and their sizes.  Then, (2a) for all inputs, create a separate alloca
    * of the required size, and (2b) copy the values for these locations
    * into the newly allocated buffer in the source basic blocks! Finally,
    * do a similar thing for (3) all the outputs: allocate a buffer for the
@@ -1839,7 +1839,7 @@ bool Converge::converge(Function& f) {
   if( converge_stats )
     dbgs() << "Converge plan entries: " << converge_plan.size() << '\n';
 
-  /* Perform the converge operation and recod the resulting converged
+  /* Perform the converge operation and record the resulting converged
    * accesses */
   std::vector<converged_access_block*> merge_blocks;
   execute_converge_plan(converge_plan, reduced_cfg, &merge_blocks, dt,
@@ -1889,7 +1889,7 @@ bool Converge::converge(Function& f) {
   /* Sort basic blocks so it is easier to follow them */
   sort_basic_blocks(f);
 
-  /* Check PHI node matchup of edges with predecessor nodes */
+  /* Check PHI node match up of edges with predecessor nodes */
   for( auto& inst : instructions(f) ) {
     if( !isa<PHINode>(inst) )
       continue;
@@ -1939,7 +1939,7 @@ bool Converge::check_nanotube_api_level(Function& f) {
     nt_api_call nt_call(call);
     if( nt_call.is_map() && nt_call.is_access() &&
         nt_call.get_intrinsic() != Intrinsics::map_op ) {
-      errs() << "High-level Nnaotube map API used: " << *it << '\n';
+      errs() << "High-level Nanotube map API used: " << *it << '\n';
       return false;
     }
   }
@@ -1955,7 +1955,7 @@ bool Converge::check_nanotube_api_level(Function& f) {
  * This pass scans all definitions and checks whether that is a problem.
  * The repair is simple: replace the use with a Phi node that "sucks in"
  * the actual value when coming from the right path, and an undef for when
- * the merged BB is entered from the other side and the use never actuall
+ * the merged BB is entered from the other side and the use never actually
  * happens.
  *
  * This is a very simple brute-force approach to patching this up, rather
@@ -2073,7 +2073,7 @@ Converge::backwards_reachable_between(BasicBlock* from_bb,
     BasicBlock* bb = todo.back();
     todo.pop_back();
 
-    /* Add unvisted predecessors to work list */
+    /* Add unvisited predecessors to work list */
     for( auto* pred : predecessors(bb) ) {
       if( (pred == from_bb) || (web.count(pred) != 0) )
         continue;
