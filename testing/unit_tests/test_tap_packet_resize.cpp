@@ -102,6 +102,7 @@ void packet_resize_egress(std::deque<simple_bus::word> &packet_out_strm,
   simple_bus::word state_packet_word;
   nanotube_tap_packet_resize_cword_t cword;
   bool input_done_out = true;
+  int inserted_bytes = 0;
 
   nanotube_tap_packet_resize_egress_state_init(&state);
 
@@ -128,6 +129,25 @@ void packet_resize_egress(std::deque<simple_bus::word> &packet_out_strm,
       &state, &state_packet_word,
       &cword, &packet_word_in,
       new_packet_length);
+
+    // Make sure every call performs some useful work.
+    if (!packet_valid_out && !input_done_out) {
+      std::cerr << "ERROR: Resize egress stalled.\n";
+      test_failed = true;
+      return;
+    }
+
+    // Make sure ingress words continue to get popped every so often.
+    if (input_done_out) {
+      inserted_bytes = 0;
+    } else {
+      inserted_bytes += simple_bus::data_bytes;
+      if (inserted_bytes > MTU) {
+        std::cerr << "ERROR: Resize egress inserted too many bytes.\n";
+        test_failed = true;
+        return;
+      }
+    }
 
     if (packet_valid_out) {
       packet_out_strm.push_back(packet_word_out);
