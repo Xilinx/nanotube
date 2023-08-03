@@ -461,75 +461,75 @@ map_op_receive_args::map_op_receive_args(Instruction* inst) {
 
 int nanotube::get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits) {
   auto intr     = get_intrinsic(call);
-  int  size_arg = -1;
+  int  size_idx = -1;
   *bits         = false;
 
   switch( intr ) {
     case Intrinsics::llvm_memset:
       if( idx == 0 )
-        size_arg = 2;
+        size_idx = 2;
       break;
 
     case Intrinsics::llvm_memcpy:
     case Intrinsics::llvm_memcmp:
       if( idx == 0 || idx == 1 )
-        size_arg = 2;
+        size_idx = 2;
       break;
 
     case Intrinsics::channel_try_read:
     case Intrinsics::channel_write:
       if( idx == 2 )
-        size_arg = 3;
+        size_idx = 3;
       break;
 
     case Intrinsics::packet_read:
     case Intrinsics::packet_write:
       if( idx == 1 )                    /* data_in / data_out */
-        size_arg = 3;                   /* length */
+        size_idx = 3;                   /* length */
       break;
 
     case Intrinsics::packet_write_masked:
       if( (idx == 1) || (idx == 2) )    /* data_in / mask */
-        size_arg = 4;                   /* length */
+        size_idx = 4;                   /* length */
       *bits = (idx == 2);               /* mask */
       break;
 
     case Intrinsics::map_op:
       if( (idx == 3) )                  /* key */
-        size_arg = 4;                   /* key_length */
+        size_idx = 4;                   /* key_length */
       if( (idx == 5) || (idx == 6) ||   /* data_in / data_out */
           (idx == 7) )                  /* mask */
-        size_arg = 9;
+        size_idx = 9;
       *bits = (idx == 7);               /* mask */
       break;
 
     case Intrinsics::map_lookup:
     case Intrinsics::map_remove:
       if( (idx == 2) )                  /* key */
-        size_arg = 3;                   /* key_length */
+        size_idx = 3;                   /* key_length */
       break;
 
     case Intrinsics::map_read:
     case Intrinsics::map_write:
       if( (idx == 2) )                  /* key */
-        size_arg = 3;                   /* key_length */
+        size_idx = 3;                   /* key_length */
       if( (idx == 4) )                  /* data_in / data_out */
-        size_arg = 6;                   /* data_length */
+        size_idx = 6;                   /* data_length */
       break;
 
     case Intrinsics::map_insert:
     case Intrinsics::map_update:
       if( (idx == 2) )                  /* key */
-        size_arg = 3;                   /* key_length */
+        size_idx = 3;                   /* key_length */
       if( (idx == 4) || (idx == 5) )    /* data_in / enables */
-        size_arg = 7;
+        size_idx = 7;
       *bits = (idx == 5);               /* enables */
       break;
 
     default:
-      size_arg = -1;
+      size_idx = -1;
   };
-  return size_arg;
+  return size_idx;
 }
 
 MemoryLocation
@@ -538,15 +538,15 @@ nanotube::get_memory_location(const CallBase* call, unsigned idx,
   auto loc  = MemoryLocation::getForArgument(call, idx, tli);
   if( loc.Size.hasValue() && loc.Size.isPrecise() )
     return loc;
-  int  size_arg = -1;
+  int  size_idx = -1;
   bool bits = false;
 
-  size_arg = get_size_arg_idx(call, idx, &bits);
+  size_idx = get_size_arg_idx(call, idx, &bits);
 
-  if( size_arg == -1 )
+  if( size_idx == -1 )
     return loc;
 
-  Value* v = call->getOperand(size_arg);
+  Value* v = call->getOperand(size_idx);
   unsigned max = 0;
   bool precise = false;
   if( get_max_value(v, &max, &precise) ) {
@@ -2251,12 +2251,12 @@ Value* nt_api_call::get_data_size_arg() {
 }
 
 int nt_api_call::get_max_data_size() {
-  int arg = get_data_size_arg_idx();
-  if( arg < 0 )
+  int idx = get_data_size_arg_idx();
+  if( idx < 0 )
     return -1;
   unsigned max = 0;
   bool precise = false;
-  if( get_max_value(call->getOperand(arg), &max, &precise) )
+  if( get_max_value(call->getOperand(idx), &max, &precise) )
     return (int)max;
   return -1;
 }
