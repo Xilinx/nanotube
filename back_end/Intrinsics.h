@@ -556,6 +556,11 @@ namespace nanotube
     std::vector<MemoryLocation> get_input_mem();
     std::vector<MemoryLocation> get_output_mem();
 
+    /* Argument indices for inputs: key, mask, data; and output data */
+    int    get_key_in_arg_idx();
+    int    get_mask_in_arg_idx();
+    int    get_data_in_arg_idx();
+    int    get_data_out_arg_idx();
     int    get_data_size_arg_idx();
 
     /* Get sizes for various arguments */

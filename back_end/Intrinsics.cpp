@@ -2311,6 +2311,125 @@ int nt_api_call::get_max_key_size() {
   abort();
 }
 
+int nt_api_call::get_key_in_arg_idx() {
+  switch( intrin ) {
+    case Intrinsics::packet_read:
+    case Intrinsics::packet_edit:
+    case Intrinsics::packet_bounded_length:
+    case Intrinsics::packet_get_port:
+    case Intrinsics::packet_set_port:
+    case Intrinsics::packet_data:
+    case Intrinsics::packet_end:
+    case Intrinsics::packet_resize:
+    case Intrinsics::map_create:
+    case Intrinsics::map_get_id:
+    case Intrinsics::packet_write:
+    case Intrinsics::packet_write_masked:
+      return -1;
+
+    case Intrinsics::map_op:
+      return 3;
+    case Intrinsics::map_lookup:
+    case Intrinsics::map_read:
+    case Intrinsics::map_remove:
+      return 2;
+    case Intrinsics::map_write:
+      return 2;
+    default:
+      errs() << "XXX: Unimplemented get_key_in_arg_idx for " << *call << '\n';
+      assert(false);
+  }
+}
+
+int nt_api_call::get_mask_in_arg_idx() {
+  switch( intrin ) {
+    case Intrinsics::packet_read:
+    case Intrinsics::packet_edit:
+    case Intrinsics::packet_bounded_length:
+    case Intrinsics::packet_get_port:
+    case Intrinsics::packet_set_port:
+    case Intrinsics::packet_data:
+    case Intrinsics::packet_end:
+    case Intrinsics::packet_resize:
+    case Intrinsics::map_create:
+    case Intrinsics::map_get_id:
+    case Intrinsics::packet_write:
+    case Intrinsics::map_lookup:
+    case Intrinsics::map_read:
+    case Intrinsics::map_remove:
+      return -1;
+
+    case Intrinsics::packet_write_masked:
+      return 2;
+    case Intrinsics::map_op:
+      return 7;
+    default:
+      errs() << "XXX: Unimplemented get_mask_in_arg_idx for " << *call << '\n';
+      assert(false);
+  }
+}
+
+int nt_api_call::get_data_in_arg_idx() {
+  switch( intrin ) {
+    case Intrinsics::packet_read:
+    case Intrinsics::packet_edit:
+    case Intrinsics::packet_bounded_length:
+    case Intrinsics::packet_get_port:
+    case Intrinsics::packet_set_port:
+    case Intrinsics::packet_data:
+    case Intrinsics::packet_end:
+    case Intrinsics::packet_resize:
+    case Intrinsics::map_create:
+    case Intrinsics::map_get_id:
+    case Intrinsics::map_lookup:
+    case Intrinsics::map_read:
+    case Intrinsics::map_remove:
+      return -1;
+
+    case Intrinsics::packet_write:
+    case Intrinsics::packet_write_masked:
+      return 1;
+    case Intrinsics::map_op:
+      return 5;
+    case Intrinsics::map_write:
+      return 4;
+    default:
+      errs() << "XXX: Unimplemented get_data_in_arg_idx for " << *call << '\n';
+      assert(false);
+  }
+}
+int nt_api_call::get_data_out_arg_idx() {
+  switch( intrin ) {
+    /* These don't have a data_out parameter */
+    case Intrinsics::packet_write:
+    case Intrinsics::packet_write_masked:
+    case Intrinsics::packet_edit:
+    case Intrinsics::packet_bounded_length:
+    case Intrinsics::packet_get_port:
+    case Intrinsics::packet_set_port:
+    case Intrinsics::packet_data:
+    case Intrinsics::packet_end:
+    case Intrinsics::packet_resize:
+    case Intrinsics::map_create:
+    case Intrinsics::map_get_id:
+    case Intrinsics::map_lookup:
+    case Intrinsics::map_remove:
+    case Intrinsics::map_write:
+      return -1;
+
+    case Intrinsics::packet_read:
+      return 1;
+    case Intrinsics::map_op:
+      return 6;
+    case Intrinsics::map_read:
+      return 4;
+    default:
+      errs() << "XXX: Unimplemented get_data_out_arg_idx for " << *call << '\n';
+      assert(false);
+  };
+}
+
+
 std::vector<MemoryLocation> nt_api_call::get_input_mem() {
   std::vector<MemoryLocation> mem;
   switch( intrin ) {
