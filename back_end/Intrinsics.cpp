@@ -2430,149 +2430,44 @@ int nt_api_call::get_data_out_arg_idx() {
 }
 
 
-std::vector<MemoryLocation> nt_api_call::get_input_mem() {
-  std::vector<MemoryLocation> mem;
-  switch( intrin ) {
-    case Intrinsics::packet_read:
-    case Intrinsics::packet_edit:
-    case Intrinsics::packet_bounded_length:
-    case Intrinsics::packet_get_port:
-    case Intrinsics::packet_set_port:
-    case Intrinsics::packet_data:
-    case Intrinsics::packet_end:
-    case Intrinsics::packet_resize:
-    case Intrinsics::map_create:
-    case Intrinsics::map_get_id:
-      break;
+std::vector<unsigned> nt_api_call::get_input_mem_arg_idx_vec() {
+  std::vector<unsigned> mem_idx;
+  auto idx = get_key_in_arg_idx();
+  if( idx >= 0 )
+    mem_idx.emplace_back((unsigned)idx);
 
-    case Intrinsics::packet_write:
-      mem.emplace_back(get_memory_location(1)); /* data_in */
-      break;
-    case Intrinsics::packet_write_masked:
-      mem.emplace_back(get_memory_location(1)); /* data_in */
-      mem.emplace_back(get_memory_location(2)); /* mask */
-      break;
-    case Intrinsics::map_op:
-      mem.emplace_back(get_memory_location(3)); /* key */
-      mem.emplace_back(get_memory_location(5)); /* data_in */
-      mem.emplace_back(get_memory_location(7)); /* mask */
-#if 0
-      // NOTE: This does not work, because the converge pass turns dummy
-      // accesses into NANOTUBE_MAP_NOP accesses, and therefore we end up
-      // with non-constant map_op types. => just keep it static therefore
-      switch( get_map_op() ) {
-        case NANOTUBE_MAP_READ:
-        case NANOTUBE_MAP_REMOVE:
-        case NANOTUBE_MAP_NOP:
-          break;
-        case NANOTUBE_MAP_INSERT:
-        case NANOTUBE_MAP_UPDATE:
-        case NANOTUBE_MAP_WRITE:
-          mem.emplace_back(get_memory_location(5)); /* data_in */
-          mem.emplace_back(get_memory_location(7)); /* mask */
-          break;
-      };
-#endif
-      break;
-    case Intrinsics::map_lookup:
-    case Intrinsics::map_read:
-    case Intrinsics::map_remove:
-      mem.emplace_back(get_memory_location(2)); /* key */
-      break;
-      break;
-    case Intrinsics::map_write:
-      mem.emplace_back(get_memory_location(2)); /* key */
-      mem.emplace_back(get_memory_location(4)); /* data_in */
-      break;
-    /* XXX: This does not exist in INtrinsics.def! */
-#if 0
-    case Intrinsics::map_write_masked:
-    case Intrinsics::map_insert_masked:
-    case Intrinsics::map_update_masked:
-      mem.emplace_back(get_memory_location(2)); /* key */
-      mem.emplace_back(get_memory_location(4)); /* data_in */
-      mem.emplace_back(get_memory_location(5)); /* enables */
-      break;
-#endif
-    default:
-      errs() << "Cannot identify memory inputs for " << *call << '\n';
-      assert(false);
-  };
+  idx = get_data_in_arg_idx();
+  if( idx >= 0 )
+    mem_idx.emplace_back((unsigned)idx);
+
+  idx = get_mask_in_arg_idx();
+  if( idx >= 0 )
+    mem_idx.emplace_back((unsigned)idx);
+
+  return mem_idx;
+}
+
+std::vector<MemoryLocation> nt_api_call::get_input_mem() {
+  auto mem_idx = get_input_mem_arg_idx_vec();
+  std::vector<MemoryLocation> mem;
+  for( auto idx : mem_idx )
+    mem.emplace_back(get_memory_location(idx));
   return mem;
 }
-std::vector<MemoryLocation> nt_api_call::get_output_mem() {
-  std::vector<MemoryLocation> mem;
-  switch( intrin ) {
-    case Intrinsics::packet_write:
-    case Intrinsics::packet_write_masked:
-    case Intrinsics::packet_edit:
-    case Intrinsics::packet_bounded_length:
-    case Intrinsics::packet_get_port:
-    case Intrinsics::packet_set_port:
-    case Intrinsics::packet_data:
-    case Intrinsics::packet_end:
-    case Intrinsics::packet_resize:
-    case Intrinsics::map_create:
-    case Intrinsics::map_get_id:
-    case Intrinsics::map_lookup:
-    case Intrinsics::map_remove:
-    case Intrinsics::map_write:
-      break;
-    /* XXX: This does not exist in INtrinsics.def! */
-#if 0
-    case Intrinsics::map_write_masked:
-    case Intrinsics::map_insert_masked:
-    case Intrinsics::map_update_masked:
-      break;
-#endif
 
-    case Intrinsics::packet_read:
-      mem.emplace_back(get_memory_location(1)); /* data_out */
-      break;
-    case Intrinsics::map_op:
-      mem.emplace_back(get_memory_location(6)); /* data_out */
-#if 0
-      switch( get_map_op() ) {
-        /* XXX: map_op should always read all input memory, and write all
-         *      memory outputs?
-         *      * Phi on map_op? -> allow different ops on same map
-         *      * phi_on_addr of memory allocations here? or single
-         *        allocation?
-         *      * nullptr functions
-         *
-         *
-         * We need to think about this some more.
-         *    * converge all paths, none need memory -> nullptr
-         *    * converge some paths, some need memory -> single pointer
-         *      with memcpy conversion
-         * ??
-         *
-         * At the moment, map_op is not a phi, as the converge pass does
-         * not merge different map_op types, even to the same map.
-         *
-         * Update: the converge pass actually merges in a NANOTUBE_MAP_NOP
-         * here for dummy accesses. So we end up with a phi over the type,
-         * so lets just turn this static.
-         */
-        case NANOTUBE_MAP_INSERT:
-        case NANOTUBE_MAP_UPDATE:
-        case NANOTUBE_MAP_WRITE:
-        case NANOTUBE_MAP_REMOVE:
-        case NANOTUBE_MAP_NOP:
-          break;
-        case NANOTUBE_MAP_READ:
-          mem.emplace_back(get_memory_location(6)); /* data_out */
-          break;
-      };
-#endif
-      break;
-    case Intrinsics::map_read:
-      mem.emplace_back(get_memory_location(4)); /* data_out */
-      break;
-    default:
-      errs() << "Cannot identify memory output for " << *call << '\n';
-      assert(false);
-  };
+std::vector<unsigned> nt_api_call::get_output_mem_arg_idx_vec() {
+  std::vector<unsigned> mem_idx;
+  auto idx = get_data_out_arg_idx();
+  if( idx >= 0 )
+    mem_idx.emplace_back((unsigned)idx);
+  return mem_idx;
+}
+
+std::vector<MemoryLocation> nt_api_call::get_output_mem() {
+  auto mem_idx = get_output_mem_arg_idx_vec();
+  std::vector<MemoryLocation> mem;
+  for( auto idx : mem_idx )
+    mem.emplace_back(get_memory_location(idx));
   return mem;
 }
 

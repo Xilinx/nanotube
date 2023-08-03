@@ -553,6 +553,9 @@ namespace nanotube
 
     Value* get_dummy_arg(unsigned arg_idx);
     MemoryLocation get_memory_location(unsigned arg_idx);
+
+    std::vector<unsigned> get_input_mem_arg_idx_vec();
+    std::vector<unsigned> get_output_mem_arg_idx_vec();
     std::vector<MemoryLocation> get_input_mem();
     std::vector<MemoryLocation> get_output_mem();
 
