@@ -543,7 +543,7 @@ nanotube::get_memory_location(const CallBase* call, unsigned idx,
 
   size_idx = get_size_arg_idx(call, idx, &bits);
 
-  if( size_idx == -1 )
+  if( !is_legal_arg_idx(size_idx) )
     return loc;
 
   Value* v = call->getOperand(size_idx);
@@ -2156,7 +2156,7 @@ int nt_api_call::get_map_op_arg_idx() {
 
 Value* nt_api_call::get_map_op_arg() {
   auto idx = get_map_op_arg_idx();
-  if( idx < 0 )
+  if( !is_legal_arg_idx(idx) )
     return nullptr;
   return call->getOperand(idx);
 }
@@ -2241,12 +2241,11 @@ int nt_api_call::get_size_arg_idx(unsigned arg_idx, bool* bits) {
 
 Value* nt_api_call::get_size_arg(unsigned arg_idx, bool* bits) {
   int size_idx = get_size_arg_idx(arg_idx, bits);
-  if( size_idx < 0 ) {
+  if( !is_legal_arg_idx(size_idx) ) {
     errs() << "ERROR: Unknown size argument for arg " << arg_idx << " in "
            << "call: " << *call << "\nAborting!\nr";
     exit(1);
   }
-  assert(size_idx >= 0);
   return call->getOperand(size_idx);
 }
 
@@ -2278,7 +2277,7 @@ int nt_api_call::get_data_size_arg_idx() {
 }
 Value* nt_api_call::get_data_size_arg() {
   int idx = get_data_size_arg_idx();
-  if( idx > 0 )
+  if( is_legal_arg_idx(idx) )
     return call->getOperand(idx);
   else
     return nullptr;
@@ -2286,7 +2285,7 @@ Value* nt_api_call::get_data_size_arg() {
 
 int nt_api_call::get_max_data_size() {
   int idx = get_data_size_arg_idx();
-  if( idx < 0 )
+  if( !is_legal_arg_idx(idx) )
     return -1;
   unsigned bytes = 0;
   if( !::get_max_val_as_bytes(call->getOperand(idx), &bytes, false) )
@@ -2300,7 +2299,7 @@ int nt_api_call::get_key_size_arg_idx() {
 }
 Value* nt_api_call::get_key_size_arg() {
   int idx = get_key_size_arg_idx();
-  if( idx > 0 )
+  if( is_legal_arg_idx(idx) )
     return call->getOperand(idx);
   else
     return nullptr;
@@ -2433,15 +2432,15 @@ int nt_api_call::get_data_out_arg_idx() {
 std::vector<unsigned> nt_api_call::get_input_mem_arg_idx_vec() {
   std::vector<unsigned> mem_idx;
   auto idx = get_key_in_arg_idx();
-  if( idx >= 0 )
+  if( is_legal_arg_idx(idx) )
     mem_idx.emplace_back((unsigned)idx);
 
   idx = get_data_in_arg_idx();
-  if( idx >= 0 )
+  if( is_legal_arg_idx(idx) )
     mem_idx.emplace_back((unsigned)idx);
 
   idx = get_mask_in_arg_idx();
-  if( idx >= 0 )
+  if( is_legal_arg_idx(idx) )
     mem_idx.emplace_back((unsigned)idx);
 
   return mem_idx;
@@ -2458,7 +2457,7 @@ std::vector<MemoryLocation> nt_api_call::get_input_mem() {
 std::vector<unsigned> nt_api_call::get_output_mem_arg_idx_vec() {
   std::vector<unsigned> mem_idx;
   auto idx = get_data_out_arg_idx();
-  if( idx >= 0 )
+  if( is_legal_arg_idx(idx) )
     mem_idx.emplace_back((unsigned)idx);
   return mem_idx;
 }

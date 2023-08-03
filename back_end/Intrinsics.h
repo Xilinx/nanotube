@@ -354,6 +354,7 @@ namespace nanotube
   MemoryLocation get_memory_location(const CallBase* call, unsigned arg_idx,
                                      const TargetLibraryInfo& tli);
   int get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits);
+  static inline bool is_legal_arg_idx(int arg_idx) { return arg_idx >= 0; }
   bool get_max_value(Value* v, unsigned* max, bool* precise = nullptr);
   bool get_max_val_as_bytes(Value* v, unsigned* sz_out, bool bits,
                             bool* precise = nullptr);
