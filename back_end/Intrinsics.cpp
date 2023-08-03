@@ -2250,6 +2250,19 @@ Value* nt_api_call::get_size_arg(unsigned arg_idx, bool* bits) {
   return call->getOperand(size_idx);
 }
 
+unsigned nt_api_call::get_max_size(unsigned arg_idx, bool* precise) {
+  bool bits = false;
+  Value* sz = get_size_arg(arg_idx, &bits);
+  unsigned bytes = 0;
+  if( !::get_max_val_as_bytes(sz, &bytes, bits, precise) ) {
+    errs() << "ERROR: Cannot determine size of argument " << arg_idx
+           << " with size val " << *sz << " in call " << *call
+           << "\nAborting!\n";
+    exit(1);
+  }
+  return bytes;
+}
+
 int nt_api_call::get_data_size_arg_idx() {
   switch( intrin ) {
     case Intrinsics::packet_read:
@@ -2275,11 +2288,10 @@ int nt_api_call::get_max_data_size() {
   int idx = get_data_size_arg_idx();
   if( idx < 0 )
     return -1;
-  unsigned max = 0;
-  bool precise = false;
-  if( get_max_value(call->getOperand(idx), &max, &precise) )
-    return (int)max;
-  return -1;
+  unsigned bytes = 0;
+  if( !::get_max_val_as_bytes(call->getOperand(idx), &bytes, false) )
+    return -1;
+  return (int)bytes;
 }
 
 int nt_api_call::get_key_size_arg_idx() {

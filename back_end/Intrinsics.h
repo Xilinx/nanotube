@@ -553,12 +553,16 @@ namespace nanotube
 
     Value* get_dummy_arg(unsigned arg_idx);
     MemoryLocation get_memory_location(unsigned arg_idx);
-    Value* get_size_arg(unsigned arg_idx, bool* bits);
     std::vector<MemoryLocation> get_input_mem();
     std::vector<MemoryLocation> get_output_mem();
 
     int    get_data_size_arg_idx();
-    int    get_size_arg_idx(unsigned arg_idx, bool* bits);
+
+    /* Get sizes for various arguments */
+    int      get_size_arg_idx(unsigned arg_idx, bool* bits);
+    Value*   get_size_arg(unsigned arg_idx, bool* bits);
+    unsigned get_max_size(unsigned arg_idx, bool* precise = nullptr);
+
     Value* get_data_size_arg();
     int    get_max_data_size();
 
