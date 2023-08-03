@@ -410,8 +410,9 @@ struct nanotube_tap_packet_resize_egress_state_t
   bool new_req;
 
   /*! A flag which is set if the next call expects a new input packet.
-   *  It will be processing the first input and output word of a new packet
-   *  (Currently only used by softhub_bus) */
+   *  Currently only used by softhub_bus (where it is cleared after 
+   *  processing the first word) and the x3rx/tx bus (where it remains
+   *  set until a valid output word is produced) */
   bool new_pkt;
 
   /*! The length of the current (input) packet (only used by softhub_bus) */

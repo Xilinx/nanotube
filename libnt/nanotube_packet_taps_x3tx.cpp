@@ -271,7 +271,6 @@ void nanotube_tap_packet_resize_egress_x3tx(
   nanotube_tap_offset_t word_length_out;
 
   bool input_eop = x3txw_in->get_meta_eop();
-  bool input_sop = x3txw_in->get_data_sop();
 
   nanotube_tap_packet_resize_egress_core(
     x3tx_bus::data_bytes, x3tx_bus::log_data_bytes,
@@ -283,15 +282,24 @@ void nanotube_tap_packet_resize_egress_x3tx(
 
   *packet_done_out = input_eop & *input_done_out;
 
+  bool output_sop = false;
+  if( *packet_done_out ) {
+    state->new_pkt = true;
+  } else {
+    if( state->new_pkt && *word_valid_out ) {
+      state->new_pkt = false;
+      output_sop = true;
+    }
+  }
+
   /* Set TLAST, TKEEP, TSTRB, if sideband signals present */
   if( *word_valid_out && x3tx_bus::sideband_signals_bytes ) {
     x3txw_out->set_tlast(word_eop_out);
     /* Assume first word_length_out bytes are valid and rest are not */
     x3txw_out->set_tkeep(word_length_out);
     x3txw_out->set_tstrb(word_length_out);
-    /* This assumes meta and data are aligned, and that input_sop hasn't changed.  Really need to track
-     * whether we've seen a valid word */
-    x3txw_out->set_sideband(input_sop, word_eop_out, word_length_out, input_sop, word_eop_out);
+    /* This assumes meta and data are aligned */
+    x3txw_out->set_sideband(output_sop, word_eop_out, word_length_out, output_sop, word_eop_out);
   }
 }
 
