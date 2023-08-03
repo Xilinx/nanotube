@@ -353,7 +353,7 @@ namespace nanotube
    */
   MemoryLocation get_memory_location(const CallBase* call, unsigned arg_idx,
                                      const TargetLibraryInfo& tli);
-  int get_size_arg(const CallBase* call, unsigned idx, bool* bits);
+  int get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits);
   bool get_max_value(Value* v, unsigned* max, bool* precise);
   /********** Helpers for reporting enum values **********/
 
@@ -556,6 +556,7 @@ namespace nanotube
     std::vector<MemoryLocation> get_output_mem();
 
     int    get_data_size_arg_idx();
+    int    get_size_arg_idx(unsigned arg_idx, bool* bits);
     Value* get_data_size_arg();
     int    get_max_data_size();
 

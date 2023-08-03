@@ -459,7 +459,7 @@ map_op_receive_args::map_op_receive_args(Instruction* inst) {
   data_length = call->getArgOperand(3);
 }
 
-int nanotube::get_size_arg(const CallBase* call, unsigned idx, bool* bits) {
+int nanotube::get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits) {
   auto intr     = get_intrinsic(call);
   int  size_arg = -1;
   *bits         = false;
@@ -541,7 +541,7 @@ nanotube::get_memory_location(const CallBase* call, unsigned idx,
   int  size_arg = -1;
   bool bits = false;
 
-  size_arg = get_size_arg(call, idx, &bits);
+  size_arg = get_size_arg_idx(call, idx, &bits);
 
   if( size_arg == -1 )
     return loc;
@@ -2215,14 +2215,18 @@ MemoryLocation nt_api_call::get_memory_location(unsigned arg_idx) {
   return ::get_memory_location(call, arg_idx, *tli);
 }
 
+int nt_api_call::get_size_arg_idx(unsigned arg_idx, bool* bits) {
+  return ::get_size_arg_idx(call, arg_idx, bits);
+}
+
 Value* nt_api_call::get_size_arg(unsigned arg_idx, bool* bits) {
-  int size_arg = ::get_size_arg(call, arg_idx, bits);
-  if( size_arg < 0 ) {
+  int size_idx = get_size_arg_idx(arg_idx, bits);
+  if( size_idx < 0 ) {
     errs() << "ERROR: Unknown size argument for arg " << arg_idx << " in "
            << "call: " << *call << '\n';
   }
-  assert(size_arg >= 0);
-  return call->getOperand(size_arg);
+  assert(size_idx >= 0);
+  return call->getOperand(size_idx);
 }
 
 int nt_api_call::get_data_size_arg_idx() {

@@ -872,7 +872,7 @@ bool thread_const::process_call(CallBase *insn)
     }
 
     bool is_bits = false;
-    int size_arg = get_size_arg(insn, i, &is_bits);
+    int size_arg = get_size_arg_idx(insn, i, &is_bits);
     if (size_arg < 0) {
       report_fatal_errorv("thread-const: Could not identify size"
                           " for argument {0}: {1}", i, *insn);
