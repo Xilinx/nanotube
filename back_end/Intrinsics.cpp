@@ -560,38 +560,52 @@ nanotube::get_memory_location(const CallBase* call, unsigned idx,
 }
 
 bool
-nanotube::get_max_value(Value* v, unsigned* max_out, bool* precise) {
-  *precise = true;
-  ConstantInt* ci = dyn_cast<ConstantInt>(v);
+nanotube::get_max_value(Value* v, unsigned* max_out, bool* precise_out) {
+  unsigned max = 0;
+  bool precise = true;
+
+  /* ConstantInts return their precise value */
+  auto* ci = dyn_cast<ConstantInt>(v);
   if( ci != nullptr ) {
-    *max_out = ci->getZExtValue();
-    return true;
+    max = ci->getZExtValue();
+    goto found;
   }
 
-  PHINode* phi = dyn_cast<PHINode>(v);
-  if( phi != nullptr ) {
-    unsigned max = 0;
-    bool empty = true;
+  {
+    /* PHINodes of constants & undefs find the max */
+    auto* phi = dyn_cast<PHINode>(v);
+    if( phi != nullptr ) {
+      bool first = true;
 
-    for( auto& use : phi->incoming_values() ) {
-      if( isa<UndefValue>(use.get()) )
-        continue;
-      ci = dyn_cast<ConstantInt>(use.get());
-      if( ci == nullptr )
-        return false;
-      if( empty ) {
-        max   = ci->getZExtValue();
-        empty = false;
-      } else if( ci->getZExtValue() > max ) {
-        max = ci->getZExtValue();
-        *precise = false;
+      for( auto& use : phi->incoming_values() ) {
+        if( isa<UndefValue>(use.get()) )
+          continue;
+        /* Can only determine the value of phi of const */
+        ci = dyn_cast<ConstantInt>(use.get());
+        if( ci == nullptr )
+          return false;
+        auto val = ci->getZExtValue();
+
+        /* Keep track of all values being the same */
+        if( !first )
+          precise &= (val == max);
+        else
+          first = false;
+
+        /* Keep track of the max */
+        if( val > max )
+          max = val;
       }
+      goto found;
     }
-    *max_out = max;
-    return true;
   }
-
   return false;
+
+found:
+  *max_out = max;
+  if( precise_out )
+    *precise_out = precise;
+  return true;
 }
 /********** Helpers for reporting enum values **********/
 

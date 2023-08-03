@@ -354,7 +354,7 @@ namespace nanotube
   MemoryLocation get_memory_location(const CallBase* call, unsigned arg_idx,
                                      const TargetLibraryInfo& tli);
   int get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits);
-  bool get_max_value(Value* v, unsigned* max, bool* precise);
+  bool get_max_value(Value* v, unsigned* max, bool* precise = nullptr);
   /********** Helpers for reporting enum values **********/
 
   const std::string &get_enum_name(nanotube_channel_type_t t);
