@@ -547,14 +547,11 @@ nanotube::get_memory_location(const CallBase* call, unsigned idx,
     return loc;
 
   Value* v = call->getOperand(size_idx);
-  unsigned max = 0;
+  unsigned sz = 0;
   bool precise = false;
-  if( get_max_value(v, &max, &precise) ) {
-    max = bits ? ((max + 7) / 8) : max;
-    if( precise )
-      loc.Size = LocationSize::precise(max);
-    else
-      loc.Size = LocationSize::upperBound(max);
+  if( get_max_val_as_bytes(v, &sz, bits, &precise) ) {
+    loc.Size = precise ? LocationSize::precise(sz) :
+                         LocationSize::upperBound(sz);
   }
   return loc;
 }
@@ -605,6 +602,15 @@ found:
   *max_out = max;
   if( precise_out )
     *precise_out = precise;
+  return true;
+}
+
+bool
+nanotube::get_max_val_as_bytes(Value* v, unsigned* sz_out, bool bits, bool* precise) {
+  unsigned max = 0;
+  if( !get_max_value(v, &max, precise) )
+    return false;
+  *sz_out = bits ? ((max + 7) / 8) : max;
   return true;
 }
 /********** Helpers for reporting enum values **********/

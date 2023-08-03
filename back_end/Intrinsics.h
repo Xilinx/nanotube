@@ -355,6 +355,8 @@ namespace nanotube
                                      const TargetLibraryInfo& tli);
   int get_size_arg_idx(const CallBase* call, unsigned idx, bool* bits);
   bool get_max_value(Value* v, unsigned* max, bool* precise = nullptr);
+  bool get_max_val_as_bytes(Value* v, unsigned* sz_out, bool bits,
+                            bool* precise = nullptr);
   /********** Helpers for reporting enum values **********/
 
   const std::string &get_enum_name(nanotube_channel_type_t t);
