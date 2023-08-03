@@ -2243,7 +2243,8 @@ Value* nt_api_call::get_size_arg(unsigned arg_idx, bool* bits) {
   int size_idx = get_size_arg_idx(arg_idx, bits);
   if( size_idx < 0 ) {
     errs() << "ERROR: Unknown size argument for arg " << arg_idx << " in "
-           << "call: " << *call << '\n';
+           << "call: " << *call << "\nAborting!\nr";
+    exit(1);
   }
   assert(size_idx >= 0);
   return call->getOperand(size_idx);
