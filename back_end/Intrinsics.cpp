@@ -2162,14 +2162,14 @@ Value* nt_api_call::get_map_op_arg() {
 }
 
 int nt_api_call::get_map_op() {
-  auto* type = get_map_op_arg();
-  if( !isa<ConstantInt>(type) ) {
+  auto* op = get_map_op_arg();
+  if( !isa<ConstantInt>(op) ) {
     errs() << "get_map_op: " << *call << '\n'
-           << "Type: " << *call->getOperand(2) << '\n'
-           << "Expecting a constant map-op type.\n";
+           << "Op: " << *op << '\n'
+           << "Expecting a constant map-op op.\n";
     assert(false);
   }
-  return cast<ConstantInt>(call->getOperand(2))->getSExtValue();
+  return cast<ConstantInt>(op)->getSExtValue();
 }
 
 Value* nt_api_call::get_dummy_arg(unsigned a) {
@@ -2284,17 +2284,17 @@ Value* nt_api_call::get_data_size_arg() {
 }
 
 int nt_api_call::get_max_data_size() {
-  int idx = get_data_size_arg_idx();
-  if( !is_legal_arg_idx(idx) )
+  auto* sz = get_data_size_arg();
+  if( !sz )
     return -1;
   unsigned bytes = 0;
-  if( !::get_max_val_as_bytes(call->getOperand(idx), &bytes, false) )
+  if( !::get_max_val_as_bytes(sz, &bytes, false) )
     return -1;
   return (int)bytes;
 }
 
 int nt_api_call::get_key_size_arg_idx() {
-  errs() << "XXX: Implement me get_max_key_size()\n";
+  errs() << "XXX: Implement me get_key_size_arg_idx()\n";
   abort();
 }
 Value* nt_api_call::get_key_size_arg() {
