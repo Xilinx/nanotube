@@ -312,89 +312,45 @@ typedef struct
 } nanotube_tap_packet_resize_req_t;
 
 /*! A structure containing information about the associated input
- *  packet word. */
+ *  packet word.
+ *
+ * This structure is an implementation detail of the core of the
+ * resize tap.  See nanotube_packet_taps_core.cpp for details.
+ */
 struct nanotube_tap_packet_resize_cword_t
 {
-  /*! The amount to rotate packet data by after the modified region. */
-  nanotube_tap_offset_t packet_rot;
+  /*! The number of unshifted bytes in the word being transferred. */
+  nanotube_tap_offset_t unshifted_len;
 
-  /*! The number of bytes in the output word before the start of the
-   *  modified region. */
-  nanotube_tap_offset_t output_insert_start;
+  /*! The output packet offset of the start of the shifted bytes. */
+  nanotube_tap_offset_t shifted_start;
 
-  /*! The number of bytes in the output word before the end of the
-   *  modified region. */
-  nanotube_tap_offset_t output_insert_end;
+  /*! The output packet offset of the end of the word.  This offset is
+   *  after any padding in the final word. */
+  nanotube_tap_offset_t word_end;
 
-  /*! The number of bytes in the carried word before the start of the
-   *  modified region. */
-  nanotube_tap_offset_t carried_insert_start;
+  /*! The first packet offset which should not be produced after
+   *  processing this word. */
+  nanotube_tap_offset_t output_limit;
 
-  /*! The number of bytes in the carried word before the end of the
-   *  modified region. */
-  nanotube_tap_offset_t carried_insert_end;
-
-  /*! A flag which is set if the output word should contain bytes from
-   *  the carried data and clear if the output word should contain
-   *  unshifted bytes from the input word. */
-  bool select_carried;
-
-  /*! A flag which is set if there is at least one output word for
-   *  this input word. */
-  bool push_1;
-
-  /*! A flag which is set if there are two output words for this input
-   *  word. */
-  bool push_2;
-
-  /*! A flag which is set if this is the last input word of the
-   *  packet. */
+  /*! A flag indicating the end of the packet. */
   bool eop;
-
-  /*! The number of bytes in the last output word of this input
-   *  word. */
-  nanotube_tap_offset_t word_length;
 };
 
-/* NOTE: This struct has a non-zero initialiser! */
+/* NOTE: This struct must be initialized using
+ * nanotube_tap_packet_resize_ingress_state_init. */
 struct nanotube_tap_packet_resize_ingress_state_t
 {
-  /*! A flag which is set if the next input word is the first word of
-   *  a packet. */
-  bool new_req;
+  /*! A flag which is set if the next input word is the start of a
+   *  packet. */
+  bool sop;
 
-  /*! The length of the current (input) packet (only used by softhub_bus) */
+  /*! The current offset into the input packet. */
+  nanotube_tap_offset_t input_offset;
+
+  /*! The length of the current (input) packet.  This member is only
+   *  accessed by the softhub_bus wrapper. */
   nanotube_tap_offset_t packet_length;
-
-  /*! The current offset into the (input) packet. */
-  nanotube_tap_offset_t packet_offset;
-
-  /*! The amount to rotate packet data by after the modified
-   *  region. */
-  nanotube_tap_offset_t packet_rot_amount;
-
-  /*! The number of bytes remaining in the unshifted region. */
-  nanotube_tap_offset_t unshifted_length;
-
-  /*! A flag which is set if the modified region has been reached. */
-  bool edit_started;
-
-  /*! The number of remaining bytes to be deleted. */
-  nanotube_tap_offset_t edit_delete_length;
-
-  /*! The number of remaining bytes to be inserted. */
-  nanotube_tap_offset_t edit_insert_length;
-
-  /*! The number of bytes carried from the edit stage to the shifted
-   *  stage. */
-  nanotube_tap_offset_t edit_carried_len;
-
-  /*! A flag which is set if the shifted region has been reached. */
-  bool shifted_started;
-
-  /*! The number of bytes carried out of the shifted region into the
-   *  next word. */
-  nanotube_tap_offset_t shifted_carried_len;
 
   /*! A flag which indicates that we've seen the DATA_EOP bit set for 
    *  this packet (only used by x3rx_bus and x3tx_bus) */
@@ -402,12 +358,41 @@ struct nanotube_tap_packet_resize_ingress_state_t
 };
 
 
-/* NOTE: This struct has a non-zero initialiser! */
+/* NOTE: This struct must be initialized using
+ * nanotube_tap_packet_resize_egress_state_init. */
 struct nanotube_tap_packet_resize_egress_state_t
 {
   /*! A flag which is set if the next call expects a new input
    *  word. */
-  bool new_req;
+  bool new_word;
+
+  /*! A flag indicating that the EOP flag has been seen.  Set when the
+   *  next word is the start of the next packet. */
+  bool eop_seen;
+
+  /*! A flag indicating that a word was output during the previous
+   *  call. */
+  bool did_output;
+
+  /*! The end offset of the previous output packet word. */
+  nanotube_tap_offset_t prev_word_end;
+
+  /*! The end of the previous output packet word, advanced by a
+   *  word. */
+  nanotube_tap_offset_t prev_word_end_adv1;
+
+  /*! The end of the previous output packet word, advanced by two
+   *  words. */
+  nanotube_tap_offset_t prev_word_end_adv2;
+
+  /*! The number of unshifted bytes in the carried word. */
+  nanotube_tap_offset_t carried_unshifted_len;
+
+  /*! The start offset of the shifted bytes in the carried word. */
+  nanotube_tap_offset_t carried_shifted_start;
+
+  /*! The end offset of the carried word. */
+  nanotube_tap_offset_t carried_word_end;
 
   /*! A flag which is set if the next call expects a new input packet.
    *  It will be processing the first input and output word of a new packet

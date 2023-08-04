@@ -1085,6 +1085,9 @@ void nanotube_tap_packet_write_core(
 
 ///////////////////////////////////////////////////////////////////////////
 
+// Packet resize tap operation
+// ===========================
+//
 // The packet resize tap is used to insert bytes into and remove bytes
 // from a packet.  The inserted bytes are zeros and the removed bytes
 // are discarded.  To insert non-zero bytes, use a write tap after the
@@ -1092,110 +1095,282 @@ void nanotube_tap_packet_write_core(
 // resize tap.
 //
 // The tap is split into two stages for performance reasons.  The
-// ingress stage produces a control word for each input packet word.
-// The egress stage uses the control word to produce the output packet
-// words.  The egress stage may produce more than one output packet
-// word per input packet word when it is inserting bytes.  It may
-// consume an input packet word without producing an output packet
-// word when deleting bytes.
+// ingress stage produces a control word for each input packet word
+// which contains data to be output.  The egress stage uses the
+// control word to produce the output packet words.  The egress stage
+// may produce more than one output packet word per input packet word
+// when it is inserting bytes.  Either or both stages may consume an
+// input packet word without producing an output packet word when
+// deleting bytes.
 //
 // The egress stage needs to work out whether it will need to produce
 // another output packet word for the current input packet word before
 // moving on to the next input packet word.  It needs to do this in a
-// single cycle in order to get good performance.  The calculation is
-// somewhat involved, so the ingress stage performs most of the
-// calculation so that the egress stage can complete it in a single
-// cycle.
+// single cycle in order to get good performance, so the logic on the
+// feedback path needs to be simple.  This is done by sending an
+// output limit from the ingress stage to the egress stage as part of
+// the control word.  The egress stage will produce packet words while
+// all the byte offsets are below the output limit.
 //
 // Only the egress stage processes packet data.  The ingress stage
 // just processes lengths and offsets.  The egress stage needs a
 // carried-data buffer to hold input bytes which will need to be
-// output, but not in the current output packet word.  The ingress
-// stage works out which bytes get output and which bytes get written
-// to the carried-data buffer.
+// output, but not in the current output packet word.
+//
+// Packet and word structures
+// --------------------------
+//
+// The input packet consists of three regions:
+//   Unshifted bytes which are before the deleted bytes.
+//   Deleted bytes.
+//   Shifted bytes which are after the deleted bytes.
 //
 // The output packet consists of three regions:
-//   Unshifed bytes from before the deleted bytes.
+//   Unshifted bytes which are before the inserted bytes.
 //   Inserted zero bytes.
-//   Shifted bytes from after the deleted bytes.
+//   Shifted bytes which are after the inserted bytes.
 //
 // The first region is called unshifted because these bytes have the
 // same offset in the output packet as in the input packet so they can
 // be passed through the tap without being shifted into a different
-// byte lane.
+// byte lane (i.e. a different offset in the word).
 //
 // The third region is called shifted because these bytes typically
 // have a different offset in the output packet than in the input
 // packet.  This means they need to be shifted into different byte
 // lanes as the pass through the tap.
 //
-// The output packet word and carried-data are each made up of (in
-// this order):
-//   Either:
-//     Unshifted input bytes from before the deleted bytes
-//     Inserted bytes from the request
-//   or:
-//     Carried bytes from the previous invocation.
-//   Shifted input bytes from after the deleted bytes
+// The structure of the input/output packets means that each packet
+// word has the following structure:
+//   Unshifted bytes.
+//   Inserted/deleted bytes.
+//   Shifted bytes.
+//   Padding bytes after the end of packet.
 //
-// The bytes carried over to the next invocation are made up of:
-//   Unshifted input bytes from before the deleted bytes
-//   Inserted bytes from the request
-//   Shifted input bytes from after the deleted bytes
+// Any of these regions may be empty.  For the most part, padding
+// bytes are treated like shifted bytes.  It's just that the length of
+// the final word of the packet will be reduced so that they will be
+// ignored by downstream logic.
 //
-// The following cases are not exhaustive but they show how it
-// works.  Each diagram shows the structure of the outputs words and
-// carried words.  The codes in the diagrams are:
+// There are two basic packet structures, one where unshifted and
+// shifted bytes are not present in the same packet word, and one
+// where they are.  These basic structures may be varied by omitting
+// or repeating words which contain only a single byte type and/or by
+// truncating the packet at some point.  The positions of the
+// divisions between regions within a word may also be varied,
+// potentially making regions empty within a word.
 //
-//   None: No output.
-//   U<n>: Bytes are unshifted from input word <n>.
-//   Zero: Inserted zero bytes.
-//   S<n>: Bytes are shifted from input word <n>.
-//   DC:   Don't care.  Bytes will be discarded.
+//   +-------------+   +-------------+   Key:
+//   |      U      |   |      U      |     U - Unshifted
+//   +---+---------+   +---+-----+---+     D - Deleted
+//   | U |   D/I   |   | U | D/I | S |     I - Inserted
+//   +---+---------+   +---+-----+---+     S - Shifted
+//   |     D/I     |   |      S      |     P - Padding
+//   +---------+---+   +-------+-----+
+//   |   D/I   | S |   |   S   |  P  |
+//   +---------+---+   +-------+-----+
+//   |      S      |
+//   +-------+-----+
+//   |   S   |  P  |
+//   +-------+-----+
 //
-// Case 1: Insert into the middle of a word.
+// The structure of the packet implies the following constraints:
 //
-//    0           Output           31     0         Carried            31
-//   +-------------------------------+   +-------------------------------+
-// 0 |              U0               |   |             DC                |
-//   +---------+------------+--------+   +------------+------------------+
-// 1 |    U1   |    Zero    |   S1   |   |     S1     |        DC        |
-//   +---------+--+---------+--------+   +------------+------------------+
-// 2 |     S1     |        S2        |   |     S2     |        DC        |
-//   +------------+------------------+   +------------+------------------+
+//   If a word contains unshifted bytes then any previous word was
+//   filled with unshifted bytes.
 //
-// Case 2: Insert spans a word boundary.
+//   If a word contains any unshifted bytes then they are all
+//   contiguous with the start of the word.
 //
-//    0           Output           31     0         Carried            31
-//   +----------------------+--------+   +------+--------+---------------+
-// 0 |         U0           |  Zero  |   | Zero |   S0   |      DC       |
-//   +------+--------+------+--------+   +------+--------+---------------+
-// 1 | Zero |   S0   |      S1       |   |      S1       |      DC       |
-//   +------+--------+---------------+   +---------------+---------------+
-// 2 |      S1       |      S2       |   |      S2       |      DC       |
-//   +---------------+---------------+   +---------------+---------------+
+//   If a word contains shifted bytes then any later word will be
+//   filled with shifted or padding bytes.
 //
-// Case 3: Delete bytes from the middle of a word.
+//   If a word contains any shifted or padding bytes then they are all
+//   contiguous with the end of the word.
 //
-//    0           Output           31     0         Carried            31
-//   +-------------------------------+   +------+---------------+--------+
-// 0 |             None              |   |  U0  |       S0      |   DC   |
-//   +------+---------------+--------+   +------+---------------+--------+
-// 1 |  U0  |       S0      |   S1   |   |          S1          |   DC   |
-//   +------+---------------+--------+   +----------------------+--------+
-// 2 |          S1          |   S2   |   |          S2          |   DC   |
-//   +----------------------+--------+   +----------------------+--------+
+// The structure of the input/output packet words is fixed by the
+// contents of the input/output packets.  There's some flexibility in
+// the structure of the carried words because the hard requirement is
+// that bytes are reliably stored until they are needed.  That doesn't
+// imply they need to be stored in a particular location.  For
+// simplicity, the bytes in the carried word are stored in the same
+// lane as they had in the input word.  This works because the
+// unshifted bytes always occupy the low lanes and the shifted bytes
+// always occupy the high lanes.  The total number of bytes being
+// carried is always less than or equal to the word length because
+// otherwise they would have been output while the previous input word
+// was being processed.  As a result, the unshifted and shifted bytes
+// never overlap.
 //
-// Case 4: Delete bytes across a word boundary.
+// The ingress stage
+// -----------------
 //
-//    0           Output           31     0         Carried            31
-//   +-------------------------------+   +--------------------+----------+
-// 0 |             None              |   |         U0         |    DC    |
-//   +--------------------+----------+   +--------+-----------+----------+
-//   |         U0         |    S1    |   |   S1   |          DC          |
-//   +--------+-----------+----------+   +--------+----------------------+
-//   |   S1   |          S2          |   |   S2   |          DC          |
-//   +--------+----------------------+   +--------+----------------------+
+// The ingress stage is responsible for producing an output limit
+// which can be used by the egress stage to quickly work out whether
+// it should move on to the next input packet word.  The output limit
+// is the lowest packet offset which should not be output by the
+// egress stage.  The egress stage will stop earlier than that if it
+// cannot produce a complete output word.  The ingress stage must make
+// sure the number of carried bytes is always less than the word
+// length.
+//
+// This arrangement allows the ingress stage to calculate the values
+// it produces without performing a division by the word length.
+// Dividing by the word length is simple when the bus width is a power
+// of two, but when the bus width is large, being restricted to a
+// power of two is a significant limitation.  Instead, the egress uses
+// successive addition to divide the output packet into words.
+//
+// Care is needed to handle the end of packet.  The ingress must never
+// allow the final byte of the output packet to be released until it
+// has set the EOP flag.  This means the ingress can only release a
+// byte which might be the final byte if it has seen EOP or the
+// following byte will be included in the output packet.
+//
+// The egress stage
+// ----------------
+//
+// There are several sub-stages in the egress stage.  First, the flow
+// control sub-stage works out whether the next call will continue
+// processing the current packet word or move on to the next one.
+// Next, the tracker sub-stage works out how bytes flow through the
+// following sub-stages.  Next, the carry sub-stage stores bytes which
+// will not be output during this call for the next one and retrieves
+// bytes which were previously stored.  The shifter sub-stage then
+// shifts bytes from the input word and the carried word into the
+// correct byte-lane.  Finally, the combiner sub-stage produces the
+// final output word from the unshifted and shifted bytes, filling the
+// gap between them with zeros.
+//
+// In the egress stage, there are four packet words being handled:
+//   The incoming carried word from the previous call.
+//   The input packet word.
+//   The output packet word.
+//   The outgoing carried word to the next call.
+//
+// Words are typically described using the following variables.  This
+// regularity makes the resize tap easier to think about and the
+// choice of variables allows the feedback logic to be reasonably
+// simple.
+//
+//   unshifted_len: The number of unshifted bytes.
+//
+//   shifted_start: The output packet offset of the start of first
+//     shifted byte.
+//
+//   word_end: One more than the offset of the last byte in this word,
+//     including any padding.
+//
+// There are various word structures which the egress stage might need
+// to deal with during any one call and enumerating the cases would be
+// complex and error prone.  We can simplify the problem by thinking
+// about the unshifted and shifted bytes separately.
+//
+// When unshifted bytes arrive at the egress stage, they will be
+// included in the next output word.  If a word is not being output
+// during this call then they will be carried for the next one.  The
+// cases to consider are:
+//
+//   No word is being output during this call and there are unshifted
+//   bytes in the input word.  These bytes will be stored in the
+//   carried word for the next call.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +------------+---+--------+    +------------+---+--------+
+//     |     -      | U |   -    | -> |      -     | U |   -    |
+//     +------------+---+--------+    +------------+---+--------+
+//
+//   No word is being output during this call and there are no
+//   unshifted bytes in the input word.  If there are any unshifted
+//   bytes in the carried word then they will be kept for the next
+//   call.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +---+--------+------------+    +------------+---+--------+
+//     | U |   -    |      -     | -> |      -     | U |   -    |
+//     +---+--------+------------+    +------------+---+--------+
+//
+//   A word is being output during this call and there are unshifted
+//   bytes in the input word.  These bytes will be placed in the
+//   output word, so no unshifted bytes will be placed in the carried
+//   word for the next call.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +------------+---+--------+    +---+--------+------------+
+//     |     -      | U |   -    | -> | U |   -    |     -      |
+//     +------------+---+--------+    +---+--------+------------+
+//
+//   A word is being output during this call and there are no
+//   unshifted bytes in the input word.  If there are unshifted bytes
+//   in the carried word then they will be output during this call, so
+//   they are removed from the carried word.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +---+--------+------------+    +---+--------+------------+
+//     | U |   -    |      -     | -> | U |   -    |     -      |
+//     +---+--------+------------+    +---+--------+------------+
+//
+// When shifted bytes arrive at the egress stage, they may be output
+// directly or stored in the carried word for a later output word.
+// Shifted bytes can come from the input word or from the carried
+// word.  The bytes are shifted into the correct lane as they are
+// transferred to the output word.  If there are any shifted bytes at
+// the end of the carried word then they are contiguous with shifted
+// bytes at the start of the input word, so these two words are
+// concatenated before being shifted.
+//
+//   +---------------+---------------+
+//   | Carried word  |  Input word   |
+//   +----------+----+----------+----+
+//              | Output word   |
+//              +---------------+
+//
+// There are a few cases to consider:
+//
+//   No word is being output during this call and there are shifted
+//   bytes in the input word.  The shifted bytes will be stored in the
+//   carried word.  Note that there can be no shifted bytes in the
+//   carried word because otherwise the input word would be full of
+//   shifted bytes and there would be a full word to output.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +------------+--------+---+    +------------+------------+
+//     |     -      |   -    | S | -> |      -     |   -    | S |
+//     +------------+--------+---+    +------------+------------+
+//
+//   No word is being output during this call and there are no shifted
+//   bytes in the input word.  If there are any shifted bytes in the
+//   carried word then they will be kept for the next call.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +--------+---+------------+    +------------+------------+
+//     |   -    | S |     -      | -> |      -     |   -    | S |
+//     +--------+---+------------+    +------------+------------+
+//
+//   A word is being output during this call and the input word starts
+//   with a shifted byte.  If there are any shifted bytes in the
+//   carried word then they will be output.  They will not be carried
+//   because that would indicate that there were enough bytes to
+//   output another word in the previous call.  If there are any
+//   shifted bytes in the input word with an offset beyond the end of
+//   the output word then they will be carried.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +--------+---+------------+    +---+--------+----+-------+
+//     |   -    | S |     S      | -> | - |   S    | -  |   S   |
+//     +--------+---+------------+    +---+--------+----+-------+
+//
+//   A word is being output during this call and the input word does
+//   not start with a shifted byte.  In this case, there can be no
+//   shifted bytes in the carried word.  If there are any shifted
+//   bytes in the input word with an offset before the end of the
+//   output word then they will be output.  If there are any other
+//   shifted bytes in the input word then they will be carried.
+//
+//       Carried in   Input word       Output word  Carried out
+//     +------------+----+-------+    +--------+---+--------+---+
+//     |     -      | -  |   S   | -> |   -    | S |   -    | S |
+//     +------------+----+-------+    +--------+---+--------+---+
 
 void nanotube_tap_packet_resize_ingress_state_init(
   /* Outputs. */
@@ -1204,17 +1379,9 @@ void nanotube_tap_packet_resize_ingress_state_init(
   __attribute__((always_inline))
 #endif
 {
-  state->new_req = true;
+  state->sop = true;
+  state->input_offset = 0;
   state->packet_length = 0;
-  state->packet_offset = 0;
-  state->packet_rot_amount = 0;
-  state->unshifted_length = 0;
-  state->edit_started = false;
-  state->edit_delete_length = 0;
-  state->edit_insert_length = 0;
-  state->edit_carried_len = 0;
-  state->shifted_started = true;
-  state->shifted_carried_len = 0;
   state->data_eop_seen = 0;
 }
 
@@ -1231,381 +1398,225 @@ void nanotube_tap_packet_resize_ingress_core(
   nanotube_tap_packet_resize_ingress_state_t *state,
 
   /* Inputs. */
-  nanotube_tap_packet_resize_req_t *resize_req_in,
+  nanotube_tap_packet_resize_req_t *req_in,
   nanotube_tap_offset_t word_length_in,
   bool word_eop_in)
 #ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
-  // The sequential algorithm being modelled has the following stages:
-  //   1. Copy unshifted bytes before the edit.
-  //   2. Insert bytes.
-  //   3. Delete bytes.
-  //   4. Copy shifted bytes after the edit.
-  //
-  // Steps 2 and 3 are merged since they can be performed in parallel.
-  // The result is a three stage pipeline:
-  //   1. Copy unshifted bytes (unshifted).
-  //   2. Insert and delete bytes (edit).
-  //   3. Copy shifted bytes (shifted).
-  //
-  // Each stage of the ingress pipeline needs to keep track of a
-  // subset of the following variables.
-  //   first_word - This is the first word being processed
-  //   last_word - This is the last word being processed
-  //   started - This stage has started processing
-  //   length - The number of bytes remaining (2 lengths for edit)
-  //   space - The number of bytes available in the current word
-  //   carried_len - The number of bytes carried to the next stage
-  //   input_start_offset - The first input byte processed
-  //   input_end_offset - After the last input byte processed
-  //
-  // The following general state variables are kept:
-  //   new_req - The previous request has been completed.
-  //   packet_rot_amount - The amount to rotate the packet data.
-  //   resize_req - The unmodified resize request.
-
-  nanotube_tap_packet_resize_req_t resize_req = *resize_req_in;
-  nanotube_tap_offset_t next_offset;
-
-  bool sop = state->new_req;
-  if (state->new_req) {
 #if DEBUG_RESIZE_IN_TAP
-    std::cout << "New request:"
-              << " write_offset=" << unsigned(resize_req.write_offset)
-              << " insert_length=" << unsigned(resize_req.insert_length)
-              << " delete_length=" << unsigned(resize_req.delete_length)
-              << "\n";
-#endif
-  }
-
-  //
-  // Process the incoming packet word.
-  //
-
-  state->new_req = (word_eop_in != 0);
-  *packet_done_out = (word_eop_in != 0);
-
-#if DEBUG_RESIZE_IN_TAP
-  std::cout << "Received word:"
-            << " SOP=" << unsigned(sop)
-            << " EOP=" << unsigned(word_eop_in)
-            << " word_length_in=" << unsigned(word_length_in)
+  std::cout << "Resize ingress received word:"
+            << " word_length_in=" << word_length_in
+            << " word_eop_in=" << word_eop_in
+            << "\n"
+            << "  Request:"
+            << " write_offset=" << req_in->write_offset
+            << " delete_length=" << req_in->delete_length
+            << " insert_length=" << req_in->insert_length
+            << "\n"
+            << "  Old state:"
+            << " sop=" << int(state->sop)
+            << " input_offset=" << int(state->input_offset)
             << "\n";
 #endif
 
-  // Calculate the input packet offset at the end of this word.
-  next_offset = state->packet_offset + word_length_in;
-  state->packet_offset = (word_eop_in ? 0 : next_offset);
+  nanotube_tap_packet_resize_req_t req = *req_in;
 
   //
-  // Keep track of the output word.
+  // Update the state.
   //
 
-  nanotube_tap_offset_t output_insert_start = 0;
-  nanotube_tap_offset_t output_insert_end = 0;
-  bool output_done = false;
+  state->sop = (word_eop_in != false);
+  *packet_done_out = (word_eop_in != false);
 
-  nanotube_tap_offset_t accum_length = 0;
-  nanotube_tap_offset_t accum_insert_start = 0;
-  nanotube_tap_offset_t accum_insert_end = 0;
+  // The start of the data in the word.
+  nanotube_tap_offset_t input_data_start =
+    state->input_offset;
 
+  // The end of the data in the word.  This points before the padding
+  // in the EOP word.
+  nanotube_tap_offset_t input_data_end =
+    state->input_offset + word_length_in;
+
+  // The end of the word.  In non-EOP words, it is the same as
+  // input_data_end.  It points after the padding in the EOP word.
+  nanotube_tap_offset_t input_word_end =
+    state->input_offset + packet_word_length;
+
+  state->input_offset = (word_eop_in ? 0 : input_word_end);
 
   //
-  // Process the "unshifted" stage.
+  // Work out the significant offsets into the input/output packets.
   //
+  nanotube_tap_offset_t delete_start = req.write_offset;
+  nanotube_tap_offset_t delete_end = delete_start + req.delete_length;
+  nanotube_tap_offset_t insert_start = req.write_offset;
+  nanotube_tap_offset_t insert_end = insert_start + req.insert_length;
+  nanotube_tap_offset_t edit_delta =
+    req.insert_length - req.delete_length;
 
-  if (sop)
-    state->unshifted_length = resize_req.write_offset;
+#if DEBUG_RESIZE_IN_TAP
+  std::cout << "  Offsets:"
+            << " delete_start=" << delete_start
+            << " delete_end=" << delete_end
+            << " insert_start=" << insert_start
+            << " insert_end=" << insert_end
+            << " edit_delta=" << edit_delta
+            << "\n";
+#endif
 
-  nanotube_tap_offset_t unshifted_space = word_length_in;
+  //
+  // Work out which regions have been completed at the start and end
+  // of the input data.
+  //
+  bool unshifted_done_start = (input_data_start >= delete_start);
+  bool deleted_done_start = (input_data_start >= delete_end);
+  bool unshifted_done_end = (input_data_end >= delete_start);
+  bool deleted_done_end = (input_data_end >= delete_end);
 
-  bool unshifted_last_word = ( state->unshifted_length <= unshifted_space );
+#if DEBUG_RESIZE_IN_TAP
+  std::cout << "  Regions:"
+            << " unshifted_done_start=" << int(unshifted_done_start)
+            << " deleted_done_start=" << int(deleted_done_start)
+            << " unshifted_done_end=" << int(unshifted_done_end)
+            << " deleted_done_end=" << int(deleted_done_end)
+            << "\n";
+#endif
 
-  nanotube_tap_offset_t unshifted_input_end_offset;
-  if (!unshifted_last_word)
-    unshifted_input_end_offset = word_length_in;
-  else
-    unshifted_input_end_offset = state->unshifted_length;
-  assert(unshifted_input_end_offset <= word_length_in);
+  //
+  // Work out the number of unshifted bytes.
+  //
+  nanotube_tap_offset_t output_unshifted_len;
+  if (!unshifted_done_end) {
+    // Before the start of the deleted region.  All bytes are
+    // unshifted.
+    output_unshifted_len = packet_word_length;
 
-  // Add unshifted bytes to the output or the accumulator.
-  if (unshifted_last_word) {
-    accum_length = state->unshifted_length;
-    accum_insert_start = state->unshifted_length;
-    accum_insert_end = state->unshifted_length;
-  } else if (word_eop_in) {
-    accum_length = word_length_in;
-    accum_insert_start = word_length_in;
-    accum_insert_end = word_length_in;
+  } else if (!unshifted_done_start) {
+    // The deleted region starts in the current word.  Find out the
+    // number of bytes in the word which are before it.
+    output_unshifted_len = delete_start - input_data_start;
+
   } else {
-    output_insert_start = packet_word_length;
-    output_insert_end = packet_word_length;
-    output_done = true;
+    // The deleted region started earlier.  All the unshifted bytes
+    // have been processed.
+    output_unshifted_len = 0;
   }
 
-  state->unshifted_length = state->unshifted_length - packet_word_length;
-
-#if DEBUG_RESIZE_IN_TAP
-  std::cout << "unshifted: "
-            << "out[" << output_insert_start
-            << ".." << output_insert_end
-            << "] "
-            << (output_done ? "enabled" : "disabled")
-            << " acc[" << accum_insert_start
-            << ".." << accum_insert_end
-            << "] len=" << accum_length
-            << "\n";
-#endif
-
-
   //
-  // Process the "edit" stage.
+  // Work out the output offset of the end of the word.
   //
+  nanotube_tap_offset_t output_word_end;
+  if (!unshifted_done_end) {
+    // Before the end of the unshifted region.  The output offset is
+    // the same as the input offset.
+    output_word_end = input_word_end;
 
-  if (sop) {
-    state->edit_delete_length = resize_req.delete_length;
-    state->edit_insert_length = resize_req.insert_length;
-  }
+  } else if (!deleted_done_end) {
+    // Within the deleted region.  The output offset is the end of the
+    // insert region.
+    output_word_end = insert_end;
 
-  bool edit_prev_started = sop ? false : state->edit_started;
-
-  if (unshifted_last_word)
-    state->edit_started = true;
-  else
-    state->edit_started = edit_prev_started;
-
-  bool edit_first_word = (state->edit_started && !edit_prev_started);
-
-  nanotube_tap_offset_t edit_input_start_offset;
-  if (edit_prev_started)
-    edit_input_start_offset = 0;
-  else
-    edit_input_start_offset = unshifted_input_end_offset;
-
-#ifndef NANOTUBE_SYNTHESIS
-  assert(edit_input_start_offset <= word_length_in);
-#endif
-
-  nanotube_tap_offset_t edit_space = ( word_length_in - edit_input_start_offset );
-
-  bool edit_last_word = ( state->edit_started &&
-                          state->edit_delete_length <= edit_space );
-
-  nanotube_tap_offset_t edit_input_end_offset;
-  if (!edit_last_word)
-    edit_input_end_offset = word_length_in;
-  else
-    edit_input_end_offset = ( edit_input_start_offset +
-                              state->edit_delete_length );
-
-#ifndef NANOTUBE_SYNTHESIS
-  assert(edit_input_end_offset <= word_length_in);
-#endif
-
-  // Add bytes to the output buffer or accumulator.
-  if (edit_first_word) {
-    nanotube_tap_offset_t insert_space = (packet_word_length - accum_length);
-    if (state->edit_insert_length > insert_space) {
-      // If the output word is full then push it out.
-      output_insert_start = edit_input_start_offset;
-      output_insert_end = packet_word_length;
-      output_done = true;
-      accum_length = ( state->edit_insert_length - insert_space );
-      accum_insert_start = 0;
-      accum_insert_end = accum_length;
-    } else {
-      // Just append the inserted bytes to the accumulator.
-      accum_length += state->edit_insert_length;
-      accum_insert_end = accum_length;
-    }
-    state->edit_carried_len = accum_length;
-
-  } else if (edit_prev_started) {
-    output_done = false;
-    accum_length = state->edit_carried_len;
-    accum_insert_start = state->edit_carried_len;
-    accum_insert_end = state->edit_carried_len;
   } else {
-    state->edit_carried_len = 0;
+    // After the start of the shifted region.  Adjust the input offset
+    // for the inserted/deleted bytes.
+    output_word_end = input_word_end + edit_delta;
   }
 
-  if (state->edit_started)
-    state->edit_delete_length -= (edit_input_end_offset - edit_input_start_offset);
-
-#if DEBUG_RESIZE_IN_TAP
-  std::cout << "edit: "
-            << "out[" << output_insert_start
-            << ".." << output_insert_end
-            << "] "
-            << (output_done ? "enabled" : "disabled")
-            << " acc[" << accum_insert_start
-            << ".." << accum_insert_end
-            << "] len=" << accum_length
-            << ( edit_prev_started ? " continues" :
-                 ( state->edit_started ? " starting" :
-                   "stopped" ) )
-            << "\n";
-#endif
-
-
   //
-  // Process the "shifted" stage.
+  // Work out the shifted start offset.
   //
+  nanotube_tap_offset_t output_shifted_start;
+  if (!deleted_done_end) {
+    // Before the end of the deleted region.  There are no shifted
+    // bytes, so just copy the output word end.
+    output_shifted_start = output_word_end;
 
-  bool shifted_prev_started = sop ? false : state->shifted_started;
+  } else if (!deleted_done_start) {
+    // The transition from the deleted region to the shifted region is
+    // somewhere in the input word.
+    output_shifted_start = insert_end;
 
-  if (edit_last_word)
-    state->shifted_started = true;
-  else
-    state->shifted_started = shifted_prev_started;
-
-  bool shifted_first_word = (state->shifted_started && !shifted_prev_started);
-
-  nanotube_tap_offset_t shifted_input_start_offset;
-  if (shifted_prev_started)
-    shifted_input_start_offset = 0;
-  else
-    shifted_input_start_offset = edit_input_end_offset;
-
-#ifndef NANOTUBE_SYNTHESIS
-  assert(shifted_input_start_offset <= word_length_in);
-#endif
-
-  if (shifted_first_word) {
-    nanotube_tap_offset_t shifted_length = ( word_length_in -
-                                             shifted_input_start_offset );
-    nanotube_tap_offset_t shifted_space = (packet_word_length - accum_length);
-
-    state->packet_rot_amount =
-      ( shifted_input_start_offset > accum_length
-        ? nanotube_tap_offset_t(shifted_input_start_offset - accum_length)
-        : nanotube_tap_offset_t(shifted_input_start_offset + shifted_space) );
-
-    if (shifted_length > shifted_space) {
-      // If the output word is full then push it out.
-      output_insert_start = accum_insert_start;
-      output_insert_end = accum_insert_end;
-      output_done = true;
-      accum_length = shifted_length - shifted_space;
-      accum_insert_start = 0;
-      accum_insert_end = 0;
-    } else {
-      // Add the shifted bytes to the accumulator.
-      accum_length += shifted_length;
-    }
-    state->shifted_carried_len = accum_length;
-
-  } else if (shifted_prev_started) {
-    // If this is not the first cycle then output the carried bytes
-    // from the previous word followed by shifted bytes from this
-    // word.  Carry over the remaining bytes to the next word.  The
-    // same number of bytes are carried over each cycle because the
-    // input word size is equal to the output word size.  Compute
-    // the actual split using word_length_in in order to handle the
-    // end of packet condition.
-    nanotube_tap_offset_t space = ( packet_word_length - state->shifted_carried_len );
-    if ( word_length_in <= space ) {
-      output_done = false;
-      accum_length = word_length_in + state->shifted_carried_len;
-      accum_insert_start = state->shifted_carried_len;
-      accum_insert_end = state->shifted_carried_len;
-    } else {
-      output_insert_start = state->shifted_carried_len;
-      output_insert_end = state->shifted_carried_len;
-      output_done = true;
-      accum_length = word_length_in - space;
-      accum_insert_start = 0;
-      accum_insert_end = 0;
-    }
   } else {
-    state->packet_rot_amount = 0;
-    state->shifted_carried_len = 0;
+    // After the end of the deleted region.  All bytes are shifted.
+    output_shifted_start = input_data_start + edit_delta;
   }
 
+  //
+  // Work out the output limit.
+  //
+  nanotube_tap_offset_t output_limit;
+  if (!unshifted_done_end) {
+    // The end of the word is before the start of the deleted bytes.
+    if (!word_eop_in) {
+      // EOP has not been seen.  Since we are before the start of the
+      // deleted bytes, the next byte will be included in the output
+      // so there is no need to withhold a byte.
+      output_limit = input_data_end;
+
+    } else {
+      // EOP has been seen.  The output limit includes all the bytes
+      // which have been seen plus (word_length-1) of possible padding
+      // bytes.
+      output_limit = input_data_end + packet_word_length - 1;
+    }
+
+  } else if (!deleted_done_end) {
+    // The end of the word is before the end of the deleted bytes.
+    if (!word_eop_in) {
+      // EOP has not been seen.  The next byte is deleted, so the
+      // final unshifted byte of this word might be the end of packet.
+      // Withhold that byte until it is known whether it needs to be
+      // output with the EOP flag set.  This is to handle the case
+      // where the unshifted bytes end on a word boundary and then the
+      // end of the input packet occurs within the deleted region, so
+      // there are no shifted bytes.  The desired behaviour is to
+      // output the final word of unshifted bytes with the EOP flag
+      // set, but we only know to do that once the input EOP has been
+      // seen.
+      output_limit = insert_end - 1;
+
+    } else {
+      // EOP has been seen.  The output limit is just the output
+      // packet length plus up to (word_length-1) bytes of padding.
+      output_limit = insert_end + packet_word_length - 1;
+    }
+
+  } else { // unshifted_done_end && deleted_done_end
+    // After the end of the deleted bytes.
+    if (!word_eop_in) {
+      // EOP has not been seen.  All the deleted bytes have been seen,
+      // so there is no need to withhold a byte to handle EOP.
+      output_limit = input_data_end + edit_delta;
+
+    } else {
+      // EOP has been seen.  Include (word_length-1) of possible
+      // padding bytes.
+      output_limit = ( input_data_end + edit_delta +
+                       packet_word_length - 1 );
+    }
+  }
+
+  cword_out->unshifted_len = output_unshifted_len;
+  cword_out->shifted_start = output_shifted_start;
+  cword_out->word_end = output_word_end;
+  cword_out->output_limit = output_limit;
+  cword_out->eop = word_eop_in;
+
 #if DEBUG_RESIZE_IN_TAP
-  std::cout << "shifted: "
-            << "out[" << output_insert_start
-            << ".." << output_insert_end
-            << "] "
-            << (output_done ? "enabled" : "disabled")
-            << " acc[" << accum_insert_start
-            << ".." << accum_insert_end
-            << "] len=" << accum_length
-            << ( shifted_prev_started ? " continues" :
-                 ( state->shifted_started ? " starting" :
-                   "stopped" ) )
+  std::cout << "  cword:"
+            << " unshifted_len=" << cword_out->unshifted_len
+            << " shifted_start=" << cword_out->shifted_start
+            << " word_end=" << cword_out->word_end
+            << " output_limit=" << cword_out->output_limit
+            << " eop=" << int(cword_out->eop)
+            << "\n"
+            << "  New state:"
+            << " sop=" << int(state->sop)
+            << " input_offset=" << int(state->input_offset)
             << "\n";
 #endif
-
-
-  //
-  // Work out the structure of the output and carried words.
-  //
-
-  bool accum_valid = (accum_length != 0);
-  bool accum_push = (accum_valid && word_eop_in!=0);
-
-
-  //
-  // Send the control word.
-  //
-
-  nanotube_tap_packet_resize_cword_t cword;
-
-  cword.packet_rot = state->packet_rot_amount;
-  cword.output_insert_start = ( output_done
-                                ? output_insert_start
-                                : accum_insert_start );
-  cword.output_insert_end = ( output_done
-                              ? output_insert_end
-                              : accum_insert_end );
-  cword.carried_insert_start = accum_insert_start;
-  cword.carried_insert_end = accum_insert_end;
-  cword.select_carried = edit_prev_started ? 1 : 0;
-  cword.push_1 = ( output_done || accum_push );
-  cword.push_2 = ( output_done && accum_push );
-  cword.eop = word_eop_in;
-  cword.word_length = ( word_eop_in != 0
-                        ? ( accum_valid
-                            ? nanotube_tap_offset_t(accum_length)
-                            : word_length_in )
-                        : packet_word_length );
-
-#if DEBUG_RESIZE_IN_TAP
-  std::cout << "Classification:"
-            << " edit: " << unsigned(edit_prev_started)
-            << "->" << unsigned(state->edit_started)
-            << " shifted: " << unsigned(shifted_prev_started)
-            << "->" << unsigned(state->shifted_started)
-            << "\n";
-
-  std::cout << "Control word:\n"
-            << " packet_rot=" << cword.packet_rot
-            << " select_carried=" << unsigned(cword.select_carried)
-            << "\n";
-
-  std::cout << "  output_insert_start="
-            << unsigned(cword.output_insert_start)
-            << " output_insert_end="
-            << unsigned(cword.output_insert_end)
-            << "\n";
-
-  std::cout << "  carried_insert_start="
-            << unsigned(cword.carried_insert_start)
-            << " carried_insert_end="
-            << unsigned(cword.carried_insert_end)
-            << "\n";
-
-  std::cout << "  push_1=" << cword.push_1
-            << " push_2=" << cword.push_2
-            << " eop=" << unsigned(cword.eop)
-            << " word_length=" << cword.word_length
-            << "\n";
-#endif
-
-  *cword_out = cword;
 }
 
 void nanotube_tap_packet_resize_egress_state_init(
@@ -1615,7 +1626,15 @@ void nanotube_tap_packet_resize_egress_state_init(
   __attribute__((always_inline))
 #endif
 {
-  state->new_req = true;
+  state->new_word = true;
+  state->eop_seen = true;
+  state->did_output = true;         // Ignored due to SOP.
+  state->prev_word_end = 0;         // Ignored due to SOP.
+  state->prev_word_end_adv1 = 0;    // Ignored due to SOP.
+  state->prev_word_end_adv2 = 0;    // Ignored due to SOP.
+  state->carried_unshifted_len = 0; // Ignored due to SOP.
+  state->carried_shifted_start = 0; // Ignored due to SOP.
+  state->carried_word_end = 0;      // Ignored due to SOP.
   state->new_pkt = true;
   state->packet_length = 0;
   state->packet_offset = 0;
@@ -1644,41 +1663,357 @@ void nanotube_tap_packet_resize_egress_core(
   __attribute__((always_inline))
 #endif
 {
-  bool new_req = state->new_req;
-  nanotube_tap_offset_t output_insert_start =
-    (new_req ? cword->output_insert_start : packet_word_length);
-  nanotube_tap_offset_t output_insert_end =
-    (new_req ? cword->output_insert_end : packet_word_length);
-  bool select_carried = (new_req ? cword->select_carried : 1);
-  bool push_2 = (new_req ? cword->push_2 : 0);
-
-  state->new_req = (push_2 == 0);
-  *input_done_out = (push_2 == 0);
-
-  // Rotate the input word so that it can be muxed into the output
-  // word or the word carried over to the next invocation.
-  uint8_t rot_input_data[packet_word_length];
-
-  nanotube_rotate_down(packet_word_length, packet_word_length,
-                       packet_word_length, packet_word_index_bits,
-                       rot_input_data, packet_data_in,
-                       cword->packet_rot);
-
 #if DEBUG_RESIZE_EG_TAP
-  std::cout << "cword: eop=" << unsigned(cword->eop)
-            << " word_length=" << unsigned(cword->word_length)
-            << " push_1=" << unsigned(cword->push_1)
-            << " push_2=" << unsigned(push_2)
+  std::cout << "Resize egress invoked:"
+            << " unshifted_len=" << cword->unshifted_len
+            << " shifted_start=" << cword->shifted_start
+            << " word_end=" << cword->word_end
+            << " output_limit=" << cword->output_limit
+            << " eop=" << int(cword->eop)
+            << "\n"
+            << "  Old state:"
+            << " new_word=" << int(state->new_word)
+            << " eop_seen=" << int(state->eop_seen)
+            << " did_output=" << int(state->did_output)
+            << " prev_word_end=" << state->prev_word_end
+            << " prev_word_end_adv1=" << state->prev_word_end_adv1
+            << " prev_word_end_adv2=" << state->prev_word_end_adv2
+            << " carried_unshifted_len=" << state->carried_unshifted_len
+            << " carried_shifted_start=" << state->carried_shifted_start
+            << " carried_word_end=" << state->carried_word_end
             << "\n";
 #endif
 
-  *word_eop_out = push_2 ? bool(0) : cword->eop;
-  *word_length_out = push_2 ? packet_word_length : cword->word_length;
+  //
+  // The flow control sub-stage.
+  //
 
-  uint8_t selected_data[packet_word_length];
-  memcpy(selected_data, packet_data_in, packet_word_length);
-  if (select_carried != 0)
-    memcpy(selected_data, carried_data, packet_word_length);
+  bool new_word = state->new_word;
+  bool sop = new_word && state->eop_seen;
+
+  // Work out the end offset of this word.
+  nanotube_tap_offset_t output_word_end;
+  nanotube_tap_offset_t output_word_end_adv1;
+  nanotube_tap_offset_t output_word_end_adv2;
+  nanotube_tap_offset_t output_word_start;
+  if (sop) {
+    // The old packet is complete, so start at the end of the first
+    // word.
+    output_word_end      = 1 * packet_word_length;
+    output_word_end_adv1 = 2 * packet_word_length;
+    output_word_end_adv2 = 3 * packet_word_length;
+
+  } else if (state->did_output) {
+    // Continuing a packet and a word was output, so advance to the
+    // next word.
+    output_word_end      = state->prev_word_end_adv1;
+    output_word_end_adv1 = state->prev_word_end_adv2;
+    output_word_end_adv2 = ( state->prev_word_end_adv2 +
+                             packet_word_length );
+
+  } else {
+    // Continuing a packet but no word was output, so stay with the
+    // old counter.
+    output_word_end      = state->prev_word_end;
+    output_word_end_adv1 = state->prev_word_end_adv1;
+    output_word_end_adv2 = state->prev_word_end_adv2;
+  }
+  output_word_start = output_word_end - packet_word_length;
+
+  // Indicates that we will push a word during this call.
+  bool do_output = (output_word_end <= cword->output_limit);
+
+  // Indicates that this call completes the handling of the input
+  // word.
+  bool word_done = (output_word_end_adv1 > cword->output_limit);
+
+  // Indicates that this output word is the end of packet.
+  bool eop = word_done && cword->eop;
+
+  *input_done_out = word_done;
+  *word_eop_out = eop;
+
+  // Update the state.
+  state->new_word           = word_done;
+  state->eop_seen           = cword->eop;
+  state->did_output         = do_output;
+  state->prev_word_end      = output_word_end;
+  state->prev_word_end_adv1 = output_word_end_adv1;
+  state->prev_word_end_adv2 = output_word_end_adv2;
+
+  //
+  // The tracker sub-stage.
+  //
+
+  // Work out how the unshifted bytes are being transferred.
+
+  nanotube_tap_offset_t input_unshifted_len = cword->unshifted_len;
+  nanotube_tap_offset_t carried_in_unshifted_len =
+    (sop ? 0 : state->carried_unshifted_len);
+
+  nanotube_tap_offset_t output_unshifted_len;
+
+  bool input_any_unshifted = (cword->unshifted_len != 0);
+
+  if (!do_output) {
+    if (input_any_unshifted) {
+      // No word is being output and there are unshifted bytes in the
+      // input word.  Store them in the carried word.
+      state->carried_unshifted_len = input_unshifted_len;
+
+    } else {
+      // No word is being output and there are no unshifted bytes in
+      // the input word.  Keep the carried unshifted bytes if there
+      // are any.
+    }
+
+  } else { // do_output==true
+    // A word is being output, so all the unshifted bytes will be
+    // output and none will be carried.
+    state->carried_unshifted_len = 0;
+  }
+
+  output_unshifted_len = ( (new_word && input_any_unshifted)
+                           ? input_unshifted_len
+                           : carried_in_unshifted_len );
+
+  // Work out how the shifted bytes are being transferred.
+
+  nanotube_tap_offset_t input_shifted_start = cword->shifted_start;
+  nanotube_tap_offset_t input_word_end = cword->word_end;
+
+  assert(input_shifted_start <= input_word_end);
+  assert(input_word_end - input_shifted_start <= packet_word_length);
+
+  nanotube_tap_offset_t carried_in_shifted_start =
+    (sop ? packet_word_length : state->carried_shifted_start);
+
+  nanotube_tap_offset_t carried_in_word_end =
+    (sop ? packet_word_length : state->carried_word_end);
+
+  bool input_any_shifted =
+    (input_shifted_start != input_word_end);
+
+  bool input_all_shifted =
+    (input_word_end - input_shifted_start == packet_word_length);
+
+  if (!do_output) {
+    if (input_any_shifted) {
+      // No word is being output and there are shifted bytes in the
+      // input word.  Store them in the carried word.
+      state->carried_shifted_start = input_shifted_start;
+      state->carried_word_end = input_word_end;
+
+    } else if (sop) {
+      // No word is being output, there are no shifted bytes in the
+      // input and this is the start of a packet.  Clear the carried
+      // word left over from the previous packet.
+      state->carried_shifted_start = output_word_end;
+      state->carried_word_end = output_word_end;
+
+    } else {
+      // No word is being output, there are no shifted bytes in the
+      // input word and this is not the start of a packet.  Keep the
+      // carried shifted bytes if there are any.
+    }
+
+  } else { // do_output==true
+    if (input_all_shifted) {
+      // A word is being output and the input word starts with a
+      // shifted byte.  Any shifted bytes beyond the end of the output
+      // word will be carried.
+      state->carried_shifted_start = output_word_end;
+      state->carried_word_end = input_word_end;
+
+    } else {
+      // A word is being output and the input word does not start with
+      // a shifted byte.  Split the shifted bytes in the input word
+      // between the output word and the carried word.
+      if (output_word_end <= input_shifted_start) {
+        // All the bytes are carried.
+        state->carried_shifted_start = input_shifted_start;
+
+      } else if (output_word_end <= input_word_end) {
+        // Some bytes are carried.
+        state->carried_shifted_start = output_word_end;
+
+      } else {
+        // None of the bytes are carried.
+        state->carried_shifted_start = input_word_end;
+      }
+      state->carried_word_end = input_word_end;
+    }
+  }
+
+  // Work out how many bytes to keep in the carried word.  The
+  // unshifted bytes can only come from one place and the shifted
+  // bytes also.  We just need to work out where they should come
+  // from.
+  nanotube_tap_offset_t carried_keep_len;
+
+  if (sop) {
+    // This is the first word of the packet.  Do not keep any bytes
+    // because they come from a different packet.  This is important
+    // to avoid leaking information between packets.
+    carried_keep_len = 0;
+
+  } else if (do_output) {
+    // A word is being output.  No unshifted bytes need to be kept and
+    // any shifted bytes come from the input word.
+    carried_keep_len = 0;
+
+  } else if (input_any_unshifted || input_any_shifted) {
+    // No word is being output and there are bytes to store from the
+    // input word.  Keep any unshifted bytes which are already in the
+    // carried word.  There cannot be any shifted bytes in the carried
+    // word here because if there were then the input packet word
+    // would be full of shifted bytes, causing the carried word to be
+    // flushed out.
+    assert(carried_in_shifted_start == carried_in_word_end);
+    carried_keep_len = carried_in_unshifted_len;
+
+  } else {
+    // No word is being output and there are no bytes to store from
+    // the input word.  Keep all the carried word.  This is needed
+    // when inserting a whole word of zeros.
+    carried_keep_len = packet_word_length;
+  }
+
+  //
+  // The carry sub-stage.
+  //
+
+  // Concatenate the incoming carried word and input packet word for
+  // the shifter.  The incoming carried word stored here is also used
+  // as the source of unshifted bytes when they should come from the
+  // carried word.
+  uint8_t concat_data[2*packet_word_length];
+
+  memcpy(concat_data, carried_data, packet_word_length);
+  memcpy(concat_data+packet_word_length, packet_data_in,
+         packet_word_length);
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Carried in: "
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(carried_data[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+  std::cout << "  Packet in:  "
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(packet_data_in[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+#endif
+
+  // Work out which bytes to keep.
+  enum byte_class carried_classes[packet_word_length];
+  nanotube_classify_entries(
+    packet_word_length,
+    packet_word_index_bits,
+    carried_classes,
+    0,
+    carried_keep_len);
+
+  for (unsigned i=0; i<packet_word_length; i++) {
+    if (carried_classes[i] == BYTE_CLASS_AFTER) {
+      // After carried_keep_len, so copy the byte from the input.
+      carried_data[i] = packet_data_in[i];
+    }
+  }
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Carried out:"
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(carried_data[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+#endif
+
+  //
+  // The shifter sub-stage.
+  //
+
+  bool carried_in_any_shifted =
+    (!sop && carried_in_shifted_start != carried_in_word_end);
+
+  // Work out the shift amount.
+  nanotube_tap_offset_t shift_amount;
+  nanotube_tap_offset_t output_shifted_start;
+  if (carried_in_any_shifted) {
+    // There are shifted bytes in the carried word.  Make sure they
+    // are aligned because if any shifted bytes are included then the
+    // ones from the carried word will be.  Note that the shifted
+    // bytes are always anchored to the end of a word, so we find the
+    // difference between the end offsets here.
+    shift_amount = output_word_end - carried_in_word_end;
+    output_shifted_start = carried_in_shifted_start;
+
+  } else {
+    // There are no shifted bytes in the carried word.  Align shifted
+    // bytes from the input word if there are any.
+    shift_amount = output_word_end_adv1 - input_word_end;
+    output_shifted_start = input_shifted_start;
+  }
+
+  // Rotate the concatenated word so that it can be muxed into the
+  // output word.
+  uint8_t shifted_data[packet_word_length];
+
+  nanotube_rotate_down(packet_word_length,       // Output size
+                       2*packet_word_length,     // Rotate size
+                       2*packet_word_length,     // Input size
+                       1+packet_word_index_bits, // Rotate amount bits
+                       shifted_data,             // Output
+                       concat_data,              // Input
+                       shift_amount);            // Rotate amount
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Shifted:    "
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(shifted_data[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+#endif
+
+  //
+  // The combiner sub-stage.
+  //
+
+  // Select the unshifted data.
+  uint8_t unshifted_data[packet_word_length];
+  if (input_any_unshifted) {
+    // The unshifted bytes come from the input packet word.
+    memcpy(unshifted_data, packet_data_in, packet_word_length);
+  } else {
+    // The unshifted bytes come from the incoming carried word which
+    // is still stored in concat_data.
+    memcpy(unshifted_data, concat_data, packet_word_length);
+  }
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Unshifted:  "
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(unshifted_data[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+#endif
+
+  // Determine where the inserted bytes should be in the output packet
+  // word.
+  nanotube_tap_offset_t output_insert_start = output_unshifted_len;
+  nanotube_tap_offset_t output_insert_end =
+    (output_shifted_start - output_word_start);
 
   enum byte_class output_classes[packet_word_length];
   nanotube_classify_entries(
@@ -1688,50 +2023,93 @@ void nanotube_tap_packet_resize_egress_core(
     output_insert_start,
     output_insert_end);
 
-  // Multiplex the various sources to form the output word.
-#ifdef NANOTUBE_SYNTHESIS
-#pragma clang loop unroll(full)
-#endif
-  for(unsigned i=0; i<packet_word_length; i++) {
-    bool before_insert = output_classes[i] == BYTE_CLASS_BEFORE;
-    bool after_insert = output_classes[i] == BYTE_CLASS_AFTER;
-    word_data_out[i] = ( before_insert
-                         ? selected_data[i]
-                         : ( after_insert
-                             ? rot_input_data[i]
-                             : 0 ) );
-  }
-
-  enum byte_class carried_classes[packet_word_length];
-  nanotube_classify_entries(
-    packet_word_length,
-    packet_word_index_bits,
-    carried_classes,
-    cword->carried_insert_start,
-    cword->carried_insert_end);
-
-  // Multiplex the various sources to form the carried word.
-#ifdef NANOTUBE_SYNTHESIS
-#pragma clang loop unroll(full)
-#endif
-  for(unsigned i=0; i<packet_word_length; i++) {
-    bool before_insert = carried_classes[i] == BYTE_CLASS_BEFORE;
-    bool after_insert = carried_classes[i] == BYTE_CLASS_AFTER;
-    carried_data[i] = ( before_insert
-                        ? selected_data[i]
-                        : ( after_insert
-                            ? rot_input_data[i]
-                            : 0 ) );
-  }
-
-  if (cword->push_1) {
 #if DEBUG_RESIZE_EG_TAP
-    std::cout << "Output word: eop=" << unsigned(*word_eop_out)
-              << " length=" << unsigned(*word_length_out)
+  std::cout << "  Classes:   ";
+  for (int i=0; i<packet_word_length; i++) {
+    switch (output_classes[i]) {
+    case BYTE_CLASS_BEFORE: std::cout << "  B"; break;
+    case BYTE_CLASS_IN:     std::cout << "  I"; break;
+    case BYTE_CLASS_AFTER:  std::cout << "  A"; break;
+    default:                std::cout << "  ?"; break;
+    }
+  }
+  std::cout << "\n";
+#endif
+
+  // Multiplex the various sources to form the output word.
+  for(unsigned i=0; i<packet_word_length; i++) {
+    bool before_insert = (output_classes[i] == BYTE_CLASS_BEFORE);
+    bool after_insert = (output_classes[i] == BYTE_CLASS_AFTER);
+    word_data_out[i] = ( before_insert
+                         ? unshifted_data[i]
+                         : ( after_insert
+                             ? shifted_data[i]
+                             : 0 ) );
+#if DEBUG_RESIZE_EG_TAP && 0
+    std::cout << "  Combine "
+              << std::setw(2) << i << ":"
+              << " B=" << int(before_insert)
+              << " A=" << int(after_insert)
+              << std::setfill('0')
+              << " unshifted="
+              << std::hex << std::setw(2)
+              << int(unshifted_data[i])
+              << " shifted="
+              << std::hex << std::setw(2)
+              << int(shifted_data[i])
+              << " output="
+              << std::hex << std::setw(2)
+              << int(word_data_out[i])
+              << std::setfill(' ')
               << "\n";
 #endif
   }
-  *word_valid_out = cword->push_1;
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Packet out: "
+            << std::hex << std::setfill('0');
+  for (int i=0; i<packet_word_length; i++) {
+    std::cout << " " << std::setw(2) << int(word_data_out[i]);
+  }
+  std::cout << std::dec << std::setfill(' ')
+            << "\n";
+#endif
+
+  nanotube_tap_offset_t output_len = packet_word_length;
+  if (eop) {
+    // When eop is set, the output limit is (packet_word_length-1)
+    // more than the output packet length.
+    output_len = cword->output_limit - (output_word_end - 1);
+  }
+
+  *word_length_out = output_len;
+  *word_valid_out = do_output;
+
+#if DEBUG_RESIZE_EG_TAP
+  std::cout << "  Control:"
+            << " carried_keep_len=" << carried_keep_len
+            << " shift_amount=" << shift_amount
+            << " output_insert_start=" << output_insert_start
+            << " output_insert_end=" << output_insert_end
+            << "\n"
+            << "  Output:"
+            << " input_done_out=" << int(*input_done_out)
+            << " word_valid_out=" << int(*word_valid_out)
+            << " word_eop_out=" << int(*word_eop_out)
+            << " word_length_out=" << *word_length_out
+            << "\n"
+            << "  New state:"
+            << " new_word=" << int(state->new_word)
+            << " eop_seen=" << int(state->eop_seen)
+            << " did_output=" << int(state->did_output)
+            << " prev_word_end=" << state->prev_word_end
+            << " prev_word_end_adv1=" << state->prev_word_end_adv1
+            << " prev_word_end_adv2=" << state->prev_word_end_adv2
+            << " carried_unshifted_len=" << state->carried_unshifted_len
+            << " carried_shifted_start=" << state->carried_shifted_start
+            << " carried_word_end=" << state->carried_word_end
+            << "\n";
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////

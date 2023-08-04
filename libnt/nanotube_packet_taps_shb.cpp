@@ -193,7 +193,7 @@ void nanotube_tap_packet_resize_ingress_shb(
 
   auto *shbw_in = (softhub_bus::word*)packet_word_in;
 
-  if( state->new_req ) {
+  if( state->sop ) {
     state->packet_length = shbw_in->get_ch_length();
   }
 
@@ -204,7 +204,7 @@ void nanotube_tap_packet_resize_ingress_shb(
 
   *packet_length_out = state->packet_length - bytes_deleted + bytes_inserted;
 
-  nanotube_tap_offset_t packet_remaining_in = state->packet_length - state->packet_offset;
+  nanotube_tap_offset_t packet_remaining_in = state->packet_length - state->input_offset;
   bool eop_in = packet_remaining_in <= softhub_bus::data_bytes;
   nanotube_tap_offset_t word_length_in = (eop_in ? packet_remaining_in : softhub_bus::data_bytes);
 
