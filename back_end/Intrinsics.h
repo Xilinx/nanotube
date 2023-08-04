@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <string>
 
-/* NB: Putting a using namespace llvm line breaks comilation elsewhere, as
+/* NB: Putting a using namespace llvm line breaks compilation elsewhere, as
  * there is no way of un-using that namespace, so every file including this
  * will be then using namespace llvm. :-| */
 using llvm::ArrayRef;
@@ -50,7 +50,7 @@ namespace nanotube
   // to an intrinsic and which intrinsic if it is.  For a call to a
   // normal function or a non-call instruction it will return
   // Intrinsics::none.  It handles both Nanotube intrinsics and LLVM
-  // intrinsics.  Some LLVM intrinstics have their own enum value.
+  // intrinsics.  Some LLVM intrinsics have their own enum value.
   // For any other LLVM intrinsic it will return
   // Intrinsics::llvm_unknown.
   Intrinsics::ID get_intrinsic(const Instruction* insn);

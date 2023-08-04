@@ -739,7 +739,7 @@ Constant* create_nt_map_op(Module& m) {
 FunctionType* get_nt_map_op_send_ty(Module& m) {
   LLVMContext& c = m.getContext();
   /* NOTE: This is not an externally visible Nanotube API function, but the
-   * protoype looks like this:
+   * prototype looks like this:
    * void nanotube_map_op_send(nanotube_context_t* ctx,
    *                           nanotube_map_id_t * map,
    *                           enum map_access_t type, const uint8_t* key,
@@ -768,7 +768,7 @@ Constant* create_nt_map_op_send(Module& m) {
 FunctionType* get_nt_map_op_receive_ty(Module& m) {
   LLVMContext& c = m.getContext();
   /* NOTE: This is not an externally visible Nanotube API function, but the
-   * protoype looks like this:
+   * prototype looks like this:
    * size_t nanotube_map_op_receive(nanotube_context_t* ctx,
    *                              nanotube_map_id_t map,
    *                              uint8_t* data_out,
