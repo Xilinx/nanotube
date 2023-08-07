@@ -282,6 +282,15 @@ void packet_resize_test::add_in_byte(uint8_t val)
 void packet_resize_test::end_in_packet(bool err)
 {
   assert(m_in_word_fill != 0);
+
+  // Fill the padding with a random byte.  This is to make sure these
+  // bytes do not get included in the output.  Make them all the same
+  // to make them visually distinct.
+  uint8_t val = rand() & 0xff;
+  for (int i=m_in_word_fill; i<simple_bus::data_bytes; i++) {
+    m_in_word.data_ptr()[i] = val;
+  }
+
   simple_bus::empty_t empty = simple_bus::data_bytes - m_in_word_fill;
   m_in_word.set_control(true, err, empty);
   m_dut_packet_in_strm.push_back(m_in_word);
