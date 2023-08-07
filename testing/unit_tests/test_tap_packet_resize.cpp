@@ -631,8 +631,8 @@ int main(int argc, char **argv)
   for(unsigned i=0; i<64; i++) {
     nanotube_tap_offset_t packet_length;
     nanotube_tap_offset_t edit_offset;
-    nanotube_tap_offset_t delete_length = (rand() % 65);
-    nanotube_tap_offset_t insert_length = (rand() % 65);
+    nanotube_tap_offset_t delete_length = (rand() % 257);
+    nanotube_tap_offset_t insert_length = (rand() % 257);
     unsigned r = rand();
     if (r & 1) {
       packet_length = (rand() % (MTU-60)) + 60;
