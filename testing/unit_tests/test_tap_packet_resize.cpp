@@ -427,23 +427,27 @@ void packet_resize_test::compare()
 
     if (dut_word.get_eop() != exp_word.get_eop()) {
       if (dut_word.get_eop())
-        std::cerr << "Received unexpected EOP at word " << word_index << "\n";
+        std::cerr << "ERROR: Received unexpected EOP at word "
+                  << word_index << "\n";
       else
-        std::cerr << "Did not receive EOP at word " << word_index << "\n";
+        std::cerr << "ERROR: Did not receive EOP at word "
+                  << word_index << "\n";
       test_failed = true;
     }
 
     if (exp_word.get_eop() && dut_word.get_eop()) {
       if (dut_word.get_err() != exp_word.get_err()) {
         if (dut_word.get_err())
-          std::cerr << "Received unexpected ERR at word " << word_index << "\n";
+          std::cerr << "ERROR: Received unexpected ERR at word "
+                    << word_index << "\n";
         else
-          std::cerr << "Did not receive ERR at word " << word_index << "\n";
+          std::cerr << "ERROR: Did not receive ERR at word "
+                    << word_index << "\n";
         test_failed = true;
       }
 
       if (dut_word.get_empty() != exp_word.get_empty()) {
-        std::cerr << "Received word " << word_index
+        std::cerr << "ERROR: Received word " << word_index
                   << " had " << (int)dut_word.get_empty()
                   << " empty bytes but expected "
                   << (int)exp_word.get_empty() << "\n";
@@ -456,7 +460,7 @@ void packet_resize_test::compare()
     nanotube_tap_offset_t word_fill = ( simple_bus::data_bytes - empty );
     for(nanotube_tap_offset_t i=0; i<word_fill; i++) {
       if (dut_word.data_ptr()[i] != exp_word.data_ptr()[i]) {
-        std::cerr << "Received word " << word_index
+        std::cerr << "ERROR: Received word " << word_index
                   << " had data mismatch at byte " << i << "\n";
         std::stringstream ss;
         ss << "  Expected word:";
@@ -480,13 +484,13 @@ void packet_resize_test::compare()
   }
 
   if (!m_dut_packet_out_strm.empty()) {
-    std::cerr << "Received " << m_dut_packet_out_strm.size()
+    std::cerr << "ERROR: Received " << m_dut_packet_out_strm.size()
               << " too many word.\n";
     test_failed = true;
   }
 
   if (!m_exp_packet_out.empty()) {
-    std::cerr << "Received " << m_exp_packet_out.size()
+    std::cerr << "ERROR: Received " << m_exp_packet_out.size()
               << " too few word.\n";
     test_failed = true;
   }
