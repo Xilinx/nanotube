@@ -36,7 +36,7 @@ void nanotube_tap_packet_length_bus(
   const uint8_t *packet_word_in,
   nanotube_tap_offset_t packet_word_len,
   const struct nanotube_tap_packet_length_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -94,7 +94,7 @@ void nanotube_tap_packet_read_bus(
   const uint8_t *packet_word_in,
   nanotube_tap_offset_t packet_word_len,
   const struct nanotube_tap_packet_read_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -161,7 +161,7 @@ void nanotube_tap_packet_write_bus(
   const struct nanotube_tap_packet_write_req *req_in,
   const uint8_t *request_bytes_in,
   const uint8_t *request_mask_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -228,7 +228,7 @@ void nanotube_tap_packet_resize_ingress_bus(
   nanotube_tap_packet_resize_req_t *resize_req_in,
   uint8_t *packet_word_in,
   nanotube_tap_offset_t packet_word_len)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -298,7 +298,7 @@ void nanotube_tap_packet_resize_egress_bus(
   uint8_t *packet_word_in,
   nanotube_tap_offset_t packet_word_len,
   nanotube_tap_offset_t new_packet_len)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {

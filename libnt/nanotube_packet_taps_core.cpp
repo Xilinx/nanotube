@@ -54,7 +54,7 @@ void nanotube_rotate_down(
   /* Inputs. */
   const uint8_t *buffer_in,
   uint16_t rot_amount)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -86,7 +86,7 @@ void nanotube_rotate_down(
   std::cout << "\n";
 #endif
 
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (index = 0; index < rot_buffer_length; index++) {
@@ -95,7 +95,7 @@ void nanotube_rotate_down(
 
   /* Perform each stage of the rotation, each corresponding with a
    * single bit of the rotation amount and starting with the MSB. */
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (stage = 0; stage < rot_amount_bits; stage++) {
@@ -125,7 +125,7 @@ void nanotube_rotate_down(
               << "\n";
 #endif
 
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
     for (index = 0; index < rot_buffer_length; index++) {
@@ -153,7 +153,7 @@ void nanotube_rotate_down(
 #if DEBUG_ROTATE_DOWN
   std::cout << "Output buffer:\n";
 #endif
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (index = 0; index < buffer_out_length; index++) {
@@ -213,7 +213,7 @@ static void nanotube_classify_entries(
   /* Inputs. */
   uint16_t start_offset,
   uint16_t end_offset)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -268,7 +268,7 @@ static void nanotube_classify_entries(
   };
   uint8_t row_class[row_count];
   uint16_t row_index;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (row_index = 0; row_index < row_count; row_index++) {
@@ -299,7 +299,7 @@ static void nanotube_classify_entries(
   uint16_t start_column = (start_offset % column_count);
   uint16_t end_column = (end_offset % column_count);
   uint16_t column_index;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (column_index = 0; column_index < column_count; column_index++) {
@@ -318,7 +318,7 @@ static void nanotube_classify_entries(
 #endif
 
   int index;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (index = 0; index < result_buffer_length; index++) {
@@ -379,11 +379,11 @@ void nanotube_shift_down_bits(uint32_t buffer_out_length,
                               uint8_t *buffer_out,
                               const uint8_t *buffer_in,
                               uint8_t shift_amount)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (uint32_t index = 0; index < buffer_out_length; index++) {
@@ -400,7 +400,7 @@ void nanotube_duplicate_bits(uint8_t *dup_bits_out,
                              const uint8_t *bit_vec_in,
                              uint32_t input_bit_length,
                              uint32_t padded_bit_length)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -420,7 +420,7 @@ void nanotube_duplicate_bits(uint8_t *dup_bits_out,
             << '\n';
 #endif
 
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   /* Write each output byte once. */
@@ -547,7 +547,7 @@ void nanotube_tap_packet_length_core(
   bool packet_word_eop,
   uint16_t packet_word_length,
   const struct nanotube_tap_packet_length_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -594,7 +594,7 @@ void nanotube_tap_packet_read_core(
   bool packet_word_eop,
   uint16_t packet_word_length,
   const struct nanotube_tap_packet_read_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -621,7 +621,7 @@ void nanotube_tap_packet_read_core(
             << uint32_t(packet_word_eop) << ", word_len="
             << uint32_t(packet_word_length) << ".\n";
   std::cout << "  Word in:" << std::setfill('0') << std::hex;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (uint32_t idx=0; idx<packet_buffer_length; idx++) {
@@ -672,7 +672,7 @@ void nanotube_tap_packet_read_core(
 
 #if DEBUG_PACKET_READ
   std::cout << "  Rotated: " << std::setfill('0') << std::hex;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (uint32_t idx=0; idx<sizeof(rot_buffer); idx++) {
@@ -734,7 +734,7 @@ void nanotube_tap_packet_read_core(
     result_end_offset);
 
   int index;
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (index = 0; index < result_buffer_length; index++) {
@@ -780,7 +780,7 @@ void nanotube_tap_packet_write_core(
   const struct nanotube_tap_packet_write_req *req_in,
   const uint8_t *request_bytes_in,
   const uint8_t *request_mask_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -1057,7 +1057,7 @@ void nanotube_tap_packet_write_core(
     frag_end_word_offset);
 
   /* Write the packet buffer. */
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for (uint16_t index=0; index<packet_buffer_length; index++) {
@@ -1200,7 +1200,7 @@ void nanotube_tap_packet_write_core(
 void nanotube_tap_packet_resize_ingress_state_init(
   /* Outputs. */
   nanotube_tap_packet_resize_ingress_state_t *state)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -1234,7 +1234,7 @@ void nanotube_tap_packet_resize_ingress_core(
   nanotube_tap_packet_resize_req_t *resize_req_in,
   nanotube_tap_offset_t word_length_in,
   bool word_eop_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -1384,7 +1384,7 @@ void nanotube_tap_packet_resize_ingress_core(
   else
     edit_input_start_offset = unshifted_input_end_offset;
 
-#ifndef __clang__
+#ifndef NANOTUBE_SYNTHESIS
   assert(edit_input_start_offset <= word_length_in);
 #endif
 
@@ -1400,7 +1400,7 @@ void nanotube_tap_packet_resize_ingress_core(
     edit_input_end_offset = ( edit_input_start_offset +
                               state->edit_delete_length );
 
-#ifndef __clang__
+#ifndef NANOTUBE_SYNTHESIS
   assert(edit_input_end_offset <= word_length_in);
 #endif
 
@@ -1469,7 +1469,7 @@ void nanotube_tap_packet_resize_ingress_core(
   else
     shifted_input_start_offset = edit_input_end_offset;
 
-#ifndef __clang__
+#ifndef NANOTUBE_SYNTHESIS
   assert(shifted_input_start_offset <= word_length_in);
 #endif
 
@@ -1611,7 +1611,7 @@ void nanotube_tap_packet_resize_ingress_core(
 void nanotube_tap_packet_resize_egress_state_init(
   /* Outputs. */
   nanotube_tap_packet_resize_egress_state_t *state)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -1640,7 +1640,7 @@ void nanotube_tap_packet_resize_egress_core(
   /* Inputs. */
   nanotube_tap_packet_resize_cword_t *cword,
   uint8_t *packet_data_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -1689,7 +1689,7 @@ void nanotube_tap_packet_resize_egress_core(
     output_insert_end);
 
   // Multiplex the various sources to form the output word.
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for(unsigned i=0; i<packet_word_length; i++) {
@@ -1711,7 +1711,7 @@ void nanotube_tap_packet_resize_egress_core(
     cword->carried_insert_end);
 
   // Multiplex the various sources to form the carried word.
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
 #pragma clang loop unroll(full)
 #endif
   for(unsigned i=0; i<packet_word_length; i++) {

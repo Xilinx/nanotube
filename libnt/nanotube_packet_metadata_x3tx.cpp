@@ -15,7 +15,7 @@
 #include "x3tx_bus.hpp"
 
 #include <cstddef>
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 void
@@ -25,7 +25,7 @@ nanotube_packet_set_port_x3tx(nanotube_packet_t* packet,
   // Not yet supported.  No metadata on X3TX to store the port in
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t

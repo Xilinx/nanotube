@@ -16,7 +16,7 @@
 
 #include <cstddef>
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 void
@@ -33,7 +33,7 @@ nanotube_packet_set_port_shb(nanotube_packet_t* packet,
                                softhub_bus::CH_ROUTE_RAW_PKT_LENGTH);
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t

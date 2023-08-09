@@ -11,7 +11,7 @@
 **************************************************************************/
 #include "nanotube_api.h"
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 uint64_t nanotube_get_time_ns(void) {

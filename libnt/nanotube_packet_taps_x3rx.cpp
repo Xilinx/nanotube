@@ -23,7 +23,7 @@
 
 static inline
 uint16_t x3rx_valid_data_bytes(const x3rx_bus::word* x3rxw_in, uint8_t *data_eop_seen)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -64,7 +64,7 @@ void nanotube_tap_packet_length_x3rx(
   /* Inputs. */
   const void *packet_word_in,
   const struct nanotube_tap_packet_length_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -103,7 +103,7 @@ void nanotube_tap_packet_read_x3rx(
   /* Inputs. */
   const void *packet_word_in,
   const struct nanotube_tap_packet_read_req *req_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -148,7 +148,7 @@ void nanotube_tap_packet_write_x3rx(
   const struct nanotube_tap_packet_write_req *req_in,
   const uint8_t *request_bytes_in,
   const uint8_t *request_mask_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -213,7 +213,7 @@ void nanotube_tap_packet_resize_ingress_x3rx(
   /* Inputs. */
   nanotube_tap_packet_resize_req_t *resize_req_in,
   void *packet_word_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -258,7 +258,7 @@ void nanotube_tap_packet_resize_egress_x3rx(
   nanotube_tap_packet_resize_cword_t *cword,
   void *packet_word_in,
   nanotube_tap_offset_t new_packet_len)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -301,7 +301,7 @@ bool nanotube_tap_packet_is_eop_x3rx(
   const void *packet_word_in,
   struct nanotube_tap_packet_eop_state *state_inout
 )
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {

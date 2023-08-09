@@ -20,7 +20,7 @@
 #define DONT_INLINE_NANOTUBE_FUNCTIONS
 #include "nanotube_api.h"
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 size_t nanotube_packet_write(nanotube_packet_t* packet,
@@ -33,7 +33,7 @@ size_t nanotube_packet_write(nanotube_packet_t* packet,
   return nanotube_packet_write_masked(packet, data_in, all_one, offset, length);
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 void
@@ -56,7 +56,7 @@ nanotube_merge_data_mask(uint8_t* inout_data, uint8_t* inout_mask,
   }
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t

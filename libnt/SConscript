@@ -52,11 +52,14 @@ lib_sources = high_level_sources + low_level_sources + (
 
 env.Library('nanotube', lib_sources)
 
-high_level_env = env.Clone()
+bitfile_env = env.Clone()
+bitfile_env.Append(CCFLAGS=['-DNANOTUBE_SYNTHESIS'])
+
+high_level_env = bitfile_env.Clone()
 high_level_bcs = [high_level_env.BitFile(f) for f in high_level_sources]
 high_level_env.LlvmLink('nanotube_high_level.bc', high_level_bcs)
 
-low_level_env = env.Clone()
+low_level_env = bitfile_env.Clone()
 low_level_env.Append(CCFLAGS=['-Wno-gcc-compat', '-Wno-pass-failed'])
 low_level_bcs = [low_level_env.BitFile(f) for f in low_level_sources]
 low_level_env.LlvmLink('nanotube_low_level.bc', low_level_bcs)

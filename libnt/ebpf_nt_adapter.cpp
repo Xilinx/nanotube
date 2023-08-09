@@ -25,7 +25,7 @@
  * the map syscall documentation ("man bpf").
  */
 extern "C" {
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 int32_t map_op_adapter(nanotube_context_t* ctx, nanotube_map_id_t map_id,
@@ -45,7 +45,7 @@ int32_t map_op_adapter(nanotube_context_t* ctx, nanotube_map_id_t map_id,
   return -EINVAL;
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 int32_t packet_adjust_head_adapter(nanotube_packet_t* p, int32_t offset) {
@@ -59,7 +59,7 @@ int32_t packet_adjust_head_adapter(nanotube_packet_t* p, int32_t offset) {
   return success ? 0 : -1;
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 int32_t packet_adjust_meta_adapter(nanotube_packet_t* p, int32_t offset) {
@@ -73,7 +73,7 @@ int32_t packet_adjust_meta_adapter(nanotube_packet_t* p, int32_t offset) {
   return success ? 0 : -1;
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 nanotube_kernel_rc_t packet_handle_xdp_result(nanotube_packet_t* packet, int xdp_ret) {

@@ -18,7 +18,7 @@
 #include "nanotube_api.h"
 #include "nanotube_capsule.h"
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 size_t nanotube_map_read(nanotube_context_t* ctx, nanotube_map_id_t id,
@@ -30,7 +30,7 @@ size_t nanotube_map_read(nanotube_context_t* ctx, nanotube_map_id_t id,
                          NULL /* enables */, offset, data_length);
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 size_t nanotube_map_write(nanotube_context_t* ctx, nanotube_map_id_t id,
@@ -45,7 +45,7 @@ size_t nanotube_map_write(nanotube_context_t* ctx, nanotube_map_id_t id,
                          all_one,  offset, data_length);
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 void nanotube_map_process_capsule(nanotube_context_t *ctxt,

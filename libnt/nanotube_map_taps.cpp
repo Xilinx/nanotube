@@ -48,7 +48,7 @@ nanotube_tap_map_array_core_alloc(
   nanotube_map_width_t key_length,
   nanotube_map_width_t data_length,
   nanotube_map_depth_t capacity)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -74,7 +74,7 @@ nanotube_tap_map_array_core(
   uint8_t *key_in,
   uint8_t *data_in,
   enum map_access_t access)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -153,7 +153,7 @@ nanotube_tap_map_cam_core_alloc(
   nanotube_map_width_t key_length,
   nanotube_map_width_t data_length,
   nanotube_map_depth_t capacity)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -179,7 +179,7 @@ nanotube_tap_map_cam_core(
   uint8_t *key_in,
   uint8_t *data_in,
   enum map_access_t access)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -275,7 +275,7 @@ nanotube_tap_map_core_alloc(
   nanotube_map_width_t key_length,
   nanotube_map_width_t data_length,
   nanotube_map_depth_t capacity)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -318,7 +318,7 @@ nanotube_tap_map_core(
   uint8_t *key_in,
   uint8_t *data_in,
   enum map_access_t access)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -448,7 +448,7 @@ nanotube_tap_map_create(
   nanotube_map_width_t   data_length,
   nanotube_map_depth_t   capacity,
   unsigned int           num_clients)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -502,7 +502,7 @@ nanotube_tap_map_add_client(
   nanotube_channel_id_t  req_channel_id,
   nanotube_context_t    *resp_context,
   nanotube_channel_id_t  resp_channel_id)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -671,7 +671,7 @@ nanotube_tap_map_func(nanotube_context_t *context, void *data)
 
 void
 nanotube_tap_map_build(nanotube_tap_map_t *map)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -718,7 +718,7 @@ nanotube_tap_map_send_req(
   enum map_access_t access,
   uint8_t *key_in,
   uint8_t *data_in)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {
@@ -743,7 +743,7 @@ nanotube_tap_map_recv_resp(
 
   uint8_t *data_out,
   nanotube_map_result_t *result_out)
-#if __clang__
+#ifdef NANOTUBE_SYNTHESIS
   __attribute__((always_inline))
 #endif
 {

@@ -17,7 +17,7 @@
 
 #include <cstddef>
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 void
@@ -32,7 +32,7 @@ nanotube_packet_set_port_sb(nanotube_packet_t* packet,
   nanotube_packet_write_masked(packet, buffer, mask, offset, 1);
 }
 
-#ifdef __clang__
+#ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
 nanotube_capsule_class_t
