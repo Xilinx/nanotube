@@ -23,6 +23,8 @@ extern "C" {
 
 #define DEBUG_RESIZE_TAP 0
 
+#define MTU 1514
+
 /*************************************************************************/
 
 // The edit tap needs to copy each packet from the input stream to the
@@ -604,10 +606,10 @@ int main(int argc, char **argv)
     nanotube_tap_offset_t insert_length = (rand() % 65);
     unsigned r = rand();
     if (r & 1) {
-      packet_length = (rand() % (1514-60)) + 60;
-      edit_offset = (rand() % (1514-1)) + 1;
+      packet_length = (rand() % (MTU-60)) + 60;
+      edit_offset = (rand() % (MTU-1)) + 1;
     } else {
-      nanotube_tap_offset_t base = (rand() % (1514-64-60)) + 60;
+      nanotube_tap_offset_t base = (rand() % (MTU-64-60)) + 60;
       nanotube_tap_offset_t other = base + (rand() % 64);
       if (r & 2) {
         packet_length = base;
