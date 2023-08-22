@@ -1176,14 +1176,16 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
     todo.pop_back();
     LLVM_DEBUG(dbgs() << "Tracing value " << *v << '\n');
 
-    /* BitCasts don't change but propagate the offset */
-    if( isa<BitCastInst>(v) ) {
-      auto* bc = cast<BitCastInst>(v);
-      auto it = val_to_offset.find(bc->getOperand(0));
+    /* BitCast, IntToPtr and PtrToInt don't change 
+     * but propagate the offset */
+    if( isa<BitCastInst>(v) || isa<IntToPtrInst>(v) || 
+        isa<PtrToIntInst>(v) ) {
+      auto* ci = cast<CastInst>(v);
+      auto it = val_to_offset.find(ci->getOperand(0));
       assert(it != val_to_offset.end());
       offset = it->second;
-      LLVM_DEBUG(dbgs() << "Parsing BC " << *bc << " offset: " << offset
-                        << '\n');
+      LLVM_DEBUG(dbgs() << "Parsing CastInst " << *ci 
+                        << " offset: " << offset << '\n');
     }
 
     /* GEPs compute the constant offset and track it */
@@ -1200,8 +1202,29 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
       auto it = val_to_offset.find(gep->getPointerOperand());
       assert(it != val_to_offset.end());
       offset = it->second + gep_offs.getSExtValue();
-      LLVM_DEBUG(dbgs() << "Parsing GEP " << *gep << " offset: " << offset
-                        << '\n');
+      LLVM_DEBUG(dbgs() << "Parsing GEP " << *gep 
+                        << " offset: " << offset << '\n');
+    }
+
+    /* Handles arithmetic on integers known to be pointer values */ 
+    else if( isa<BinaryOperator>(v) ) {
+      auto* bo = cast<BinaryOperator>(v);
+      if ( bo->getOpcode() != Instruction::Add ) {
+        errs() << "IMPLEMENT ME: Other BinaryOperator instructions."
+               << "\nAborting!\n";
+        exit(1);
+      }
+      auto* cint = dyn_cast<ConstantInt>(bo->getOperand(1));
+      if( cint == nullptr ) {
+        errs() << "ERROR: Add " << *bo << " must have constant offset."
+               << "\nAborting!\n";
+        exit(1);
+      }
+      auto it = val_to_offset.find(bo->getOperand(0));
+      assert(it != val_to_offset.end());
+      offset = it->second + cint->getSExtValue();
+      LLVM_DEBUG(dbgs() << "Parsing BinOp " << *bo 
+                        << " offset: " << offset << '\n');
     }
 
     /* Loads from the context need manual conversion */
@@ -1322,7 +1345,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
       //auto* i2p = cast<IntToPtrInst>(v);
       ptr_targets.emplace_back(u);
       continue;
-    } else if( isa<BinaryOperator>(v) ) {
+    } else if( isa<BinaryOperator>(v) || isa<ICmpInst>(v) ) {
       /* Integer users will be fed ptr2int packet pointers. */
       //auto* bo = cast<BinaryOperator>(v);
       int_targets.emplace_back(u);
