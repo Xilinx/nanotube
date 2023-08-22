@@ -420,7 +420,19 @@ static raw_ostream& operator<<(raw_ostream& os, const merge_group& g) {
   return os;
 }
 
-static bool is_reachable(BasicBlock* from, BasicBlock* to);
+/**
+ * The reachability cache computes and caches the connectivity graph of the
+ * program and whether a basic block / instruction is reachable from
+ * another one.
+ */
+class reachability_cache_t {
+  public:
+    bool is_reachable(BasicBlock* from, BasicBlock* to);
+    bool is_reachable(Instruction* from, Instruction* to);
+  private:
+    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>>
+    cache;
+};
 
 struct optimise_requests : public FunctionPass {
   optimise_requests() : FunctionPass(ID) {
@@ -459,9 +471,10 @@ struct optimise_requests : public FunctionPass {
    * locations which are separated by a constant offset.
    *
    * \param prds        The vector of instructions to process.
+   * \param reach       A reachability cache for use by group_nt_calls
    * \param prd_groups  The output vector of merge groups.
    */
-  void group_nt_calls(const ivec_t& prds,
+  void group_nt_calls(const ivec_t& prds, reachability_cache_t& reach,
                       std::vector<merge_group>* prd_groups);
 
   DominatorTree* dt;
@@ -484,6 +497,8 @@ bool optimise_requests::runOnFunction(Function& f) {
    * basic-block analysis. */
   const bool function_level = true;
 
+  reachability_cache_t reach;
+
   if( function_level ) {
   /* Per Function style */
     LLVM_DEBUG(
@@ -499,7 +514,7 @@ bool optimise_requests::runOnFunction(Function& f) {
     ivec_t prds;
     collect_nt_calls(f, &prds, Intrinsics::packet_read);
     std::vector<merge_group> groups;
-    group_nt_calls(prds, &groups);
+    group_nt_calls(prds, reach, &groups);
 
     for( auto& g : groups )
       merge_packet_group(&g);
@@ -516,7 +531,7 @@ bool optimise_requests::runOnFunction(Function& f) {
       for( auto *i : prds )
         dbgs() << "  " << *i << '\n';
     );
-    group_nt_calls(prds, &groups);
+    group_nt_calls(prds, reach, &groups);
 
     LLVM_DEBUG(
       dbgs() << "Write merge groups:\n";
@@ -537,7 +552,7 @@ bool optimise_requests::runOnFunction(Function& f) {
       ivec_t prds;
       collect_nt_calls(bb, &prds, Intrinsics::packet_read);
       std::vector<merge_group> groups;
-      group_nt_calls(prds, &groups);
+      group_nt_calls(prds, reach, &groups);
       for( auto& g : groups )
         merge_packet_group(&g);
     }
@@ -1542,6 +1557,7 @@ static BasicBlock* find_nearest_common_dom(BasicBlock* a, BasicBlock* b,
 static bool
 split_group_unsupported_intermediate(merge_group* g,
                                      std::vector<merge_group>* out,
+                                     reachability_cache_t& reach,
                                      DominatorTree* dt,
                                      PostDominatorTree* pdt, bool to_front = true) {
   LLVM_DEBUG(dbgs() << "Checking "
@@ -1720,8 +1736,8 @@ split_group_unsupported_intermediate(merge_group* g,
      * that the dom_bb is not one of the access blocks, so the accesses are
      * fine where they are, in other BBs.  That means that even if block_bb
      * = dom_bb, we can use dom_bb here. */
-    bool between_acc_block = to_front ? is_reachable(block_bb, lowest_dom)
-                                      : is_reachable(lowest_dom, block_bb);
+    bool between_acc_block = to_front ? reach.is_reachable(block_bb, lowest_dom)
+                                      : reach.is_reachable(lowest_dom, block_bb);
     LLVM_DEBUG(dbgs() << "rev_dom: " << rev_dom << " between_acc_block: "
                       << between_acc_block << '\n');
     if( !block_doms && !between_acc_block ) {
@@ -1858,8 +1874,8 @@ split_group_unsupported_intermediate(merge_group* g,
 
           /* Case that needs thought: block_bb == dom_bb. See comment
            * above. It is safe. */
-          bool between = to_front ? is_reachable(block_bb, dom_bb)
-                                  : is_reachable(dom_bb, block_bb);
+          bool between = to_front ? reach.is_reachable(block_bb, dom_bb)
+                                  : reach.is_reachable(dom_bb, block_bb);
 
           LLVM_DEBUG(
             dbgs() << "  BB1: " << (*it)->getName()
@@ -1981,19 +1997,19 @@ split_group_unsupported_intermediate(merge_group* g,
   return true;
 }
 
-std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>>
-reachability_cache;
-static bool is_reachable(BasicBlock* from, BasicBlock* to) {
+bool reachability_cache_t::is_reachable(BasicBlock* from, BasicBlock* to) {
   /* NOTE: This is not really correct. If there is no loop around the BB,
    * then it is not reachable from itself. */
   if( from == to )
     return true;
 
-  auto it = reachability_cache.find(from);
-  if( it != reachability_cache.end() ) {
+  /* Check the set of reachable basic blocks from "from" */
+  auto it = cache.find(from);
+  if( it != cache.end() ) {
     return it->second.count(to);
   }
 
+  /* "from" does not have an entry -> compute all reachable blocks */
   std::unordered_set<BasicBlock*> visited, todo;
   todo.insert(from);
   while(!todo.empty()) {
@@ -2003,16 +2019,16 @@ static bool is_reachable(BasicBlock* from, BasicBlock* to) {
     for( auto* succ : successors(bb) ) {
       if( visited.count(succ) > 0 )
         continue;
-      reachability_cache[from].insert(succ);
+      cache[from].insert(succ);
       todo.insert(succ);
     }
     todo.erase(it);
   }
 
-  return reachability_cache[from].count(to) != 0;
+  return cache[from].count(to) != 0;
 }
 
-static bool is_reachable(Instruction* from, Instruction* to) {
+bool reachability_cache_t::is_reachable(Instruction* from, Instruction* to) {
   auto* from_bb = from->getParent();
   auto* to_bb   = to->getParent();
 
@@ -2029,7 +2045,9 @@ static bool is_reachable(Instruction* from, Instruction* to) {
   }
   return false;
 }
+
 static Instruction* group_insertion_point(const merge_group& g,
+                                          reachability_cache_t& reach,
                                           DominatorTree& dt,
                                           PostDominatorTree& pdt,
                                           bool to_front = true) {
@@ -2056,8 +2074,8 @@ static Instruction* group_insertion_point(const merge_group& g,
     //if( inst.comesBefore(ip) )
     bool llvm_fwd = isPotentiallyReachable(inst, ip, &dt);
     bool llvm_bwd = isPotentiallyReachable(ip, inst, &dt);
-    bool my_fwd = is_reachable(inst, ip);
-    bool my_bwd = is_reachable(ip, inst);
+    bool my_fwd = reach.is_reachable(inst, ip);
+    bool my_bwd = reach.is_reachable(ip, inst);
 
     if( my_fwd && my_bwd ) {
       errs() << "ERROR: Something fishy is going on. Instruction " << *ip
@@ -2075,6 +2093,7 @@ static Instruction* group_insertion_point(const merge_group& g,
 }
 
 void optimise_requests::group_nt_calls(const ivec_t& prds,
+                                       reachability_cache_t& reach,
                                        std::vector<merge_group>* prd_groups) {
   if( prds.size() == 0 )
     return;
@@ -2168,10 +2187,10 @@ void optimise_requests::group_nt_calls(const ivec_t& prds,
 
     /* Compute and check the insertion point for the merged access */
     bool to_front = (id == Intrinsics::packet_read);
-    g.insert_point = group_insertion_point(g, *dt, *pdt, to_front);
+    g.insert_point = group_insertion_point(g, reach, *dt, *pdt, to_front);
     LLVM_DEBUG(dbgs() << "Mergeability check for group " << g << '\n');
-    needs_split = split_group_unsupported_intermediate(&g, &groups, dt,
-                                                       pdt, to_front);
+    needs_split = split_group_unsupported_intermediate(&g, &groups, reach,
+                                                       dt, pdt, to_front);
     if( needs_split ) {
       LLVM_DEBUG(dbgs() << "Group must be split due to unsupported "
                         << "intermediate.\n");
