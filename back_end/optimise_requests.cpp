@@ -2015,6 +2015,7 @@ bool reachability_cache_t::is_reachable(BasicBlock* from, BasicBlock* to) {
   while(!todo.empty()) {
     auto it = todo.begin();
     auto* bb = *it;
+    todo.erase(it);
     visited.insert(bb);
     for( auto* succ : successors(bb) ) {
       if( visited.count(succ) > 0 )
@@ -2022,9 +2023,7 @@ bool reachability_cache_t::is_reachable(BasicBlock* from, BasicBlock* to) {
       cache[from].insert(succ);
       todo.insert(succ);
     }
-    todo.erase(it);
   }
-
   return cache[from].count(to) != 0;
 }
 
