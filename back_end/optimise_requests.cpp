@@ -2017,6 +2017,21 @@ bool reachability_cache_t::is_reachable(BasicBlock* from, BasicBlock* to) {
     auto* bb = *it;
     todo.erase(it);
     visited.insert(bb);
+
+    /* Shortcut: if we have computed all reachable blocks from "bb" already,
+     * we know that they are all also reachable from "from", and we don't
+     * need to manually inspect the successors. We also don't need to visit
+     * any of the reachable blocks again because their reachable set is
+     * part of "bb"'s reachable set. */
+    auto bb_reach = cache.find(bb);
+    if( bb_reach != cache.end() ) {
+      auto& reachables = bb_reach->second;
+      cache[from].insert(reachables.begin(), reachables.end());
+      visited.insert(reachables.begin(), reachables.end());
+      continue;
+    }
+
+    /* bb_reach == cache.end() */
     for( auto* succ : successors(bb) ) {
       if( visited.count(succ) > 0 )
         continue;
