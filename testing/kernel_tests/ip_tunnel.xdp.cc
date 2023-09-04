@@ -74,7 +74,7 @@ int ipt_memcmp(const void *p1, const void *p2, size_t n)
 }
 
 static __always_inline
-bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
+bool handle_arp(eth_header_t *eth, char *l3_header, char *end)
 {
   arp_header_t *arp = (arp_header_t*)l3_header;
   if (l3_header + sizeof(*arp) > end) {
@@ -98,8 +98,6 @@ bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
   memcpy(arp->arp_sha, local_mac, sizeof(arp->arp_sha));
 
   // Send the packet back to where it came from.
-  char *data = (char*)(uint64_t)(ctx->data);
-  eth_header_t *eth = (eth_header_t*)data;
   memcpy(eth->ether_daddr, eth->ether_saddr, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
 
@@ -125,8 +123,14 @@ bool handle_encap(struct xdp_md *ctx, char *end)
     return false;
   }
 
+  char *data = (char *)(uint64_t)ctx->data;
+  char *new_end = (char *)(uint64_t)ctx->data_end;
+  size_t min_size = sizeof(eth_header_t) + sizeof(ipv4_header_t) + sizeof(gre_header_t);
+  if (data + min_size > new_end)
+    return false;
+
   // Write the Ethernet header.
-  auto *eth = (eth_header_t*)(uint64_t)(ctx->data);
+  auto *eth = (eth_header_t*)data;
   memcpy(eth->ether_daddr, gre_ep_mac, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
   eth->ether_type_be16 = htobe16(ETHERTYPE_IP);
@@ -176,6 +180,9 @@ bool handle_encap(struct xdp_md *ctx, char *end)
 static __always_inline
 bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
 {
+  if ((char*)gre + sizeof(gre_header_t) > end)
+    return false;
+
   // Check the GRE header.
   if (gre->gre_flags != 0 || gre->gre_proto[0] != 0x08 ||
       gre->gre_proto[1] != 0x00) {
@@ -189,7 +196,12 @@ bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
     return false;
   }
 
-  auto *eth = (eth_header_t*)(uint64_t)(ctx->data);
+  char *data = (char *)(uint64_t)ctx->data;
+  char *new_end = (char *)(uint64_t)ctx->data_end;
+  if (data + sizeof(eth_header_t) > new_end)
+    return false;
+
+  auto *eth = (eth_header_t*)data;
   memcpy(eth->ether_daddr, router_mac, sizeof(eth->ether_daddr));
   memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
   eth->ether_type_be16 = htobe16(ETHERTYPE_IP);
@@ -198,10 +210,10 @@ bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
 }
 
 static __always_inline
-bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
+bool handle_icmp(eth_header_t *eth, ipv4_header_t *ip,
                  icmp_header_t *icmp, char *end)
 {
-  if ( (char*)icmp + sizeof(*icmp) > end) {
+  if ((char*)icmp + sizeof(*icmp) > end) {
     return false;
   }
 
@@ -242,8 +254,6 @@ bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
     memcpy(ip->ip_saddr, local_ip, sizeof(ip->ip_saddr));
 
     // Swap the Ethernet addresses.
-    char *data = (char*)(uint64_t)(ctx->data);
-    eth_header_t *eth = (eth_header_t*)data;
     memcpy(eth->ether_daddr, eth->ether_saddr, sizeof(eth->ether_daddr));
     memcpy(eth->ether_saddr, local_mac, sizeof(eth->ether_saddr));
     return true;
@@ -254,7 +264,7 @@ bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
 }
 
 static __always_inline
-bool handle_ip(xdp_md *ctx, char *l3_header, char *end)
+bool handle_ip(xdp_md *ctx, eth_header_t *eth, char *l3_header, char *end)
 {
   ipv4_header_t *ip = (ipv4_header_t*)l3_header;
   if (l3_header + sizeof(*ip) > end) {
@@ -300,7 +310,7 @@ bool handle_ip(xdp_md *ctx, char *l3_header, char *end)
   if (ip->ip_proto == IPPROTO_ICMP && daddr_is_local &&
       (ip->ip_frag_off & ~ntohs(IP_DF)) == 0) {
     auto *icmp = (icmp_header_t*)(ip+1);
-    return handle_icmp(ctx, ip, icmp, end);
+    return handle_icmp(eth, ip, icmp, end);
   }
 
   // Unrecognised.
@@ -330,14 +340,14 @@ int ip_tunnel(struct xdp_md *ctx)
 
   // Check the Ether-type.
   if (eth->ether_type_be16 == htobe16(ETHERTYPE_ARP)) {
-    if (handle_arp(ctx, l3_header, end))
+    if (handle_arp(eth, l3_header, end))
       return XDP_PASS;
     return XDP_DROP;
 
   }
 
   if (eth->ether_type_be16 == htobe16(ETHERTYPE_IP)) {
-    if (handle_ip(ctx, l3_header, end))
+    if (handle_ip(ctx, eth, l3_header, end))
       return XDP_PASS;
     return XDP_DROP;
   }
