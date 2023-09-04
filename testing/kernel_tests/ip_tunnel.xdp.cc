@@ -57,10 +57,8 @@ static const uint8_t gre_ep_ip[4] = { 192,168,1,1 };
 static const uint8_t remote_ip[3] = { 192,168,2 };
 
 
+static __always_inline
 int ipt_memcmp(const void *p1, const void *p2, size_t n)
-#if __clang__
-  __attribute__((always_inline))
-#endif
 {
   const char *s1 = (const char*)p1;
   const char *s2 = (const char*)p2;
@@ -75,14 +73,11 @@ int ipt_memcmp(const void *p1, const void *p2, size_t n)
   return 0;
 }
 
-static
+static __always_inline
 bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
-#if __clang__
-  __attribute__((always_inline))
-#endif
 {
   arp_header_t *arp = (arp_header_t*)l3_header;
-  if (end - l3_header < sizeof(*arp)) {
+  if (l3_header + sizeof(*arp) > end) {
     return false;
   }
 
@@ -115,11 +110,8 @@ bool handle_arp(struct xdp_md *ctx, char *l3_header, char *end)
   return true;
 }
 
-static
+static __always_inline
 bool handle_encap(struct xdp_md *ctx, char *end)
-#if __clang__
-  __attribute__((always_inline))
-#endif
 {
   int extra_size = sizeof(ipv4_header_t) + sizeof(gre_header_t);
 
@@ -181,11 +173,8 @@ bool handle_encap(struct xdp_md *ctx, char *end)
   return true;
 }
 
-static
+static __always_inline
 bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
-#if __clang__
-  __attribute__((always_inline))
-#endif
 {
   // Check the GRE header.
   if (gre->gre_flags != 0 || gre->gre_proto[0] != 0x08 ||
@@ -208,11 +197,11 @@ bool handle_decap(xdp_md *ctx, gre_header_t *gre, char *end)
   return true;
 }
 
-static
+static __always_inline
 bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
                  icmp_header_t *icmp, char *end)
 {
-  if ((end - (char*)icmp) < sizeof(*icmp)) {
+  if ( (char*)icmp + sizeof(*icmp) > end) {
     return false;
   }
 
@@ -264,14 +253,11 @@ bool handle_icmp(struct xdp_md *ctx, ipv4_header_t *ip,
   return false;
 }
 
-static
+static __always_inline
 bool handle_ip(xdp_md *ctx, char *l3_header, char *end)
-#if __clang__
-  __attribute__((always_inline))
-#endif
 {
   ipv4_header_t *ip = (ipv4_header_t*)l3_header;
-  if ((end - l3_header) < sizeof(*ip)) {
+  if (l3_header + sizeof(*ip) > end) {
     return false;
   }
 
@@ -329,7 +315,7 @@ int ip_tunnel(struct xdp_md *ctx)
 
   // Check that the packet is long enough for an Ethernet header.
   eth_header_t *eth = (eth_header_t*)data;
-  if (end - data < sizeof(*eth)) {
+  if (data + sizeof(*eth) > end) {
     return XDP_DROP;
   }
 
