@@ -523,6 +523,7 @@ void flow_conversion::flow(Instruction* inst) {
       auto* meta_new = new nt_meta();
       meta_nodes.push_back(meta_new);
       meta_new->is_map = meta->is_map;
+      meta_new->is_start = false;
 
       if( !meta->is_map ) {
         /* Packet needs the same base and no additional work */
