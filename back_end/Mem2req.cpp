@@ -513,7 +513,7 @@ void flow_conversion::flow(Instruction* inst) {
 
       meta        = it->second;
       auto* meta2 = it2->second;
-      assert(meta->is_map == meta->is_map);
+      assert(meta->is_map == meta2->is_map);
 
       /* Create a new select for the offset data */
       auto* select_new = ir.CreateSelect(select->getCondition(),
