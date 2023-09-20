@@ -459,7 +459,7 @@ void flow_conversion::flow(Instruction* inst) {
 
     case Instruction::ICmp: {
       /* ICmp either compares a packet pointer to the end of packet, or
-       * checkcks whether a map lookup found the key.
+       * checks whether a map lookup found the key.
        */
       auto* icmp = cast<ICmpInst>(inst);
       auto* rhs  = icmp->getOperand(1);
@@ -721,7 +721,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
         replacement = ir.getInt64(0);
         break;
       case Intrinsics::packet_end: {
-        /* Packet end pointer requests return thelength of the packet; that
+        /* Packet end pointer requests return the length of the packet; that
          * way all comparisons etc still work as expected. */
         auto* len = create_nt_packet_bounded_length(m);
         Value* args[] = {call->getOperand(0), ir.getInt64(32767)};
