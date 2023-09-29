@@ -53,7 +53,7 @@ lib_sources = high_level_sources + low_level_sources + (
 env.Library('nanotube', lib_sources)
 
 bitfile_env = env.Clone()
-bitfile_env.Append(CCFLAGS=['-DNANOTUBE_SYNTHESIS'])
+bitfile_env.Append(CCFLAGS=['-DNANOTUBE_SYNTHESIS', '-DNDEBUG'])
 
 high_level_env = bitfile_env.Clone()
 high_level_bcs = [high_level_env.BitFile(f) for f in high_level_sources]
