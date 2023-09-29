@@ -117,7 +117,7 @@ struct bpf_map_def SEC("maps") stats_map = {
 
 ///////////////////////////////////////////////////////////////////////////
 
-static
+static __always_inline
 stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
                  service_key_t *service_key_out)
 {
@@ -126,7 +126,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
 
   // Check that the packet is long enough for an Ethernet header.
   eth_header_t *eth = (eth_header_t*)data;
-  if (end - data < sizeof(*eth)) {
+  if (data + sizeof(*eth) > end) {
     return STATS_ID_MALFORMED;
   }
 
@@ -140,7 +140,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
   uint8_t ip_proto = 0;
   if (ether_type_be16 == htobe16(ETHERTYPE_IP)) {
     ipv4_header_t *ipv4 = (ipv4_header_t*)(eth+1);
-    if (end - (char*)ipv4 < sizeof(*ipv4)) {
+    if ((char*)ipv4 + sizeof(*ipv4) > end) {
       return STATS_ID_MALFORMED;
     }
 
@@ -153,7 +153,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
 
    } else if (ether_type_be16 == htobe16(ETHERTYPE_IPV6)) {
     ipv6_header_t *ipv6 = (ipv6_header_t*)(eth+1);
-    if (end - (char*)ipv6 < sizeof(*ipv6)) {
+    if ((char*)ipv6 + sizeof(*ipv6) > end) {
       return STATS_ID_MALFORMED;
     }
 
@@ -176,7 +176,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
   service_key_out->port_be16 = 0;
   if (ip_proto == IPPROTO_TCP) {
     tcp_header_t *tcp = (tcp_header_t*)l4_header;
-    if (end - (char*)tcp < sizeof(*tcp)) {
+    if ((char*)tcp + sizeof(*tcp) > end) {
       return STATS_ID_MALFORMED;
     }
 
@@ -184,7 +184,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
 
   } else if (ip_proto == IPPROTO_UDP) {
     udp_header_t *udp = (udp_header_t*)l4_header;
-    if (end - (char*)udp < sizeof(*udp)) {
+    if ((char*)udp + sizeof(*udp) > end) {
       return STATS_ID_MALFORMED;
     }
 
@@ -194,7 +194,7 @@ stats_id_t parse(struct xdp_md *ctx, source_key_t *source_key_out,
   return STATS_ID_UNKNOWN;
 }
 
-static
+static __always_inline
 int classify(stats_key_t *stats_key_out, const source_key_t *source_key,
              const service_key_t *service_key)
 {
