@@ -40,6 +40,15 @@ class dep_aware_converter {
       dep_counts.emplace(item, 0);
     }
 
+    void increase_deps(T *item, unsigned deps = 1) {
+      auto ins = dep_counts.emplace(item, 0);
+      auto it = ins.first;
+      bool ins_succ = ins.second;
+      if( !ins_succ && ( it->second == 0 ) && ( deps != 0 ) )
+        erase_ready(item);
+      it->second += deps;
+    }
+
     void insert(T *item, unsigned deps) {
       if( deps == 0)
         ready.push_back(item);
