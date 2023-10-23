@@ -235,16 +235,6 @@ get_proper_name(const Value* v, unsigned max_depth = 5) {
   return "";
 }
 
-void replace_all_uses_but(Value* val, Value* repl, Value* except) {
-  for( auto it = val->use_begin(); it != val->use_end(); ) {
-    auto& u = *it;
-    ++it;
-    if( u.getUser() != except )
-      u.set(repl);
-  }
-  assert(val->hasNUses(1));
-}
-
 /**
  * Checks if this function is a source of a pointer to map entry / packet
  */
