@@ -1291,6 +1291,8 @@ raw_ostream& operator<<(raw_ostream& os, const nt_meta& meta) {
 }
 
 bool mem_to_req::convert_to_req(Function& f) {
+  LLVM_DEBUG( dbgs() << "\nMem2req converting function '"
+                     << f.getName() << "'\n";);
   flow_conversion fc(f);
 
   std::vector<Instruction*> roots;
