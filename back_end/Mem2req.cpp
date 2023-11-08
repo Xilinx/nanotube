@@ -283,6 +283,7 @@ void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
         ai->size = call->getOperand(2);
         return;
       }
+      break;
     case Intrinsics::llvm_memcpy:
       ai->size = call->getOperand(2);
       if( op_idx == 0 ) {
