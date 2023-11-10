@@ -76,9 +76,10 @@ class dep_aware_converter {
     void execute(std::function<simple_callback_t> cb) {
       while( !ready.empty() ) {
         auto it = ready.begin();
-        if( cb )
-          cb(this, *it);
+        auto item = *it;
         ready.erase(it);
+        if( cb )
+          cb(this, item);
       }
       LLVM_DEBUG(
         if( !empty() ) {
