@@ -11,9 +11,12 @@
 **************************************************************************/
 #ifndef __DEP_AWARE_CONVERTER_H__
 #define __DEP_AWARE_CONVERTER_H__
+
+#include <algorithm>
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
+#include <vector>
 
 #include <llvm/IR/CFG.h>
 #include "llvm/Support/Debug.h"
@@ -29,45 +32,44 @@ namespace nanotube {
 template<typename T>
 class dep_aware_converter {
   public:
-    typedef std::unordered_set<T*> items_t;
-    typedef std::unordered_map<T*, unsigned> pending_t;
+    typedef std::vector<T*> ready_t;
+    typedef std::unordered_map<T*, unsigned> dep_counts_t;
 
     void insert_ready(T *item) {
-      ready.insert(item);
+      ready.push_back(item);
+      dep_counts.emplace(item, 0);
     }
 
     void insert(T *item, unsigned deps) {
       if( deps == 0)
-        insert_ready(item);
-      else
-        pending.emplace(item, deps);
+        ready.push_back(item);
+      dep_counts.emplace(item, deps);
     }
 
     void clear() {
       ready.clear();
-      pending.clear();
+      dep_counts.clear();
     }
 
     void erase(T* item) {
-      ready.erase(item);
-      pending.erase(item);
+      erase_ready(item);
+      dep_counts.erase(item);
     }
 
     bool contains(const T *item) {
-      return (ready.find(const_cast<T*>(item)) != ready.end()) ||
-             (pending.find(const_cast<T*>(item)) != pending.end());
+      auto it = dep_counts.find(const_cast<T*>(item));
+      return it != dep_counts.end();
     }
 
     void mark_dep_ready(const T *item) {
-      const auto it = pending.find(const_cast<T*>(item));
-      if( it == pending.end() ) {
+      const auto it = dep_counts.find(const_cast<T*>(item));
+      if( it == dep_counts.end() ) {
         errs() << "Dep-Aware Converter: Item " << *item
                << " not pending!\n";
         return;
       }
       if( --it->second == 0 ) {
-        insert_ready(it->first);
-        pending.erase(it);
+        ready.push_back(it->first);
       }
     }
 
@@ -75,46 +77,61 @@ class dep_aware_converter {
     typedef void simple_callback_t(dep_aware_converter<T>*, T*);
     void execute(std::function<simple_callback_t> cb) {
       while( !ready.empty() ) {
-        auto it = ready.begin();
-        auto item = *it;
-        ready.erase(it);
+        auto item = ready.back();
+        ready.pop_back();
+        dep_counts.erase(item);
         if( cb )
           cb(this, item);
       }
       LLVM_DEBUG(
         if( !empty() ) {
           dbgs() << "Dep-Aware Converter: Some items were not converted:\n";
-          for( auto& i : pending )
+          for( auto& i : dep_counts )
             dbgs() << "  " << *i.first << " Pending: " << i.second << '\n';
         }
       );
     }
 
     /* More complex style API that gives a ready list */
+    typedef std::unordered_set<T*> items_t;
     typedef void frontier_callback_t(dep_aware_converter<T>*,
                                      const items_t& candidates,
                                      items_t* processed);
     void execute(std::function<frontier_callback_t> cb) {
+      items_t ready_set;
       items_t processed;
+
       while( !ready.empty() ) {
-        cb(this, ready, &processed);
+        ready_set.clear();
+        ready_set.insert(ready.begin(), ready.end());
+
+        cb(this, ready_set, &processed);
 
         /* Remove the processed elements from the ready queue */
-        for( T* p : processed ) {
-          auto n_removed = ready.erase(p);
-          assert(n_removed == 1);
+        typename ready_t::size_type n_keep = 0;
+        for( typename ready_t::size_type i = 0; i < ready.size(); ++i ) {
+          auto item = ready[i];
+          if( processed.find(item) != processed.end() ) {
+            auto n_removed = dep_counts.erase(item);
+            assert(n_removed == 1);
+          } else {
+            ready[n_keep++] = item;
+          }
         }
+        assert(processed.size() == ready.size() - n_keep);
+        ready.resize(n_keep);
         processed.clear();
       }
       LLVM_DEBUG(
-        if( !pending.empty() ) {
+        if( !dep_counts.empty() ) {
           dbgs() << "Dep-Aware Converter: Some items were not converted:\n";
-          for( auto& i : pending )
+          for( auto& i : dep_counts )
             dbgs() << "  " << *i.first << " Pending: " << i.second << '\n';
         }
       );
     }
-    bool empty() { return ready.empty() && pending.empty(); }
+
+    bool empty() { return dep_counts.empty(); }
 
     /**
      * Simple helpers that initialise the dep-aware-converter from an
@@ -143,8 +160,14 @@ class dep_aware_converter {
     }
 
   private:
-    items_t   ready;
-    pending_t pending;
+    void erase_ready(T *item) {
+      auto it = std::find(ready.begin(), ready.end(), item);
+      if( it != ready.end() )
+        ready.erase(it);
+    }
+
+    ready_t      ready;
+    dep_counts_t dep_counts;
 };
 }; // namespace Nanotube
 
