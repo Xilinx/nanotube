@@ -13,18 +13,19 @@
 #include <string.h>
 #include "nanotube_api.h"
 
-int memset_test(nanotube_context_t *nt_ctx,
-                nanotube_packet_t *packet)
+nanotube_kernel_rc_t
+memset_test(nanotube_context_t *nt_ctx,
+            nanotube_packet_t *packet)
 {
   uint8_t* data = nanotube_packet_data(packet);
   uint8_t* end  = nanotube_packet_end(packet);
 
   if( end - data < 42 )
-    return -1;
+    return NANOTUBE_PACKET_DROP;
 
   memset(data, 0, 21);
   memset(data + 21, 0x0f, 21);
-  return 0;
+  return NANOTUBE_PACKET_PASS;
 }
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

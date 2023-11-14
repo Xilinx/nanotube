@@ -27,7 +27,7 @@ if.end:                                           ; preds = %entry
   br label %cleanup
 
 cleanup:                                          ; preds = %if.end, %entry
-  %retval.0 = phi i32 [ 0, %if.end ], [ -1, %entry ]
+  %retval.0 = phi i32 [ 0, %if.end ], [ 1, %entry ]
   ret i32 %retval.0
 }
 
