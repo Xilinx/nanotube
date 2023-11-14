@@ -784,7 +784,6 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
   call->eraseFromParent();
 
   meta_nodes.push_back(meta);
-  //val_to_meta.insert({i2p, meta});
   val_to_meta[i2p] = meta;
 
   one_dep_ready(i2p);
@@ -908,6 +907,7 @@ void flow_conversion::convert_call(CallInst* call) {
 
   /* Deal with map / packet pointer arguments */
   auto it = input_deps.find(call);
+  /* Examine the arguments if any of them are tracked pointers. */
   if( it != input_deps.end() ) {
     /* Check read / write pointer usage */
     for( unsigned i = 0; i < call->arg_size(); i++ ) {
