@@ -13,7 +13,7 @@
 #include <string.h>
 #include "nanotube_api.h"
 
-nanotube_kernel_rc_t
+static nanotube_kernel_rc_t
 memset_test(nanotube_context_t *nt_ctx,
             nanotube_packet_t *packet)
 {
