@@ -10,6 +10,17 @@ target triple = "x86_64-unknown-linux-gnu"
 %struct.nanotube_context = type opaque
 %struct.nanotube_packet = type opaque
 
+@.str = private unnamed_addr constant [5 x i8] c"prog\00", align 1
+
+; Function Attrs: uwtable
+define dso_local void @nanotube_setup() local_unnamed_addr #0 {
+entry:
+  tail call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str, i64 0, i64 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* nonnull @_Z11memset_testP16nanotube_contextP15nanotube_packet, i32 1, i32 0)
+  ret void
+}
+
+declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32) local_unnamed_addr #1
+
 ; Function Attrs: uwtable
 define dso_local i32 @_Z11memset_testP16nanotube_contextP15nanotube_packet(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr #0 {
 entry:

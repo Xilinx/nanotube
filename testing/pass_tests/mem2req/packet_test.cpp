@@ -28,4 +28,11 @@ memset_test(nanotube_context_t *nt_ctx,
   return NANOTUBE_PACKET_PASS;
 }
 
+void nanotube_setup(void)
+{
+  nanotube_add_plain_packet_kernel("prog", memset_test,
+                                   NANOTUBE_BUS_ID_SHB,
+                                   /*false*/0);
+}
+
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */
