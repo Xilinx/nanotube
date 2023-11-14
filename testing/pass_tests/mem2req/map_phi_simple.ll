@@ -26,7 +26,7 @@ define void @nanotube_setup() {
   ret void
 }
 
-define dso_local i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
+define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
   %entry_0 = call i8* @nanotube_map_lookup(%struct.nanotube_context* %nt_ctx, i16 0, i8* bitcast([4 x i8]* @key to i8*), i64 4, i64 8)
   %succ = icmp ne i8* %entry_0, null

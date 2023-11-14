@@ -31,7 +31,7 @@ define void @nanotube_setup() {
   ret void
 }
 
-define dso_local i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
+define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
   %_buffer = alloca i8
   %byte_0_buffer = alloca i8
