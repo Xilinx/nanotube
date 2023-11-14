@@ -91,6 +91,7 @@
 #include "Intrinsics.h"
 #include "Provenance.h"
 #include "Dep_Aware_Converter.h"
+#include "setup_func.hpp"
 
 #define DEBUG_TYPE "mem2req"
 #define VERBOSE_DEBUG
@@ -1283,13 +1284,13 @@ raw_ostream& operator<<(raw_ostream& os, const nt_meta& meta) {
 }
 
 static
-bool convert_to_req(Function& f) {
+bool convert_to_req(Function* f) {
   LLVM_DEBUG( dbgs() << "\nMem2req converting function '"
-                     << f.getName() << "'\n";);
-  flow_conversion fc(f);
+                     << f->getName() << "'\n";);
+  flow_conversion fc(*f);
 
   std::vector<Instruction*> roots;
-  collect_roots(f, &roots);
+  collect_roots(*f, &roots);
   compute_map_packet_inputs(roots, &fc.input_deps);
 
   /* Find those roots that are ready to convert */
@@ -1307,11 +1308,18 @@ bool convert_to_req(Function& f) {
     });
   return true;
 }
-bool mem_to_req::runOnFunction(Function& f) {
-  bool changes = false;
 
-  changes |= convert_to_req(f);
-  return changes;
+/*************************************************************************/
+
+bool mem_to_req::runOnModule(Module& m) {
+  setup_func setup(m);
+  bool any_changes = false;
+
+  for( auto &kernel: setup.kernels() ) {
+    any_changes |= kernel.modify(convert_to_req);
+  }
+
+  return any_changes;
 }
 
 char mem_to_req::ID = 0;

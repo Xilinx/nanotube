@@ -33,7 +33,7 @@ pass_opts = {
     'byteify' : '-byteify',
     'destruct': '-destruct',
     'ebpf2nt': '-codegenprepare -constprop -dce -ebpf2nanotube',
-    'mem2req' : '-mem2req',
+    'mem2req' : '-constprop -mem2req',
     'platform' : '-platform -always-inline -constprop',
     'control' : '-control-capsule -always-inline',
     'ntattr' : ( '-nt-attributes -O2' ),

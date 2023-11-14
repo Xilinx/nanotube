@@ -272,7 +272,24 @@ struct kernel_info
   kernel_index_t index() const {return m_idx;}
   CallBase *creator() const {return m_creator;}
   const add_plain_kernel_args &args() const {return m_args;}
+
+  typedef bool modify_func_t(Function *func);
+
+  // Safely modify the function which defines a kernel.  If the
+  // function is used for anything else then the function is cloned to
+  // avoid affecting those other users.
+  bool modify(std::function<modify_func_t> cb) {
+    Function *old_func = m_args.kernel;
+    modify_begin();
+    bool changed = cb(m_args.kernel);
+    modify_end(old_func, changed);
+    return changed;
+  }
+
 private:
+  void modify_begin();
+  void modify_end(Function *old_func, bool changed);
+
   kernel_index_t        m_idx;
   CallBase*             m_creator;
   add_plain_kernel_args m_args;
@@ -586,7 +603,7 @@ public:
     return get_map_info(m_context_infos[ctx_id].map_user_id_to_idx(uid));
   }
 
-  const kernel_info_vec_t &kernels() const {
+  kernel_info_vec_t &kernels() {
     return m_kernel_infos;
   }
 

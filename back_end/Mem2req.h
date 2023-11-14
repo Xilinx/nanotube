@@ -36,10 +36,10 @@ namespace {
 
   using nanotube::dep_aware_converter;
 
-  struct mem_to_req : public llvm::FunctionPass {
+  struct mem_to_req : public llvm::ModulePass {
 
-    mem_to_req() : FunctionPass(ID) {}
-    bool runOnFunction(Function& f) override;
+    mem_to_req() : ModulePass(ID) {}
+    bool runOnModule(Module& m) override;
 
     static char ID;
   }; // struct mem_to_req

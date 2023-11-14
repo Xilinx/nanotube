@@ -33,7 +33,7 @@ step_specs = {
 
     # Steps which use opt.
     'ebpf2nt': ('opt', '-codegenprepare -constprop -dce -ebpf2nanotube'),
-    'mem2req' : ('opt', '-mem2req'),
+    'mem2req' : ('opt', '-constprop -mem2req'),
     'inline'  : ('opt', '-always-inline -constprop'),
     'platform' : ('opt', '-platform -always-inline -constprop'),
     'control' : ('opt', '-control-capsule -always-inline'),

@@ -62,6 +62,8 @@
 #include "Intrinsics.h"
 #include "utils.h"
 
+#include "llvm/Transforms/Utils/Cloning.h"
+
 #define DEBUG_TYPE "nanotube-setup"
 
 namespace nanotube {
@@ -388,6 +390,30 @@ kernel_info::kernel_info(kernel_index_t idx, CallBase *call,
            << " with call " << *call
            << " at idx " << idx << '\n';
   );
+}
+
+void kernel_info::modify_begin()
+{
+  if (!m_args.kernel->hasOneUse()) {
+    llvm::ValueToValueMapTy values;
+    m_args.kernel = CloneFunction(m_args.kernel, values);
+    m_args.kernel->setLinkage(Function::PrivateLinkage);
+  }
+}
+
+void kernel_info::modify_end(Function *old_func, bool changed)
+{
+  if (m_args.kernel != old_func) {
+    if (changed) {
+      // The function was changed.  Install it properly.
+      m_creator->setOperand(ADD_PLAIN_PACKET_KERNEL_FUNC_ARG,
+                            m_args.kernel);
+    } else {
+      // The function was not changed.  Delete the temporary one.
+      m_args.kernel->eraseFromParent();
+      m_args.kernel = old_func;
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////
