@@ -24,20 +24,20 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %old_val_buffer = alloca i32
-  %0 = bitcast i32* %old_val_buffer to i8*
   %_buffer = alloca i32
-  %1 = bitcast i32* %_buffer to i8*
+  %0 = bitcast i32* %_buffer to i8*
+  %old_val_buffer = alloca i32
+  %1 = bitcast i32* %old_val_buffer to i8*
   %2 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
   %3 = icmp ugt i64 8, %2
   br i1 %3, label %done, label %edit
 
 edit:                                             ; preds = %entry
-  %4 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %0, i64 4, i64 4)
+  %4 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %1, i64 4, i64 4)
   %5 = load i32, i32* %old_val_buffer
   %new_val = add i32 %5, 1
   store i32 %new_val, i32* %_buffer
-  %6 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %1, i64 4, i64 4)
+  %6 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %0, i64 4, i64 4)
   br label %done
 
 done:                                             ; preds = %edit, %entry
@@ -47,6 +47,6 @@ done:                                             ; preds = %edit, %entry
 
 declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
 
-declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)
-
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
+
+declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)

@@ -92,6 +92,7 @@
 #include "Provenance.h"
 #include "Dep_Aware_Converter.h"
 #include "setup_func.hpp"
+#include "utils.h"
 
 #define DEBUG_TYPE "mem2req"
 #define VERBOSE_DEBUG
@@ -252,19 +253,6 @@ bool is_nanotube_root(const Instruction& inst) {
   return is_map_pointer_source(&inst) || is_packet_pointer_source(&inst);
 }
 
-void collect_roots(Function& f, std::vector<Instruction*>* roots) {
-  std::vector<Instruction*> todo;
-  for( auto& bb : f ) {
-    for( auto& inst : bb) {
-      if( is_nanotube_root(inst) ) {
-        LLVM_DEBUG( dbgs() << "Instruction " << inst
-                           << " is a map / packet pointer source.\n");
-        roots->push_back(&inst);
-      }
-    }
-  }
-}
-
 enum {
   READ    = 1,
   WRITE   = 2,
@@ -309,17 +297,39 @@ void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
   ai->rwu  = UNKNOWN;
 }
 
-void flow_conversion::flow(Value* v) {
-  LLVM_DEBUG(dbgs() << "Flowing " << *v
-                    << " forward through the program.\n");
-  auto* inst = dyn_cast<Instruction>(v);
-  if( inst == nullptr ) {
-    errs() << "Unexpected non-instruction " << *v << '\n';
-    assert(false);
+void flow_conversion::flow(BasicBlock *bb) {
+  LLVM_DEBUG(
+    dbgs() << "Processing basic block: " << as_operand(bb) << "\n";
+  );
+
+  for( auto succ: successors(bb) ) {
+    dac.mark_dep_ready(succ);
   }
 
-  flow(inst);
+  for( auto it = bb->begin(); it != bb->end(); ) {
+    auto cur = it++;
+    Instruction &inst = *cur;
+
+    /* Check whether the instruction should be processed.  A call
+     * instruction will always be processed as is may produce a
+     * tracked pointer.  Other instructions are processed if they use
+     * a tracked pointer. */
+    if( !isa<CallBase>(&inst) ) {
+      bool any_tracked = false;
+      for( Use &use: inst.operands() ) {
+        auto it = val_to_meta.find(use.get());
+        if( it != val_to_meta.end() ) {
+          any_tracked = true;
+          break;
+        }
+      }
+      if (!any_tracked)
+        continue;
+    }
+    flow(&inst);
+  }
 }
+
 void flow_conversion::flow(Instruction* inst) {
   /**
    * Interesting cases:
@@ -369,8 +379,6 @@ void flow_conversion::flow(Instruction* inst) {
       /* i2p is really the frontier of conversion => convert all users
        * which will clean up this i2p once done */
       LLVM_DEBUG(dbgs() << "Handling i2p" << *inst << '\n');
-
-      one_dep_ready(inst);
       break;
 
     case Instruction::PtrToInt: {
@@ -404,7 +412,6 @@ void flow_conversion::flow(Instruction* inst) {
         /* we are a root / zero base if our argument was, too */
         LLVM_DEBUG(dbgs() << "  We are a root!\n");
         val_to_meta.insert({inst, meta});
-        one_dep_ready(inst);
       } else {
         // NB: IRBuilder likes to create ConstExprs which make the parsing
         //     harder.  Therefore, manually force creation of an i2p
@@ -417,7 +424,6 @@ void flow_conversion::flow(Instruction* inst) {
         replace_and_cleanup(inst, i2p_new, i2p);
         LLVM_DEBUG(dbgs() << "  Converting to" << *i2p_new << '\n');
         val_to_meta.insert({i2p_new, meta});
-        one_dep_ready(i2p_new);
       }
       break;
     }
@@ -445,7 +451,6 @@ void flow_conversion::flow(Instruction* inst) {
       meta_nodes.push_back(meta_new);
       val_to_meta.insert({i2p_new, meta_new});
       replace_and_cleanup(inst, i2p_new, i2p);
-      one_dep_ready(i2p_new);
       break;
     }
 
@@ -565,7 +570,6 @@ void flow_conversion::flow(Instruction* inst) {
           val_to_meta.erase(i2p2);
       }
       val_to_meta[i2p_new] = meta_new;
-      one_dep_ready(i2p_new);
       break;
     }
 
@@ -687,7 +691,6 @@ void flow_conversion::flow(Instruction* inst) {
         }
       }
       val_to_meta[i2p_new] = meta;
-      one_dep_ready(i2p_new);
       break;
     }
 
@@ -786,8 +789,6 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
 
   meta_nodes.push_back(meta);
   val_to_meta[i2p] = meta;
-
-  one_dep_ready(i2p);
 }
 void flow_conversion::convert_mem(Instruction* inst) {
   assert( isa<LoadInst>(inst) || isa<StoreInst>(inst) );
@@ -1020,29 +1021,7 @@ void flow_conversion::convert_call(CallInst* call) {
     convert_nanotube_root(call);
   }
 }
-void flow_conversion::one_dep_ready(Value *val) {
-  for( auto u : val->users()) {
-    if( dac.contains(u) ) {
-      LLVM_DEBUG(dbgs() << "Marking one dep ready of " << *u << '\n');
-      dac.mark_dep_ready(u);
-      continue;
-    }
 
-    auto* inst = dyn_cast<Instruction>(u);
-    if( inst == nullptr ) {
-      errs() << "Unknown non-instruction " << *u
-             << " in flow conversion!\n";
-      assert( inst != nullptr);
-    }
-
-    unsigned inputs = input_deps[inst];
-    assert( inputs > 0 );
-    LLVM_DEBUG(dbgs() << "Adding " << *u << " with " << inputs
-                      << " input deps.\n");
-    /* Mark val as ready already */
-    dac.insert(u, inputs - 1);
-  }
-}
 void flow_conversion::convert_memcpy(Instruction* inst) {
   auto* dst     = inst->getOperand(0);
   auto* src     = inst->getOperand(1);
@@ -1139,7 +1118,8 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
 }
 
 flow_conversion::flow_conversion(Function& f) : m(*f.getParent()),
-                                                c(m.getContext())
+                                                c(m.getContext()),
+                                                func(f)
 {
 }
 
@@ -1170,107 +1150,6 @@ void flow_conversion::replace_and_cleanup(Instruction* inst, Value* repl,
 ** add them (unless already done) to the worklist.
 **/
 
-/* Check whether the given instruction propagates (or produces) map /
- * packet pointers. */
-static
-bool propagates_map_packet_ptr(Instruction* inst) {
-  if( is_map_pointer_source(inst) || is_packet_pointer_source(inst) )
-    return true;
-
-  switch( inst->getOpcode() ) {
-    case Instruction::Call: {
-      auto in = get_intrinsic(inst);
-      /* Handle known function calls */
-      if( (in == Intrinsics::llvm_memset) ||
-          (in == Intrinsics::llvm_memcpy) )
-        return false;
-
-      /* Bail for unknown call targets */
-      errs() << "ERROR: Unkown map/pkt propagation for call\n" << *inst
-             << "\ncalling: "
-             << cast<CallInst>(inst)->getCalledFunction()->getName()
-             << ".  Please inline / special case their handling.\n";
-      exit(1);
-    }
-
-    /* Casts and pointer arithmetic that results in pointers keeps the map
-     * / packet-ness */
-    case Instruction::PtrToInt:
-    case Instruction::IntToPtr:
-    case Instruction::BitCast:
-    case Instruction::GetElementPtr:
-    case Instruction::PHI:
-    case Instruction::Select:
-    case Instruction::Trunc:
-    case Instruction::Add:
-      return true;
-
-    /* The map / packet-ness does not propagate for these, because they are
-     * not (logical) pointers anymore. */
-    case Instruction::ICmp:
-    case Instruction::Load:
-    case Instruction::Store:
-      return false;
-
-    /* We can either subtract a non-pointer and get a pointer, meaning map
-     * / packet-ness remains, or we subtract one pointer from another, thus
-     * giving us an offset which is not map / packet anymore. */
-    case Instruction::Sub:
-      //XXX: Actually check the operands, here! NANO-263
-      return false;
-
-    default:
-      errs() << "ERROR: Unkown map/pkt propagation for generic instruction"
-             << *inst <<'\n';
-      exit(1);
-  }
-  return false;
-}
-
-/* Compute the number of map / packet inputs per instruction */
-static
-void compute_map_packet_inputs(const std::vector<Instruction*>& roots,
-    std::unordered_map<Instruction*, unsigned>* input_deps)
-{
-  std::unordered_set<Instruction*> todo;
-  for( auto* i : roots)
-    todo.insert(i);
-  /* Propagate map / packet pointer-ness */
-  std::unordered_set<Instruction*> done;
-  while( !todo.empty() ) {
-    auto it = todo.begin();
-    auto* inst = *it;
-    todo.erase(it);
-    done.insert(inst);
-
-    if( !propagates_map_packet_ptr(inst) )
-      continue;
-
-    /* Go through users of the map / packet pointer */
-    LLVM_DEBUG(dbgs() << "Current: " << *inst <<'\n');
-    for( auto* user : inst->users() ) {
-      auto* ui = dyn_cast<Instruction>(user);
-      if( ui == nullptr ) {
-        LLVM_DEBUG(dbgs() << "Unexpected non-instruction user " << *ui << '\n');
-        assert(ui);
-      }
-      LLVM_DEBUG(dbgs() << "  User: :" << *ui << '\n');
-      /* Count the number of incident pointer flows to this instruction */
-      (*input_deps)[ui]++;
-
-      /* Continue if we have not already propagated this instruction */
-      if( done.count(ui) == 0 )
-        todo.insert(ui);
-    }
-  }
-
-  LLVM_DEBUG(
-    dbgs() << "\nInput deps:\n";
-    for( auto& v : *input_deps )
-      dbgs() << "  " << *v.first << " Deps: " << v.second << '\n';
-  );
-}
-
 raw_ostream& operator<<(raw_ostream& os, const nt_meta& meta) {
   os << &meta << " ";
   os << (meta.is_map ? "map" : "packet") << " ";
@@ -1292,23 +1171,18 @@ bool convert_to_req(Function* f) {
                      << f->getName() << "'\n";);
   flow_conversion fc(*f);
 
-  std::vector<Instruction*> roots;
-  collect_roots(*f, &roots);
-  compute_map_packet_inputs(roots, &fc.input_deps);
+  fc.dac.init_forward(fc.func);
+  fc.dac.execute(
+    [&](flow_conversion::dac_t *dac, BasicBlock *bb) {
+      fc.flow(bb);
+    });
 
-  /* Find those roots that are ready to convert */
-  LLVM_DEBUG( dbgs() << "\nStarting flow conversion with ready roots:\n" );
-  for( auto* r : roots ) {
-    if( fc.input_deps.find(r) == fc.input_deps.end() ) {
-      fc.dac.insert_ready(r);
-      LLVM_DEBUG(dbgs() << "  " << *r << '\n');
-    }
+  if (!fc.dac.empty()) {
+    errs() << "INTERNAL ERROR: Unconverted items after converting function '"
+           << f->getName() << "'.\n";
+    exit(1);
   }
 
-  fc.dac.execute(
-    [&](dep_aware_converter<Value>* dac, Value* v) {
-      fc.flow(v);
-    });
   return true;
 }
 

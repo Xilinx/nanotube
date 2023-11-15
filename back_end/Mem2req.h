@@ -23,6 +23,7 @@
 #include "Dep_Aware_Converter.h"
 
 namespace {
+  using llvm::BasicBlock;
   using llvm::CallInst;
   using llvm::Function;
   using llvm::IRBuilder;
@@ -57,17 +58,18 @@ namespace {
   typedef std::vector<nt_meta*>                meta_vec;
 
   struct flow_conversion {
+    typedef dep_aware_converter<BasicBlock> dac_t;
+
     meta_vec      meta_nodes;
     val_meta_map  val_to_meta;
     std::vector<Instruction*> deletion_candidates;
-    std::unordered_map<Instruction*, unsigned> input_deps;
-    dep_aware_converter<Value> dac;
+    dac_t dac;
 
     Module&       m;
     LLVMContext&  c;
+    Function&     func;
     flow_conversion(Function& f);
-    void one_dep_ready(Value *val);
-    void flow(Value* v);
+    void flow(BasicBlock *bb);
     void flow(Instruction* inst);
 
     void convert_nanotube_root(CallInst* inst);
