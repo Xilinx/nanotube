@@ -42,8 +42,6 @@ namespace {
     bool runOnFunction(Function& f) override;
 
     static char ID;
-
-    static bool convert_to_req(Function& f);
   }; // struct mem_to_req
 
   struct nt_meta {
