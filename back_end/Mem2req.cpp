@@ -1006,18 +1006,13 @@ void flow_conversion::convert_call(CallInst* call) {
   }
 
   /* Deal with map / packet pointer arguments */
-  auto it = input_deps.find(call);
-  /* Examine the arguments if any of them are tracked pointers. */
-  if( it != input_deps.end() ) {
-    /* Check read / write pointer usage */
-    for( unsigned i = 0; i < call->arg_size(); i++ ) {
-      auto* arg  = call->getOperand(i);
-      auto it    = val_to_meta.find(arg);
-      if( it == val_to_meta.end() )
-        continue;
+  for( unsigned i = 0; i < call->arg_size(); i++ ) {
+    auto* arg  = call->getOperand(i);
+    auto it    = val_to_meta.find(arg);
+    if( it == val_to_meta.end() )
+      continue;
 
-      convert_call_arg(this, call, i, arg, it);
-    }
+    convert_call_arg(this, call, i, arg, it);
   }
 
   /* Convert function calls (if needed) */
