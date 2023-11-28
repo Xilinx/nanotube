@@ -819,7 +819,8 @@ void flow_conversion::convert_mem(Instruction* inst) {
   /* Common code: alloca + bitcast for data_in / data_out */
   auto* alloca = ir_entry.CreateAlloca(mem_ty, nullptr,
                                        inst->getName() + "_buffer");
-  auto* bc     = ir_entry.CreateBitCast(alloca, ir.getInt8PtrTy());
+  auto* bc     = ir_entry.CreateBitCast(alloca, ir.getInt8PtrTy(),
+                                        inst->getName() + "_buffer.bc");
 
   /* Specific prefix + call */
   if( !is_write) {
@@ -889,7 +890,7 @@ flow_conversion::typed_alloca(Type* ty, const Twine& name, Value* size,
   if( ty == alloca->getType() )
     return alloca;
   else
-    return cast<Instruction>(ir->CreateBitCast(alloca, ty, ""));
+    return cast<Instruction>(ir->CreateBitCast(alloca, ty, name+".bc"));
 }
 
 static
