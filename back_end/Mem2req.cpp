@@ -124,6 +124,14 @@ Value *get_pointer_operand(Instruction *inst) {
   }
 }
 
+static void cleanup(flow_conversion *fc, IntToPtrInst *i2p)
+{
+  if( (i2p != nullptr) && i2p->use_empty() ) {
+    i2p->eraseFromParent();
+    fc->val_to_meta.erase(i2p);
+  }
+}
+
 static Value* gep_to_arithmetic_zero(GetElementPtrInst *gep);
 static Value* gep_to_arithmetic_base(GetElementPtrInst *gep, Value *base_int);
 
@@ -487,11 +495,7 @@ void flow_conversion::flow(Instruction* inst) {
                         << "  Op0: " << *i2p << "\n  Op1: " << *rhs << '\n'
                         << "  Converting to " << *icmp_new << '\n');
       replace_and_cleanup(inst, icmp_new, i2p);
-
-      if( (i2p2 != nullptr) && i2p2->use_empty() ) {
-        i2p2->eraseFromParent();
-        val_to_meta.erase(i2p2);
-      }
+      cleanup(this, i2p2);
       break;
     }
 
@@ -565,10 +569,7 @@ void flow_conversion::flow(Instruction* inst) {
                                        select);
       i2p_new->setDebugLoc(select->getDebugLoc());
       replace_and_cleanup(select, i2p_new, i2p);
-      if( i2p2->use_empty() ) {
-          i2p2->eraseFromParent();
-          val_to_meta.erase(i2p2);
-      }
+      cleanup(this, i2p2);
       val_to_meta[i2p_new] = meta_new;
       break;
     }
@@ -685,10 +686,7 @@ void flow_conversion::flow(Instruction* inst) {
       i2p_new->setDebugLoc(inst->getDebugLoc());
       replace_and_cleanup(phi, i2p_new, nullptr);
       for( auto *input_i2p : input_i2ps) {
-        if( input_i2p->use_empty() ) {
-          input_i2p->eraseFromParent();
-          val_to_meta.erase(input_i2p);
-        }
+        cleanup(this, input_i2p);
       }
       val_to_meta[i2p_new] = meta;
       break;
@@ -868,10 +866,7 @@ void flow_conversion::convert_mem(Instruction* inst) {
     replace_and_cleanup(inst, ld, i2p);
   } else {
     inst->eraseFromParent();
-    if( i2p->use_empty() ) {
-      i2p->eraseFromParent();
-      val_to_meta.erase(it);
-    }
+    cleanup(this, i2p);
   }
 }
 void flow_conversion::convert_special_case_call(CallInst* call) {
@@ -988,11 +983,7 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
     );
   }
 
-  if (i2p->use_empty()) {
-    i2p->eraseFromParent();
-    fc->val_to_meta.erase(it);
-  }
-
+  cleanup(fc, i2p);
 }
 
 void flow_conversion::convert_call(CallInst* call) {
@@ -1107,14 +1098,8 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
     LLVM_DEBUG(dbgs() << "Map write: " << *call << '\n');
   }
   inst->eraseFromParent();
-  if( (dst != nullptr) && dst->use_empty() ) {
-    cast<IntToPtrInst>(dst)->eraseFromParent();
-    val_to_meta.erase(dst_meta_it);
-  }
-  if( (src != nullptr) && src->use_empty() ) {
-    cast<IntToPtrInst>(src)->eraseFromParent();
-    val_to_meta.erase(src_meta_it);
-  }
+  cleanup(this, dyn_cast<IntToPtrInst>(dst));
+  cleanup(this, dyn_cast<IntToPtrInst>(src));
 }
 
 flow_conversion::flow_conversion(Function& f) : m(*f.getParent()),
@@ -1133,10 +1118,7 @@ void flow_conversion::replace_and_cleanup(Instruction* inst, Value* repl,
   }
   inst->replaceAllUsesWith(repl);
   inst->eraseFromParent();
-  if( i2p != nullptr && i2p->use_empty() ) {
-    i2p->eraseFromParent();
-    val_to_meta.erase(i2p);
-  }
+  cleanup(this, i2p);
 }
 
 /* Mini-flow: compute the number of input operands that need conversion for
