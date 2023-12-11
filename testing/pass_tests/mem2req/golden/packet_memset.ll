@@ -28,8 +28,8 @@ define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %
 entry:
   %pkt_0__out = alloca i8, i64 4
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
-  %1 = icmp ugt i64 4, %0
-  br i1 %1, label %done, label %edit
+  %icmp_len = icmp ugt i64 4, %0
+  br i1 %icmp_len, label %done, label %edit
 
 edit:                                             ; preds = %entry
   call void @llvm.memset.p0i8.i64(i8* %pkt_0__out, i8 42, i64 4, i1 false)

@@ -469,7 +469,6 @@ void flow_conversion::flow(Instruction* inst) {
       auto* icmp = cast<ICmpInst>(inst);
       auto* rhs  = icmp->getOperand(1);
       auto* i2p2 = dyn_cast<IntToPtrInst>(rhs);
-      Value* icmp_new = nullptr;
 
       if( i2p2 != nullptr ) {
         /* This is the packet case, comparing the data pointer to the end
@@ -479,8 +478,8 @@ void flow_conversion::flow(Instruction* inst) {
         assert(it2 != val_to_meta.end());
         assert(!meta->is_map && !it2->second->is_map);
 
-        icmp_new = ir.CreateICmp(icmp->getPredicate(), i2p->getOperand(0),
-                                 i2p2->getOperand(0));
+        icmp->setOperand(0, i2p->getOperand(0));
+        icmp->setOperand(1, i2p2->getOperand(0));
       } else {
         /* This is the map case, where the code compares the pointer to
          * NULL to see if the key was maybe not present.
@@ -488,13 +487,13 @@ void flow_conversion::flow(Instruction* inst) {
         assert(isa<ConstantPointerNull>(rhs));
         assert(meta->is_map);
         assert(meta->dummy_read_ret != nullptr);
-        icmp_new = ir.CreateICmp(icmp->getPredicate(),
-                                 meta->dummy_read_ret, ir.getInt64(0));
+        icmp->setOperand(0, meta->dummy_read_ret);
+        icmp->setOperand(1, ir.getInt64(0));
       }
       LLVM_DEBUG(dbgs() << "Handling icmp" << *inst << '\n'
                         << "  Op0: " << *i2p << "\n  Op1: " << *rhs << '\n'
-                        << "  Converting to " << *icmp_new << '\n');
-      replace_and_cleanup(inst, icmp_new, i2p);
+                        << "  Converting to " << *icmp << '\n');
+      cleanup(this, i2p);
       cleanup(this, i2p2);
       break;
     }

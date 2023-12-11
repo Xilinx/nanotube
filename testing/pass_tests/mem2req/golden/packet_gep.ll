@@ -27,21 +27,21 @@ entry:
   %_buffer = alloca i8
   %len.i8_buffer = alloca i8
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
-  %1 = icmp ugt i64 1, %0
-  br i1 %1, label %done, label %check_len
+  %icmp_len = icmp ugt i64 1, %0
+  br i1 %icmp_len, label %done, label %check_len
 
 check_len:                                        ; preds = %entry
-  %2 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %len.i8_buffer, i64 0, i64 1)
-  %3 = load i8, i8* %len.i8_buffer
-  %len = zext i8 %3 to i64
-  %4 = add i64 0, %len
-  %5 = add i64 %4, 1
-  %6 = icmp ugt i64 %5, %0
-  br i1 %6, label %done, label %edit
+  %1 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %len.i8_buffer, i64 0, i64 1)
+  %2 = load i8, i8* %len.i8_buffer
+  %len = zext i8 %2 to i64
+  %3 = add i64 0, %len
+  %4 = add i64 %3, 1
+  %icmp_data = icmp ugt i64 %4, %0
+  br i1 %icmp_data, label %done, label %edit
 
 edit:                                             ; preds = %check_len
   store i8 42, i8* %_buffer
-  %7 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %4, i64 1)
+  %5 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %3, i64 1)
   br label %done
 
 done:                                             ; preds = %edit, %check_len, %entry

@@ -41,15 +41,15 @@ entry:
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
   %dummy_rd_data = alloca i8
   %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %dummy_rd_data, i64 0, i64 1)
-  %2 = icmp ne i64 %key_check, 0
-  br i1 %2, label %edit, label %done
+  %succ = icmp ne i64 %key_check, 0
+  br i1 %succ, label %edit, label %done
 
 edit:                                             ; preds = %entry
-  %3 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %1, i64 0, i64 4)
-  %4 = load i32, i32* %old_val_buffer
-  %new_val = add i32 %4, 1
+  %2 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %1, i64 0, i64 4)
+  %3 = load i32, i32* %old_val_buffer
+  %new_val = add i32 %3, 1
   store i32 %new_val, i32* %_buffer
-  %5 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %0, i64 0, i64 4)
+  %4 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %0, i64 0, i64 4)
   br label %done
 
 done:                                             ; preds = %edit, %entry

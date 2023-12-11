@@ -39,22 +39,22 @@ entry:
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
   %dummy_rd_data = alloca i8
   %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %dummy_rd_data, i64 0, i64 1)
-  %0 = icmp ne i64 %key_check, 0
-  br i1 %0, label %lookup_okay, label %done
+  %succ = icmp ne i64 %key_check, 0
+  br i1 %succ, label %lookup_okay, label %done
 
 lookup_okay:                                      ; preds = %entry
-  %1 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %byte_0_buffer, i64 0, i64 1)
-  %2 = load i8, i8* %byte_0_buffer
-  %cond = icmp ne i8 %2, 0
+  %0 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %byte_0_buffer, i64 0, i64 1)
+  %1 = load i8, i8* %byte_0_buffer
+  %cond = icmp ne i8 %1, 0
   br i1 %cond, label %ne_0, label %edit
 
 ne_0:                                             ; preds = %lookup_okay
   br label %edit
 
 edit:                                             ; preds = %ne_0, %lookup_okay
-  %3 = phi i64 [ 1, %lookup_okay ], [ 2, %ne_0 ]
+  %2 = phi i64 [ 1, %lookup_okay ], [ 2, %ne_0 ]
   store i8 0, i8* %_buffer
-  %4 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer, i64 %3, i64 1)
+  %3 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer, i64 %2, i64 1)
   br label %done
 
 done:                                             ; preds = %edit, %entry

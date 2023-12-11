@@ -27,16 +27,16 @@ entry:
   %_buffer = alloca i8
   %byte_0_buffer = alloca i8
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
-  %1 = icmp ugt i64 3, %0
-  br i1 %1, label %done, label %edit
+  %icmp = icmp ugt i64 3, %0
+  br i1 %icmp, label %done, label %edit
 
 edit:                                             ; preds = %entry
-  %2 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %byte_0_buffer, i64 0, i64 1)
-  %3 = load i8, i8* %byte_0_buffer
-  %sel = icmp ne i8 %3, 42
+  %1 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %byte_0_buffer, i64 0, i64 1)
+  %2 = load i8, i8* %byte_0_buffer
+  %sel = icmp ne i8 %2, 42
   %ptr1 = select i1 %sel, i64 1, i64 2
   store i8 0, i8* %_buffer
-  %4 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %ptr1, i64 1)
+  %3 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %ptr1, i64 1)
   br label %done
 
 done:                                             ; preds = %edit, %entry
