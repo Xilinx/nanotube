@@ -193,7 +193,8 @@ Value* gep_to_arithmetic_zero(GetElementPtrInst *gep) {
   /* Handly remaining accumulated constant offset */
   if( const_off != 0 ) {
     if( chain != nullptr )
-      chain = ir.CreateAdd(chain, ir.getInt64(const_off));
+      chain = ir.CreateAdd(chain, ir.getInt64(const_off),
+                           Twine(gep->getName()) + ".addc");
     else
       chain = ir.getInt64(const_off);
     LLVM_DEBUG(dbgs() << "  Final: " << *chain << '\n');
@@ -217,7 +218,8 @@ static
 Value* gep_to_arithmetic_base(GetElementPtrInst *gep, Value *base_int) {
   auto* val = gep_to_arithmetic_zero(gep);
   IRBuilder<> ir(gep);
-  return ir.CreateAdd(base_int, val);
+  return ir.CreateAdd(base_int, val,
+                      Twine(gep->getName()) + ".addb");
 }
 
 /**
