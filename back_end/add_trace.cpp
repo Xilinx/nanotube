@@ -84,7 +84,7 @@ bool add_trace::runOnFunction(Function& func)
   Type *uint64_type = Type::getInt64Ty(context);
   Type *arg_types[] = { uint64_type, uint64_type };
   FunctionType *func_type = FunctionType::get(result_type, arg_types, false);
-  Constant *trace_func = module->getOrInsertFunction("nanotube_debug_trace", func_type);
+  FunctionCallee trace_func = module->getOrInsertFunction("nanotube_debug_trace", func_type);
 
   /* Indicates whether any changes have been made. */
   bool any_changes = false;

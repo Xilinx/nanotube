@@ -560,14 +560,12 @@ struct ebpf_to_NT : public ModulePass {
     auto* bb = BasicBlock::Create(C, "", setup_func);
     IRBuilder<> ir(bb);
     /* Create a single context */
-    auto* cr_ctx_ty = get_nt_context_create_ty(m);
-    auto* cr_ctx_f  = create_nt_context_create(m);
-    auto* ctx       = ir.CreateCall(cr_ctx_ty, cr_ctx_f, None, "context");
+    FunctionCallee cr_ctx_f  = create_nt_context_create(m);
+    auto* ctx       = ir.CreateCall(cr_ctx_f, None, "context");
 
     /* Create maps and add them to context */
-    auto* map_create = cast<Function>(create_nt_map_create(m));
-    auto* map_add_ty = get_nt_context_add_map_ty(m);
-    auto* map_add_f  = create_nt_context_add_map(m);
+    FunctionCallee map_create = create_nt_map_create(m);
+    FunctionCallee map_add  = create_nt_context_add_map(m);
 
     for( auto& nt_map : nt_maps ) {
       auto* id = ir.CreateLoad(nt_map.global_id,
@@ -583,7 +581,7 @@ struct ebpf_to_NT : public ModulePass {
       assert( call != nullptr );
       /* Add to context */
       std::array<Value*,2> add_args = {ctx, call};
-      ir.CreateCall(map_add_ty, map_add_f, add_args);
+      ir.CreateCall(map_add, add_args);
     }
 
     ir.CreateRetVoid();
@@ -808,7 +806,7 @@ struct ebpf_to_NT : public ModulePass {
       exit(1);
     }
 
-    Constant* ml = create_nt_map_lookup(*M);
+    FunctionCallee ml = create_nt_map_lookup(*M);
     //errs() << *ml << " " << *call << '\n';
 
     IRBuilder<> ir(call);
@@ -871,14 +869,14 @@ struct ebpf_to_NT : public ModulePass {
       return nullptr;
     }
 
-    Constant* mop = create_map_op_adapter(*M);
+    FunctionCallee mop = create_map_op_adapter(*M);
     LLVM_DEBUG(
       dbgs() << "Type of args: ";
       for( unsigned i = 0; i < 9; ++i )
         dbgs() << *args[i]->getType() << ", ";
       dbgs() << '\n';
 
-      dbgs() << "Function Type: " << *mop->getType() << '\n';
+      dbgs() << "Function Type: " << *mop.getCallee()->getType() << '\n';
       //dbgs() << *ml << " " << *call << '\n';
     );
 
@@ -889,7 +887,7 @@ struct ebpf_to_NT : public ModulePass {
   }
 
   CallInst* convert_to_nt_get_time_ns(Module* M, CallInst* call) {
-    Constant* gtns = create_nt_get_time_ns(*M);
+    FunctionCallee gtns = create_nt_get_time_ns(*M);
     IRBuilder<> ir(call);
     auto* nt_time_call = ir.CreateCall(gtns, None, "time_ns");
     return nt_time_call;
@@ -963,7 +961,7 @@ struct ebpf_to_NT : public ModulePass {
     Module *module = func->getParent();
     BasicBlock *bb = &(setup_func->getEntryBlock());
     Instruction *term = bb->getTerminator();
-    Constant *add_kernel = create_nt_add_plain_packet_kernel(*module);
+    FunctionCallee add_kernel = create_nt_add_plain_packet_kernel(*module);
     auto ir = IRBuilder<>(term);
     GlobalValue *name_var = ir.CreateGlobalString(name);
     Type *uint8_type = ir.getInt8PtrTy();
@@ -1273,7 +1271,7 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
 
   /* Replace return statements XDP_{DROP,PASS,...} with a call to a
    * helper function that will set the packet port and a plain return */
-  auto* conv_func = create_packet_handle_xdp_result(m);
+  FunctionCallee conv_func = create_packet_handle_xdp_result(m);
   for( BasicBlock& bb : *f_new ) {
     for( auto ii = bb.begin(); ii != bb.end(); ) {
       auto& inst = *(ii++);
@@ -1366,7 +1364,7 @@ ebpf_to_NT::convert_context_load(Module* m, LoadInst* ld, int64_t offset,
   }
 
   IRBuilder<> ir(ld);
-  Constant*   nt_packet_func;
+  FunctionCallee nt_packet_func;
   StringRef   name;
 
   /* Call the respective Nanotube function */
@@ -1446,7 +1444,7 @@ void
 ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
                                  const ebpf_to_NT::v2offs_ty& v2offs,
                                  Value* nt_ctx, Value* nt_packet) {
-  Function* repl_f = nullptr;
+  FunctionCallee repl_f = nullptr;
   std::vector<Value*> args;
   auto id = get_ebpf_call_id(call);
   switch( id ) {
@@ -1459,7 +1457,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
                << *call << "\nABorting!\n";
         exit(1);
       }
-      repl_f = cast<Function>(create_packet_adjust_head_adapter(*m));
+      repl_f = create_packet_adjust_head_adapter(*m);
       args.emplace_back(nt_packet);
       args.emplace_back(call->getOperand(1));
       break; }
@@ -1472,7 +1470,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
                << *call << "\nABorting!\n";
         exit(1);
       }
-      repl_f = cast<Function>(create_packet_adjust_meta_adapter(*m));
+      repl_f = create_packet_adjust_meta_adapter(*m);
       args.emplace_back(nt_packet);
       args.emplace_back(call->getOperand(1));
       break; }
@@ -1483,7 +1481,7 @@ ebpf_to_NT::convert_context_call(Module* m, CallInst* call,
   }
 
   /* Call the equivalent NT function */
-  assert(repl_f != nullptr);
+  assert(repl_f.getCallee() != nullptr);
   IRBuilder<> ir(call);
   auto* new_call = ir.CreateCall(repl_f , args, "");
   LLVM_DEBUG(dbgs() << "Converting " << *call << " to " << *new_call

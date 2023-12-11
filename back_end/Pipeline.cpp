@@ -1577,9 +1577,8 @@ stage_function_t::read_from_channel(Constant* channel_id, Value* data,
     args[1] = channel_id;
     args[2] = ir.CreateBitCast(data, ir.getInt8PtrTy(), data->getName() + "_voidp");
     args[3] = data_size;
-    auto* try_read_f = create_nt_channel_try_read(*func->getParent());
-    auto* ty = cast<FunctionType>(cast<PointerType>(try_read_f->getType())->getElementType());
-    auto* try_read = ir.CreateCall(ty , try_read_f, args, "read_channel");
+    FunctionCallee try_read_f = create_nt_channel_try_read(*func->getParent());
+    auto* try_read = ir.CreateCall(try_read_f, args, "read_channel");
 
     return try_read;
   };
@@ -1921,10 +1920,9 @@ stage_function_t::read_map_response(Value* dest_state, Value* result,
                                dest_state->getName() + "_voidp");
     args[4] = result;
 
-    auto* try_read_f = create_nt_tap_map_recv_resp(m);
-    auto* ty = get_nt_tap_map_recv_resp_ty(m);
+    FunctionCallee try_read_f = create_nt_tap_map_recv_resp(m);
 
-    auto* try_read = ir.CreateCall(ty , try_read_f, args, "map_read");
+    auto* try_read = ir.CreateCall(try_read_f, args, "map_read");
     return try_read;
   };
 
@@ -1942,11 +1940,10 @@ stage_function_t::read_map_response(Value* dest_state, Value* result,
 
 Value* stage_function_t::get_eop(IRBuilder<>& ir, Value* packet_word, Module* m) {
   auto* tap_state = get_static_packet_eop_tap_state();
-  auto* eop_ty = get_tap_packet_is_eop_ty(*m);
-  auto* eop_f  = create_tap_packet_is_eop(*m, get_bus_type());
+  FunctionCallee eop_f = create_tap_packet_is_eop(*m, get_bus_type());
   Value* args[] = { ir.CreateBitCast(packet_word, ir.getInt8PtrTy()),
                     tap_state };
-  auto* eop    = ir.CreateCall(eop_ty, eop_f, args, "eop");
+  auto* eop    = ir.CreateCall(eop_f, args, "eop");
   return eop;
 }
 
@@ -2078,9 +2075,8 @@ stage_function_t::write_to_channel(Constant* channel_id, Value* data,
     data_voidp,
     data_size
   };
-  auto* write_f = create_nt_channel_write(*func->getParent());
-  auto* ty = cast<FunctionType>(cast<PointerType>(write_f->getType())->getElementType());
-  ir.CreateCall(ty , write_f, args);
+  FunctionCallee write_f = create_nt_channel_write(*func->getParent());
+  ir.CreateCall(write_f, args);
 }
 
 void
@@ -2129,9 +2125,8 @@ stage_function_t::get_thread_wait_exit(BasicBlock* insert_before) {
   thread_wait_exit = BasicBlock::Create(c, "thread_wait_exit", func,
                                         insert_before);
   IRBuilder<> ir(thread_wait_exit);
-  auto* thread_wait_f = create_nt_thread_wait(*m);
-  auto* ty = cast<FunctionType>(cast<PointerType>(thread_wait_f->getType())->getElementType());
-  ir.CreateCall(ty, thread_wait_f);
+  FunctionCallee thread_wait_f = create_nt_thread_wait(*m);
+  ir.CreateCall(thread_wait_f);
   ir.CreateRetVoid(); //XXX: Better to branch to the single exit here?
 
   return thread_wait_exit;
@@ -2317,11 +2312,10 @@ void stage_function_t::convert_packet_read(Value* packet_word, BasicBlock* bypas
                  req_read_length);
 
   /* Actually call the tap */
-  auto* tap     = create_tap_packet_read(*m, get_bus_type());
-  auto* tap_ty  = get_tap_packet_read_ty(*m);
+  FunctionCallee tap = create_tap_packet_read(*m, get_bus_type());
   Value* args[] = { res_buf_len, res_buf_idx_bits, resp, res_buf,
                     tap_state, packet_word, req };
-  ir.CreateCall(tap_ty, tap, args);
+  ir.CreateCall(tap, args);
 
   /* Parse the response */
   auto* resp_valid = ir.CreateStructGEP(resp_ty, resp, 0, "resp.valid.p");
@@ -2437,13 +2431,12 @@ Value* stage_function_t::convert_packet_write(Value* packet_word) {
                  req_write_length);
 
   /* Actually call the tap */
-  auto* tap     = create_tap_packet_write(*m, get_bus_type());
-  auto* tap_ty  = get_tap_packet_write_ty(*m);
+  FunctionCallee tap = create_tap_packet_write(*m, get_bus_type());
   Value* args[] = { req_buf_len, req_buf_idx_bits,
                     packet_word_out, tap_state,
                     packet_word, req, req_data_in,
                     req_mask_in };
-  ir.CreateCall(tap_ty, tap, args);
+  ir.CreateCall(tap, args);
 
   auto lov_it = live_out_val.end();
   if( value_used(nt_call, &lov_it) ) {
@@ -2526,10 +2519,9 @@ void stage_function_t::convert_packet_length(Value* packet_word, BasicBlock* byp
                  req_max_length);
 
   /* Actually call the tap */
-  auto* tap     = create_tap_packet_length(*m, get_bus_type());
-  auto* tap_ty  = get_tap_packet_length_ty(*m);
+  FunctionCallee tap = create_tap_packet_length(*m, get_bus_type());
   Value* args[] = { resp, tap_state, packet_word, req };
-  ir.CreateCall(tap_ty, tap, args);
+  ir.CreateCall(tap, args);
 
   /* Parse the response */
   auto* resp_valid = ir.CreateStructGEP(resp_ty, resp, 0, "resp.valid.p");
@@ -2651,10 +2643,9 @@ void stage_function_t::convert_packet_resize_ingress(Value* packet_word) {
   auto* state = get_static_packet_resize_ingress_tap_state();
 
   /* Prepare and do the call */
-  auto* ing_ty = get_tap_packet_resize_ingress_ty(*m);
-  auto* ing_f  = create_tap_packet_resize_ingress(*m, get_bus_type());
+  FunctionCallee ing_f = create_tap_packet_resize_ingress(*m, get_bus_type());
   Value* args[] = { pdo, cword, pria.packet_length_out, state, resize_req, packet_word };
-  ir.CreateCall(ing_ty, ing_f, args);
+  ir.CreateCall(ing_f, args);
 
   /* Write out the cword */
   write_cword(cword, nt_call);
@@ -2754,15 +2745,14 @@ stage_function_t::convert_packet_resize_egress(Value* packet_word, BasicBlock* b
   //assert(packet_word == packet_word_in);
 
   /* Prepare and to the call to nanotube_tap_packet_resize_egress */
-  auto* resize_egress_ty = get_tap_packet_resize_egress_ty(*m);
-  auto* resize_egress_f  = create_tap_packet_resize_egress(*m, get_bus_type());
+  FunctionCallee resize_egress_f = create_tap_packet_resize_egress(*m, get_bus_type());
   Value* args[] = { input_done, packet_done, packet_valid, packet_word_out,
                     state, ir.CreateBitCast(state_pw, ir.getInt8PtrTy()),
                     cword,
                     ir.CreateBitCast(packet_word_in, ir.getInt8PtrTy()),
                     prea.new_length };
 
-  ir.CreateCall(resize_egress_ty, resize_egress_f, args);
+  ir.CreateCall(resize_egress_f, args);
 
   /* Update state for whether it's the eop or not after resizing */
   auto* eop = ir.CreateLoad(packet_done, "eop");
@@ -3163,10 +3153,9 @@ Pipeline::create_stage_epilogue(stage_function_t* stage, Value* packet_word,
       /* FIXME: The taps currently don't support masks or offsets! NANO-279
        * and NANO-519. We alert the user in split_map_op */
 
-      auto* send_f = create_nt_tap_map_send_req(*m);
-      auto* ty = get_nt_tap_map_send_req_ty(*m);
+      FunctionCallee send_f = create_nt_tap_map_send_req(*m);
 
-      auto* send = ir.CreateCall(ty , send_f, args);
+      auto* send = ir.CreateCall(send_f, args);
       LLVM_DEBUG(dbgs() << "Call: " << *send << '\n');
 
       /* Delete the map request instruction */
@@ -3343,9 +3332,8 @@ channel_create(Value* ch_name, size_t elem_size, size_t num_elem,
   args[1] = ir.getInt64(elem_size);
   args[2] = ir.getInt64(num_elem);
 
-  auto* f  = create_nt_channel_create(m);
-  auto* ty = get_nt_channel_create_ty(m);
-  auto* call = ir.CreateCall(ty , f, args, call_name);
+  FunctionCallee f = create_nt_channel_create(m);
+  auto* call = ir.CreateCall(f, args, call_name);
   return call;
 }
 static Value*
@@ -3363,9 +3351,8 @@ channel_set_attr(Value* channel, nanotube_channel_attr_id_t attr_id,
   args[1] = ConstantInt::get(get_nt_channel_attr_id_ty(m), attr_id);
   args[2] = ConstantInt::get(get_nt_channel_attr_val_ty(m), attr_val);
 
-  auto* f  = create_nt_channel_set_attr(m);
-  auto* ty = get_nt_channel_set_attr_ty(m);
-  auto rc = ir.CreateCall(ty , f, args);
+  FunctionCallee f = create_nt_channel_set_attr(m);
+  auto rc = ir.CreateCall(f, args);
   return rc;
 }
 static Value*
@@ -3377,9 +3364,8 @@ channel_set_attr_str(Value* channel, nanotube_channel_attr_id_t attr_id,
   args[1] = ConstantInt::get(get_nt_channel_attr_id_ty(m), attr_id);
   args[2] = attr_val;
 
-  auto* f  = create_nt_channel_set_attr_str(m);
-  auto* ty = get_nt_channel_set_attr_str_ty(m);
-  auto rc = ir.CreateCall(ty , f, args);
+  FunctionCallee f = create_nt_channel_set_attr_str(m);
+  auto rc = ir.CreateCall(f, args);
   return rc;
 }
 static Value*
@@ -3398,9 +3384,8 @@ channel_export(Value* channel, nanotube_channel_type_t type,
   args[1] = ConstantInt::get(get_nt_channel_type_ty(m), type);
   args[2] = ConstantInt::get(get_nt_channel_flags_ty(m), flags);
 
-  auto* f  = create_nt_channel_export(m);
-  auto* ty = get_nt_channel_export_ty(m);
-  ir.CreateCall(ty , f, args);
+  FunctionCallee f = create_nt_channel_export(m);
+  ir.CreateCall(f, args);
 }
 static void
 context_add_channel(Value* ctx, nanotube_channel_id_t channel_id,
@@ -3412,9 +3397,8 @@ context_add_channel(Value* ctx, nanotube_channel_id_t channel_id,
   args[2] = channel;
   args[3] = ConstantInt::get(get_nt_channel_flags_ty(m), flags);
 
-  auto* f  = create_nt_context_add_channel(m);
-  auto* ty = get_nt_context_add_channel_ty(m);
-  ir.CreateCall(ty , f, args);
+  FunctionCallee f = create_nt_context_add_channel(m);
+  ir.CreateCall(f, args);
 }
 static void
 thread_create(Value* ctx, StringRef name, Function* func, Value* data,
@@ -3429,17 +3413,15 @@ thread_create(Value* ctx, StringRef name, Function* func, Value* data,
     args[3] = Constant::getNullValue(ir.getInt8PtrTy());
   args[4] = ir.getInt64(data_size);
 
-  static auto* f  = create_nt_thread_create(m);
-  static auto* ty = get_nt_thread_create_ty(m);
+  static FunctionCallee f = create_nt_thread_create(m);
 
-  ir.CreateCall(ty , f, args);
+  ir.CreateCall(f, args);
 }
 
 static Value*
 context_create(unsigned id, IRBuilder<>& ir, Module& m) {
-  auto* f  = create_nt_context_create(m);
-  auto* ty = get_nt_context_create_ty(m);
-  return ir.CreateCall(ty , f, None, "context" + Twine(id));
+  FunctionCallee f = create_nt_context_create(m);
+  return ir.CreateCall(f, None, "context" + Twine(id));
 }
 
 static Value*
@@ -3448,8 +3430,7 @@ tap_map_create(enum map_type_t map_type, Value* key_length,
                unsigned num_clients, nanotube_map_id_t id,
                IRBuilder<>& ir, Module& m) {
   auto& c = m.getContext();
-  static auto* map_create_ty = get_nt_tap_map_create_ty(m);
-  static auto* map_create_f  = create_nt_tap_map_create(m);
+  static FunctionCallee map_create_f = create_nt_tap_map_create(m);
 
   std::array<Value*, 5> args = {
     ConstantInt::get(Type::getInt32Ty(c), map_type),
@@ -3458,7 +3439,7 @@ tap_map_create(enum map_type_t map_type, Value* key_length,
     ConstantInt::get(get_nt_map_depth_ty(m), capacity),
     ConstantInt::get(Type::getInt32Ty(c), num_clients),
   };
-  auto* map = ir.CreateCall(map_create_ty, map_create_f, args,
+  auto* map = ir.CreateCall(map_create_f, args,
                             "map_" + Twine(id));
   LLVM_DEBUG(dbgs() << "Creating map " << id
                     << " with type " << map_type
@@ -3471,9 +3452,8 @@ tap_map_create(enum map_type_t map_type, Value* key_length,
 
 static void
 tap_map_build(Value* map, unsigned id, IRBuilder<>& ir, Module& m) {
-  static auto* ty = get_nt_tap_map_build_ty(m);
-  static auto* f  = create_nt_tap_map_build(m);
-  auto* call = ir.CreateCall(ty, f, {map});
+  static FunctionCallee f = create_nt_tap_map_build(m);
+  auto* call = ir.CreateCall(f, {map});
   LLVM_DEBUG(dbgs() << "Building map " << id << " with " << *call << '\n');
 }
 
@@ -3491,8 +3471,7 @@ tap_map_add_client(Value* map, Value* key_sz, Value* data_in_sz,
                     << " with client id " << cid << '\n');
 
   auto& c = m.getContext();
-  static auto* add_client_ty = get_nt_tap_map_add_client_ty(m);
-  static auto* add_client_f  = create_nt_tap_map_add_client(m);
+  static FunctionCallee add_client_f = create_nt_tap_map_add_client(m);
   std::array<Value*,9> ac_args = {
     map, key_sz, data_in_sz,
     ConstantInt::get(Type::getInt1Ty(c), needs_resp),
@@ -3501,7 +3480,7 @@ tap_map_add_client(Value* map, Value* key_sz, Value* data_in_sz,
     rcv, ConstantInt::get(get_nt_channel_id_ty(m), rcv_ch)
   };
 
-  auto* call = ir.CreateCall(add_client_ty, add_client_f, ac_args);
+  auto* call = ir.CreateCall(add_client_f, ac_args);
   LLVM_DEBUG(dbgs() << "  " << *call << '\n');
   return call;
 }
@@ -3679,17 +3658,15 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
 
     /* Initialise per-stage static state */
     if( stages[i]->is_resize_ingress() ) {
-      auto* init_ty = get_tap_packet_resize_ingress_state_init_ty(*m);
-      auto* init_f  = create_tap_packet_resize_ingress_state_init(*m);
+      FunctionCallee init_f = create_tap_packet_resize_ingress_state_init(*m);
       Value* args[] = {
         stages[i]->get_static_packet_resize_ingress_tap_state() };
-      ir.CreateCall(init_ty, init_f, args);
+      ir.CreateCall(init_f, args);
     } else if( stages[i]->is_resize_egress() ) {
-      auto* init_ty = get_tap_packet_resize_egress_state_init_ty(*m);
-      auto* init_f  = create_tap_packet_resize_egress_state_init(*m);
+      FunctionCallee init_f = create_tap_packet_resize_egress_state_init(*m);
       Value* args[] = {
         stages[i]->get_static_packet_resize_egress_tap_state() };
-      ir.CreateCall(init_ty, init_f, args);
+      ir.CreateCall(init_f, args);
     }
   }
 
@@ -3836,18 +3813,16 @@ split_packet_resize(Instruction* call) {
                                 nullptr, "cword");
   auto* packet_length_out = ir.CreateAlloca(get_nt_tap_offset_ty(m),
                                             nullptr, "packet_length_out");
-  auto* resize_ingress    = create_nt_packet_resize_ingress(m);
-  auto* resize_ingress_ty = get_nt_packet_resize_ingress_ty(m);
+  FunctionCallee resize_ingress = create_nt_packet_resize_ingress(m);
   Value* iargs[] = {cword, packet_length_out, pra.packet, pra.offset, pra.adjust};
-  auto* ingress_call = ir.CreateCall(resize_ingress_ty, resize_ingress,
+  auto* ingress_call = ir.CreateCall(resize_ingress,
                                      iargs);
 
-  auto* resize_egress    = create_nt_packet_resize_egress(m);
-  auto* resize_egress_ty = get_nt_packet_resize_egress_ty(m);
+  FunctionCallee resize_egress = create_nt_packet_resize_egress(m);
   auto* new_length = ir.CreateLoad(get_nt_tap_offset_ty(m), packet_length_out,
                                    "new_length");
   Value* eargs[] = {pra.packet, cword, new_length};
-  auto* egress_call = ir.CreateCall(resize_egress_ty, resize_egress,
+  auto* egress_call = ir.CreateCall(resize_egress,
                                     eargs, "resize_egress");
 
   LLVM_DEBUG(dbgs() << *cword << '\n'
@@ -3907,20 +3882,18 @@ split_map_op(Instruction* call) {
 
   auto* map_id = ConstantInt::get(get_nt_map_id_type(m), moa.map);
   /* The send part captures all inputs needed for stage N */
-  auto* send_ty = get_nt_map_op_send_ty(m);
-  auto* send_f  = create_nt_map_op_send(m);
+  FunctionCallee send_f = create_nt_map_op_send(m);
   std::array<Value*, 9> send_args = { moa.ctx, map_id, moa.type, moa.key,
     moa.key_length, moa.data_in, moa.mask, moa.offset, req_buf_size };
-  auto* send = ir.CreateCall(send_ty, send_f, send_args);
+  auto* send = ir.CreateCall(send_f, send_args);
 
   /* The receive part captures the outputs produced by the response and
    * inputs needed for the responds; it will replace the original map_op
    * call */
-  auto* receive_ty = get_nt_map_op_receive_ty(m);
-  auto* receive_f  = create_nt_map_op_receive(m);
+  FunctionCallee receive_f = create_nt_map_op_receive(m);
   std::array<Value*, 4> receive_args = { moa.ctx, map_id, moa.data_out,
                                          resp_buf_size };
-  auto* receive = ir.CreateCall(receive_ty, receive_f, receive_args);
+  auto* receive = ir.CreateCall(receive_f, receive_args);
 
   LLVM_DEBUG(dbgs() << "Replacing with\n" << *send << '\n' << *receive << '\n');
   call->replaceAllUsesWith(receive);
@@ -3943,10 +3916,9 @@ convert_ret_to_drop(Instruction* inst) {
   auto* packet = ret->getFunction()->arg_begin() + 1;
 
   IRBuilder<> ir(ret);
-  auto* drop_ty = get_nt_packet_drop_ty(m);
-  auto* drop_f  = create_nt_packet_drop(m);
+  FunctionCallee drop_f = create_nt_packet_drop(m);
   std::array<Value*, 2> drop_args = {packet, ret_val};
-  auto* drop = ir.CreateCall(drop_ty, drop_f, drop_args);
+  auto* drop = ir.CreateCall(drop_f, drop_args);
 
   auto* new_ret = ir.CreateRetVoid();
   LLVM_DEBUG(dbgs() << "Replacing " << *ret << " with\n"

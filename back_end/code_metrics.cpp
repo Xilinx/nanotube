@@ -1481,8 +1481,8 @@ record_condition(Instruction* inst, Value* cond) {
   auto name = Twine("control_flow_determined_by.i") +
               Twine(cast<IntegerType>(cond->getType())->getBitWidth());
 
-  auto* func = m->getOrInsertFunction(name.str(), fty);
-  CallInst::Create(fty, func, {cond}, "", inst);
+  FunctionCallee func = m->getOrInsertFunction(name.str(), fty);
+  CallInst::Create(func, {cond}, "", inst);
 }
 
 /**

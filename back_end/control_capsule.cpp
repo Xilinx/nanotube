@@ -270,7 +270,7 @@ void cc_code_builder::create_pass_through_bb()
 
 void cc_code_builder::read_capsule()
 {
-  auto *packet_read = create_nt_packet_read(*m_module);
+  FunctionCallee packet_read = create_nt_packet_read(*m_module);
   Value *args[] = {
     m_packet_arg,
     m_capsule_buffer,
@@ -282,7 +282,7 @@ void cc_code_builder::read_capsule()
 
 void cc_code_builder::write_capsule()
 {
-  auto *packet_write = create_nt_packet_write(*m_module);
+  FunctionCallee packet_write = create_nt_packet_write(*m_module);
   Value *args[] = {
     m_packet_arg,
     m_capsule_buffer,
@@ -392,7 +392,7 @@ void cc_code_builder::create_map_bb(uint64_t index, const map_info *info)
   auto map_id = info->args().id;
   IntegerType* id_ty = get_nt_map_id_type(*m_module);
   auto *map_id_value = ConstantInt::get(id_ty, uint64_t(map_id));
-  auto *proc_func = create_nt_map_process_capsule(*m_module);
+  FunctionCallee proc_func = create_nt_map_process_capsule(*m_module);
   Value *args[] = {
     m_context_arg,
     map_id_value,
@@ -448,7 +448,7 @@ void cc_code_builder::finish_entry_bb()
 {
   // Build the entry basic block.
   m_builder.SetInsertPoint(m_new_entry_bb);
-  auto *classify_func = create_bus_capsule_classify(*m_module, m_bus_type);
+  FunctionCallee classify_func = create_bus_capsule_classify(*m_module, m_bus_type);
   Value *args[] = { m_packet_arg, m_offset_buf, };
   auto *capsule_class = m_builder.CreateCall(classify_func,
                                              args, "capsule_class");

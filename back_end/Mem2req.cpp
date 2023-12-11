@@ -270,7 +270,7 @@ convert_packet_ptr(flow_conversion* fc,
 
   ir.SetCurrentDebugLocation(inst->getDebugLoc());
 
-  Constant* nt_function = nullptr;
+  FunctionCallee nt_function = nullptr;
 
   /* Common code: alloca + bitcast for data_in / data_out */
   auto* count_val = (count == 1 ? nullptr : ir_entry.getInt64(count));
@@ -297,7 +297,7 @@ convert_packet_ptr(flow_conversion* fc,
 
 #ifdef VERBOSE_DEBUG
   LLVM_DEBUG(
-    auto* fty = cast<Function>(nt_function)->getFunctionType();
+    auto* fty = nt_function.getFunctionType();
     for( unsigned i = 0; i < args.size(); ++i ) {
       dbgs() << "  Arg " << i << " " << *args[i] << " Type "
              << *args[i]->getType() << " Param type: "
@@ -413,7 +413,7 @@ Value *convert_map_ptr(flow_conversion* fc,
   ir.SetInsertPoint(inst->getNextNode());
 
   /* Fill the mask buffer. */
-  auto* init_mask = create_nt_init_mask(fc->m);
+  FunctionCallee init_mask = create_nt_init_mask(fc->m);
   Value* mask_args[] = {
     mask_buf,
     mask_bytes_val,
@@ -432,7 +432,7 @@ Value *convert_map_ptr(flow_conversion* fc,
    * delete and insert from another thread then it will look like
    * the same memory was used for the two entries with the same
    * key. */
-  auto* update_masked = create_nt_map_update_masked(fc->m);
+  FunctionCallee update_masked = create_nt_map_update_masked(fc->m);
   Value* update_args[] = {
     inst->getFunction()->arg_begin(),
     meta->base,
@@ -1073,7 +1073,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
       case Intrinsics::packet_end: {
         /* Packet end pointer requests return the length of the packet; that
          * way all comparisons etc still work as expected. */
-        auto* len = create_nt_packet_bounded_length(m);
+        FunctionCallee len = create_nt_packet_bounded_length(m);
         Value* args[] = {call->getOperand(0), ir.getInt64(32767), ir.getInt32(NANOTUBE_SECTION_PAYLOAD)};
         replacement = ir.CreateCall(len, args);
         LLVM_DEBUG(dbgs() << *replacement << '\n');
@@ -1132,7 +1132,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
                                          call->getName() + "_buf");
 
     /* Read the map entry */
-    auto* map_rd = create_nt_map_read(*call->getModule());
+    FunctionCallee map_rd = create_nt_map_read(*call->getModule());
     /* Copy or not does not matter here */
     // Value* args[] = { ctx, map_id, key, key_sz, alloca,
     //                   ir.getInt64(0), ir.getInt64(1) };
@@ -1331,7 +1331,7 @@ bool flow_conversion::try_convert_memcpy(Instruction* inst) {
     if( dst_meta != nullptr )
       mem = convert_ptr(this, cast<IntToPtrInst>(dst), count, true, inst);
     auto* offset  = cast<IntToPtrInst>(src)->getOperand(0);
-    auto* pkt_rd  = create_nt_packet_read(*inst->getModule());
+    FunctionCallee pkt_rd  = create_nt_packet_read(*inst->getModule());
     Value* args[] = { src_meta->base, mem, offset, size };
     auto* call    = ir.CreateCall(pkt_rd, args, src->getName() + "_rd");
 
@@ -1349,7 +1349,7 @@ bool flow_conversion::try_convert_memcpy(Instruction* inst) {
     if( src_meta != nullptr )
       mem = convert_ptr(this, cast<IntToPtrInst>(src), count, false, inst);
     auto* offset  = cast<IntToPtrInst>(dst)->getOperand(0);
-    auto* pkt_wr  = create_nt_packet_write(*inst->getModule());
+    FunctionCallee pkt_wr  = create_nt_packet_write(*inst->getModule());
     Value* args[] = { dst_meta->base, mem, offset, size };
     auto* call    = ir.CreateCall(pkt_wr, args, dst->getName() + "_wr");
     LLVM_DEBUG(dbgs() << "Packet write: " << *call << '\n');

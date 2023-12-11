@@ -36,6 +36,7 @@ using llvm::ArrayType;
 using llvm::CallBase;
 using llvm::CallInst;
 using llvm::Constant;
+using llvm::FunctionCallee;
 using llvm::FunctionType;
 using llvm::IntegerType;
 using llvm::LLVMContext;
@@ -365,74 +366,74 @@ namespace nanotube
   const std::string &get_enum_name(nanotube_channel_type_t t);
 
   /********** Helpers to create LLVM IR for intrinsics **********/
-  Constant* create_nt_map_create(Module& m);
-  Constant* create_nt_map_lookup(Module& m);
-  Constant* create_nt_map_op(Module& m);
-  Constant* create_nt_packet_data(Module& m);
-  Constant* create_nt_packet_end(Module& m);
-  Constant* create_nt_packet_meta(Module& m);
-  Constant* create_nt_packet_bounded_length(Module& m);
-  Constant* create_nt_packet_drop(Module& m);
-  Constant* create_nt_packet_resize(Module& m);
-  Constant* create_nt_packet_resize_ingress(Module& m);
-  Constant* create_nt_packet_resize_egress(Module& m);
-  Constant* create_nt_packet_drop(Module& m);
-  Constant* create_nt_get_time_ns(Module& m);
+  FunctionCallee create_nt_map_create(Module& m);
+  FunctionCallee create_nt_map_lookup(Module& m);
+  FunctionCallee create_nt_map_op(Module& m);
+  FunctionCallee create_nt_packet_data(Module& m);
+  FunctionCallee create_nt_packet_end(Module& m);
+  FunctionCallee create_nt_packet_meta(Module& m);
+  FunctionCallee create_nt_packet_bounded_length(Module& m);
+  FunctionCallee create_nt_packet_drop(Module& m);
+  FunctionCallee create_nt_packet_resize(Module& m);
+  FunctionCallee create_nt_packet_resize_ingress(Module& m);
+  FunctionCallee create_nt_packet_resize_egress(Module& m);
+  FunctionCallee create_nt_packet_drop(Module& m);
+  FunctionCallee create_nt_get_time_ns(Module& m);
   FunctionType* get_nt_packet_resize_ingress_ty(Module& m);
   FunctionType* get_nt_packet_resize_egress_ty(Module& m);
   FunctionType* get_nt_packet_drop_ty(Module& m);
 
-  Constant* create_nt_packet_read(Module& m);
-  Constant* create_nt_packet_write(Module& m);
-  Constant* create_nt_packet_write_masked(Module& m);
-  Constant* create_nt_map_read(Module& m);
-  Constant* create_nt_map_write(Module& m);
-  Constant* create_nt_map_update_masked(Module& m);
-  Constant* create_map_op_adapter(Module& m);
-  Constant* create_packet_adjust_head_adapter(Module& m);
-  Constant* create_packet_adjust_meta_adapter(Module& m);
-  Constant* create_packet_handle_xdp_result(Module& m);
-  Constant* create_nt_init_mask(Module& m);
-  Constant* create_nt_merge_data_mask(Module& m);
-  Constant* create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_nt_packet_read(Module& m);
+  FunctionCallee create_nt_packet_write(Module& m);
+  FunctionCallee create_nt_packet_write_masked(Module& m);
+  FunctionCallee create_nt_map_read(Module& m);
+  FunctionCallee create_nt_map_write(Module& m);
+  FunctionCallee create_nt_map_update_masked(Module& m);
+  FunctionCallee create_map_op_adapter(Module& m);
+  FunctionCallee create_packet_adjust_head_adapter(Module& m);
+  FunctionCallee create_packet_adjust_meta_adapter(Module& m);
+  FunctionCallee create_packet_handle_xdp_result(Module& m);
+  FunctionCallee create_nt_init_mask(Module& m);
+  FunctionCallee create_nt_merge_data_mask(Module& m);
+  FunctionCallee create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type);
   FunctionType* get_capsule_classify_ty(Module& m);
-  Constant* create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type);
 
   StructType* get_nt_tap_packet_read_req_ty(Module& m);
   StructType* get_nt_tap_packet_read_resp_ty(Module& m);
   StructType* get_nt_tap_packet_read_state_ty(Module& m);
   FunctionType* get_tap_packet_read_ty(Module& m);
-  Constant* create_tap_packet_read(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_tap_packet_read(Module& m, nanotube_bus_id_t bus_type);
 
   StructType* get_nt_tap_packet_write_req_ty(Module& m);
   StructType* get_nt_tap_packet_write_state_ty(Module& m);
   FunctionType* get_tap_packet_write_ty(Module& m);
-  Constant* create_tap_packet_write(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_tap_packet_write(Module& m, nanotube_bus_id_t bus_type);
 
   StructType* get_nt_tap_packet_length_req_ty(Module& m);
   StructType* get_nt_tap_packet_length_resp_ty(Module& m);
   StructType* get_nt_tap_packet_length_state_ty(Module& m);
   FunctionType* get_tap_packet_length_ty(Module& m);
-  Constant* create_tap_packet_length(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_tap_packet_length(Module& m, nanotube_bus_id_t bus_type);
 
   StructType* get_nt_tap_packet_resize_cword_ty(Module& m);
   StructType* get_nt_tap_packet_resize_req_ty(Module& m);
 
   StructType*   get_nt_tap_packet_resize_ingress_state_ty(Module& m);
   FunctionType* get_tap_packet_resize_ingress_ty(Module& m);
-  Constant*     create_tap_packet_resize_ingress(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_tap_packet_resize_ingress(Module& m, nanotube_bus_id_t bus_type);
   FunctionType* get_tap_packet_resize_ingress_state_init_ty(Module& m);
-  Constant*     create_tap_packet_resize_ingress_state_init(Module& m);
+  FunctionCallee create_tap_packet_resize_ingress_state_init(Module& m);
 
   StructType*   get_nt_tap_packet_resize_egress_state_ty(Module& m);
   FunctionType* get_tap_packet_resize_egress_ty(Module& m);
-  Constant*     create_tap_packet_resize_egress(Module& m, nanotube_bus_id_t bus_type);
+  FunctionCallee create_tap_packet_resize_egress(Module& m, nanotube_bus_id_t bus_type);
   FunctionType* get_tap_packet_resize_egress_state_init_ty(Module& m);
-  Constant*     create_tap_packet_resize_egress_state_init(Module& m);
+  FunctionCallee create_tap_packet_resize_egress_state_init(Module& m);
 
   StructType*   get_nt_tap_packet_eop_state_ty(Module& m);
   FunctionType* get_tap_packet_is_eop_ty(Module& m);
-  Constant*     create_tap_packet_is_eop(Module& m, nanotube_bus_id_t bus_type );
+  FunctionCallee create_tap_packet_is_eop(Module& m, nanotube_bus_id_t bus_type );
 
   /* Channels */
   Type*         get_nt_channel_id_ty(Module& m);
@@ -450,20 +451,20 @@ namespace nanotube
   FunctionType* get_nt_channel_set_attr_str_ty(Module& m);
   FunctionType* get_nt_channel_export_ty(Module& m);
 
-  Constant* create_nt_channel_read(Module& m);
-  Constant* create_nt_channel_try_read(Module& m);
-  Constant* create_nt_channel_write(Module& m);
-  Constant* create_nt_channel_create(Module& m);
-  Constant* create_nt_channel_set_attr(Module& m);
-  Constant* create_nt_channel_set_attr_str(Module& m);
-  Constant* create_nt_channel_export(Module& m);
+  FunctionCallee create_nt_channel_read(Module& m);
+  FunctionCallee create_nt_channel_try_read(Module& m);
+  FunctionCallee create_nt_channel_write(Module& m);
+  FunctionCallee create_nt_channel_create(Module& m);
+  FunctionCallee create_nt_channel_set_attr(Module& m);
+  FunctionCallee create_nt_channel_set_attr_str(Module& m);
+  FunctionCallee create_nt_channel_export(Module& m);
 
   /* Threads */
   FunctionType* get_nt_thread_create_ty(Module& m);
   FunctionType* get_nt_thread_func_ty(Module& m);
 
-  Constant* create_nt_thread_wait(Module& m);
-  Constant* create_nt_thread_create(Module& m);
+  FunctionCallee create_nt_thread_wait(Module& m);
+  FunctionCallee create_nt_thread_create(Module& m);
 
   /* Context */
   StructType*  get_nt_context_type(Module& m);
@@ -471,34 +472,34 @@ namespace nanotube
   FunctionType* get_nt_context_add_channel_ty(Module& m);
   FunctionType* get_nt_context_add_map_ty(Module& m);
 
-  Constant* create_nt_context_create(Module& m);
-  Constant* create_nt_context_add_channel(Module& m);
-  Constant* create_nt_context_add_map(Module& m);
+  FunctionCallee create_nt_context_create(Module& m);
+  FunctionCallee create_nt_context_add_channel(Module& m);
+  FunctionCallee create_nt_context_add_map(Module& m);
 
   /* Kernels */
   static const unsigned KERNEL_CONTEXT_ARG = 0;
   static const unsigned KERNEL_PACKET_ARG = 1;
   static const unsigned KERNEL_NUM_ARGS = 2;
-  Constant* create_nt_add_plain_packet_kernel(Module& m);
+  FunctionCallee create_nt_add_plain_packet_kernel(Module& m);
 
   /* Maps */
   FunctionType* get_nt_map_op_send_ty(Module& m);
-  Constant* create_nt_map_op_send(Module& m);
+  FunctionCallee create_nt_map_op_send(Module& m);
   FunctionType* get_nt_map_op_receive_ty(Module& m);
-  Constant* create_nt_map_op_receive(Module& m);
+  FunctionCallee create_nt_map_op_receive(Module& m);
   FunctionType* get_nt_map_process_capsule_ty(Module& m);
-  Constant* create_nt_map_process_capsule(Module& m);
+  FunctionCallee create_nt_map_process_capsule(Module& m);
 
   FunctionType* get_nt_tap_map_recv_resp_ty(Module& m);
-  Constant* create_nt_tap_map_recv_resp(Module& m);
+  FunctionCallee create_nt_tap_map_recv_resp(Module& m);
   FunctionType* get_nt_tap_map_send_req_ty(Module& m);
-  Constant* create_nt_tap_map_send_req(Module& m);
+  FunctionCallee create_nt_tap_map_send_req(Module& m);
   FunctionType* get_nt_tap_map_create_ty(Module& m);
-  Constant* create_nt_tap_map_create(Module& m);
+  FunctionCallee create_nt_tap_map_create(Module& m);
   FunctionType* get_nt_tap_map_add_client_ty(Module& m);
-  Constant* create_nt_tap_map_add_client(Module& m);
+  FunctionCallee create_nt_tap_map_add_client(Module& m);
   FunctionType* get_nt_tap_map_build_ty(Module& m);
-  Constant* create_nt_tap_map_build(Module& m);
+  FunctionCallee create_nt_tap_map_build(Module& m);
 
   /* Data Types */
   StructType*  get_nt_map_type(Module& m);

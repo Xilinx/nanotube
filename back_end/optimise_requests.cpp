@@ -2244,7 +2244,7 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
 
   /* Do the read */
   packet_read_args pra(g->accesses[0].inst);
-  auto* nt_packet_read = create_nt_packet_read(*f->getParent());
+  FunctionCallee nt_packet_read = create_nt_packet_read(*f->getParent());
   /* NOTE: One could also try to pull out the offset argument of the
    * left-most / first access in the group and use that offset rather than
    * creating redundant instructions, here. */
@@ -2296,7 +2296,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
   ir.SetInsertPoint(g->insert_point);
   ir.SetCurrentDebugLocation(g->accesses[0].inst->getDebugLoc());
   packet_write_args pwa(g->accesses[0].inst);
-  auto* nt_packet_write = create_nt_packet_write_masked(*f->getParent());
+  FunctionCallee nt_packet_write = create_nt_packet_write_masked(*f->getParent());
   auto* scaled_base = g->key.to_ir(&ir);
   Value* args[] = { pwa.packet,
                     buffer,
@@ -2313,7 +2313,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
   /* Replace every original access with a write into both the data and the
    * mask buffer => instead of writing IR directly, simply call an adapter
    * function that will be inlined later. */
-  auto* merge_data_mask = create_nt_merge_data_mask(*f->getParent());
+  FunctionCallee merge_data_mask = create_nt_merge_data_mask(*f->getParent());
   Value* merge_args[] = { buffer,
                           mask,
                           nullptr,

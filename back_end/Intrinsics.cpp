@@ -640,8 +640,8 @@ nanotube::get_enum_name(nanotube_channel_type_t t)
 /********** Helpers to create and parse LLVM IR for intrinsics **********/
 
 namespace nanotube {
-static void set_nt_attrs(Constant* co) {
-  auto* f = cast<Function>(co);
+static void set_nt_attrs(FunctionCallee callee) {
+  auto* f = cast<Function>(callee.getCallee());
   auto id = get_intrinsic(f);
   if( id == Intrinsics::none )
     return;
@@ -672,18 +672,18 @@ static void set_nt_attrs(Constant* co) {
 }
 
 template <typename...Ts>
-static Constant*
+static FunctionCallee
 get_or_insert_function(Module& m, StringRef name, Type* ret, Ts...args) {
   bool fresh = m.getNamedValue(name) == nullptr;
-  auto* f = m.getOrInsertFunction(name, ret, args...);
+  FunctionCallee f = m.getOrInsertFunction(name, ret, args...);
   if( fresh )
     set_nt_attrs(f);
   return f;
 }
-static Constant*
+static FunctionCallee
 get_or_insert_function(Module& m, StringRef name, FunctionType* ft) {
   bool fresh = m.getNamedValue(name) == nullptr;
-  auto* f = m.getOrInsertFunction(name, ft);
+  FunctionCallee f = m.getOrInsertFunction(name, ft);
   if( fresh )
     set_nt_attrs(f);
   return f;
@@ -692,7 +692,7 @@ get_or_insert_function(Module& m, StringRef name, FunctionType* ft) {
 
 /********** Map functions **********/
 namespace nanotube {
-Constant* create_nt_map_create(Module& m) {
+FunctionCallee create_nt_map_create(Module& m) {
   LLVMContext& c = m.getContext();
   auto* ret_ty   = get_nt_map_type(m)->getPointerTo();
   Type *argtys[] = { get_nt_map_id_type(m), Type::getInt32Ty(c),
@@ -700,7 +700,7 @@ Constant* create_nt_map_create(Module& m) {
   auto* ty = FunctionType::get(ret_ty, argtys, false);
   return m.getOrInsertFunction("nanotube_map_create", ty);
 }
-Constant* create_nt_map_lookup(Module& m) {
+FunctionCallee create_nt_map_lookup(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** uint8_t* nanotube_map_lookup(nanotube_context_t* ctx,
@@ -715,7 +715,7 @@ Constant* create_nt_map_lookup(Module& m) {
                                 Type::getInt64Ty(c),
                                 Type::getInt64Ty(c));
 }
-Constant* create_nt_map_op(Module& m) {
+FunctionCallee create_nt_map_op(Module& m) {
   LLVMContext& c = m.getContext();
   /*
    * size_t nanotube_map_op(nanotube_context_t* ctx, nanotube_map_id_t map,
@@ -761,7 +761,7 @@ FunctionType* get_nt_map_op_send_ty(Module& m) {
   };
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_map_op_send(Module& m) {
+FunctionCallee create_nt_map_op_send(Module& m) {
   return get_or_insert_function(m, "nanotube_map_op_send",
                                 get_nt_map_op_send_ty(m));
 }
@@ -783,7 +783,7 @@ FunctionType* get_nt_map_op_receive_ty(Module& m) {
   };
   return FunctionType::get(Type::getInt64Ty(c), args, false);
 }
-Constant* create_nt_map_op_receive(Module& m) {
+FunctionCallee create_nt_map_op_receive(Module& m) {
   return get_or_insert_function(m, "nanotube_map_op_receive",
                                 get_nt_map_op_receive_ty(m));
 }
@@ -807,13 +807,13 @@ FunctionType* get_nt_map_process_capsule_ty(Module& m)
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
 
-Constant* create_nt_map_process_capsule(Module& m)
+FunctionCallee create_nt_map_process_capsule(Module& m)
 {
   return get_or_insert_function(m, "nanotube_map_process_capsule",
                                 get_nt_map_process_capsule_ty(m));
 }
 
-Constant* create_nt_map_read(Module& m) {
+FunctionCallee create_nt_map_read(Module& m) {
   LLVMContext& c = m.getContext();
   /**
    ** size_t nanotube_map_read(nanotube_context_t* ctx, nanotube_map_id_t map,
@@ -831,7 +831,7 @@ Constant* create_nt_map_read(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_map_write(Module& m) {
+FunctionCallee create_nt_map_write(Module& m) {
   LLVMContext& c = m.getContext();
   /**
    ** size_t nanotube_map_write(nanotube_context_t* ctx, nanotube_map_id_t map,
@@ -849,7 +849,7 @@ Constant* create_nt_map_write(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_map_update_masked(Module& m) {
+FunctionCallee create_nt_map_update_masked(Module& m) {
   LLVMContext& c = m.getContext();
   /**
    ** size_t nanotube_map_update_masked(nanotube_context_t* ctx,
@@ -869,7 +869,7 @@ Constant* create_nt_map_update_masked(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_map_op_adapter(Module& m) {
+FunctionCallee create_map_op_adapter(Module& m) {
   LLVMContext& c = m.getContext();
   /*
    * int32_t map_op_adapter(nanotube_context_t* ctx, nanotube_map_id_t map_id,
@@ -895,7 +895,7 @@ Constant* create_map_op_adapter(Module& m) {
 
 /********** Packet accesses **********/
 namespace nanotube {
-Constant* create_nt_packet_data(Module& m) {
+FunctionCallee create_nt_packet_data(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** uint8_t* nanotube_packet_data(nanotube_packet_t* p);
@@ -904,7 +904,7 @@ Constant* create_nt_packet_data(Module& m) {
                                 Type::getInt8PtrTy(c),
                                 get_nt_packet_type(m)->getPointerTo());
 }
-Constant* create_nt_packet_end(Module& m) {
+FunctionCallee create_nt_packet_end(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** uint8_t* nanotube_packet_end(nanotube_packet_t* p);
@@ -913,7 +913,7 @@ Constant* create_nt_packet_end(Module& m) {
                                 Type::getInt8PtrTy(c),
                                 get_nt_packet_type(m)->getPointerTo());
 }
-Constant* create_nt_packet_meta(Module& m) {
+FunctionCallee create_nt_packet_meta(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** uint8_t* nanotube_packet_meta(nanotube_packet_t* p);
@@ -922,7 +922,7 @@ Constant* create_nt_packet_meta(Module& m) {
                                 Type::getInt8PtrTy(c),
                                 get_nt_packet_type(m)->getPointerTo());
 }
-Constant* create_nt_packet_bounded_length(Module& m) {
+FunctionCallee create_nt_packet_bounded_length(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** size_t nanotube_packet_bounded_length(nanotube_packet_t* packet,
@@ -935,7 +935,7 @@ Constant* create_nt_packet_bounded_length(Module& m) {
                                 Type::getInt64Ty(c),
                                 Type::getInt32Ty(c));
 }
-Constant* create_nt_packet_resize(Module& m) {
+FunctionCallee create_nt_packet_resize(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** int32
@@ -964,7 +964,7 @@ FunctionType* get_nt_packet_resize_ingress_ty(Module& m) {
     Type::getInt32Ty(c)};
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_packet_resize_ingress(Module& m) {
+FunctionCallee create_nt_packet_resize_ingress(Module& m) {
   return get_or_insert_function(m, "nanotube_packet_resize_ingress",
                                 get_nt_packet_resize_ingress_ty(m));
 }
@@ -981,7 +981,7 @@ FunctionType* get_nt_packet_resize_egress_ty(Module& m) {
     get_nt_tap_offset_ty(m)};
   return FunctionType::get(Type::getInt32Ty(c), args, false);
 }
-Constant* create_nt_packet_resize_egress(Module& m) {
+FunctionCallee create_nt_packet_resize_egress(Module& m) {
   return get_or_insert_function(m, "nanotube_packet_resize_egress",
                                 get_nt_packet_resize_egress_ty(m));
 }
@@ -996,11 +996,11 @@ FunctionType* get_nt_packet_drop_ty(Module& m) {
     Type::getInt32Ty(c)};
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_packet_drop(Module& m) {
+FunctionCallee create_nt_packet_drop(Module& m) {
   return get_or_insert_function(m, "nanotube_packet_drop",
                                 get_nt_packet_drop_ty(m));
 }
-Constant* create_nt_packet_read(Module& m) {
+FunctionCallee create_nt_packet_read(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** size_t nanotube_packet_read(nanotube_packet_t* packet, uint8_t* data_out,
@@ -1013,7 +1013,7 @@ Constant* create_nt_packet_read(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_packet_write(Module& m) {
+FunctionCallee create_nt_packet_write(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** size_t nanotube_packet_write(nanotube_packet_t* packet, uint8_t* data_in,
@@ -1026,7 +1026,7 @@ Constant* create_nt_packet_write(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_packet_write_masked(Module& m) {
+FunctionCallee create_nt_packet_write_masked(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** size_t nanotube_packet_write_masked(nanotube_packet_t* packet,
@@ -1041,7 +1041,7 @@ Constant* create_nt_packet_write_masked(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_init_mask(Module& m) {
+FunctionCallee create_nt_init_mask(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** void
@@ -1057,7 +1057,7 @@ Constant* create_nt_init_mask(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_merge_data_mask(Module& m) {
+FunctionCallee create_nt_merge_data_mask(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** void
@@ -1075,7 +1075,7 @@ Constant* create_nt_merge_data_mask(Module& m) {
                                Type::getInt64Ty(c));
 }
 
-Constant* create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type)
+FunctionCallee create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type)
 {
   LLVMContext& c = m.getContext();
   /**
@@ -1091,7 +1091,7 @@ Constant* create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type)
                                Type::getInt8Ty(c));
 }
 
-Constant* create_packet_adjust_head_adapter(Module& m) {
+FunctionCallee create_packet_adjust_head_adapter(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** int32 packet_adjust_head_adapter(nanotube_packet_t* p, int32 offset);
@@ -1102,7 +1102,7 @@ Constant* create_packet_adjust_head_adapter(Module& m) {
                                Type::getInt32Ty(c));
 }
 
-Constant* create_packet_adjust_meta_adapter(Module& m) {
+FunctionCallee create_packet_adjust_meta_adapter(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** int32 packet_adjust_meta_adapter(nanotube_packet_t* p, int32 offset);
@@ -1128,7 +1128,7 @@ FunctionType* get_capsule_classify_ty(Module& m) {
   return FunctionType::get(res_ty, arg_ty, false);
 }
 
-Constant* create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_bus_capsule_classify(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = ( std::string("nanotube_capsule_classify") +
                  get_bus_suffix(bus_type) );
   return get_or_insert_function(m, fname, get_capsule_classify_ty(m));
@@ -1179,7 +1179,7 @@ StructType* get_nt_channel_ty(Module& m) {
   ty = StructType::create(m.getContext(), name);
   return ty;
 }
-Constant* create_nt_channel_read(Module& m) {
+FunctionCallee create_nt_channel_read(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** void nanotube_channel_read(nanotube_context_t* context,
@@ -1194,7 +1194,7 @@ Constant* create_nt_channel_read(Module& m) {
                                Type::getInt8PtrTy(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_channel_try_read(Module& m) {
+FunctionCallee create_nt_channel_try_read(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** int32 nanotube_channel_try_read(nanotube_context_t* context,
@@ -1209,7 +1209,7 @@ Constant* create_nt_channel_try_read(Module& m) {
                                Type::getInt8PtrTy(c),
                                Type::getInt64Ty(c));
 }
-Constant* create_nt_channel_write(Module& m) {
+FunctionCallee create_nt_channel_write(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** void nanotube_channel_write(nanotube_context_t* context,
@@ -1239,7 +1239,7 @@ FunctionType* get_nt_channel_create_ty(Module& m) {
   return
     FunctionType::get(get_nt_channel_ty(m)->getPointerTo(), args, false);
 }
-Constant* create_nt_channel_create(Module& m) {
+FunctionCallee create_nt_channel_create(Module& m) {
   return m.getOrInsertFunction("nanotube_channel_create",
                                get_nt_channel_create_ty(m));
 }
@@ -1259,7 +1259,7 @@ FunctionType* get_nt_channel_set_attr_ty(Module& m) {
   return
     FunctionType::get(Type::getInt32Ty(c), args, false);
 }
-Constant* create_nt_channel_set_attr(Module& m) {
+FunctionCallee create_nt_channel_set_attr(Module& m) {
   return m.getOrInsertFunction("nanotube_channel_set_attr",
                                get_nt_channel_set_attr_ty(m));
 }
@@ -1279,7 +1279,7 @@ FunctionType* get_nt_channel_set_attr_str_ty(Module& m) {
   return
     FunctionType::get(Type::getInt32Ty(c), args, false);
 }
-Constant* create_nt_channel_set_attr_str(Module& m) {
+FunctionCallee create_nt_channel_set_attr_str(Module& m) {
   return m.getOrInsertFunction("nanotube_channel_set_attr_str",
                                get_nt_channel_set_attr_str_ty(m));
 }
@@ -1299,7 +1299,7 @@ FunctionType* get_nt_channel_export_ty(Module& m) {
   return
     FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_channel_export(Module& m) {
+FunctionCallee create_nt_channel_export(Module& m) {
   return m.getOrInsertFunction("nanotube_channel_export",
                                get_nt_channel_export_ty(m));
 }
@@ -1307,7 +1307,7 @@ Constant* create_nt_channel_export(Module& m) {
 
 /********** Thread functions **********/
 namespace nanotube {
-Constant* create_nt_thread_wait(Module& m) {
+FunctionCallee create_nt_thread_wait(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** void nanotube_thread_wait();
@@ -1347,7 +1347,7 @@ FunctionType* get_nt_thread_create_ty(Module& m) {
   return
     FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_thread_create(Module& m) {
+FunctionCallee create_nt_thread_create(Module& m) {
   return m.getOrInsertFunction("nanotube_thread_create",
                                get_nt_thread_create_ty(m));
 }
@@ -1355,7 +1355,7 @@ Constant* create_nt_thread_create(Module& m) {
 
 /********** Misc accesses **********/
 namespace nanotube {
-Constant* create_nt_get_time_ns(Module& m) {
+FunctionCallee create_nt_get_time_ns(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** uint8_t* nanotube_packet_end(nanotube_packet_t* p);
@@ -1363,7 +1363,7 @@ Constant* create_nt_get_time_ns(Module& m) {
   return m.getOrInsertFunction("nanotube_get_time_ns",
                                Type::getInt64Ty(c));
 }
-Constant* create_packet_handle_xdp_result(Module& m) {
+FunctionCallee create_packet_handle_xdp_result(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** int packet_handle_xdp_result(nanotube_packet_t* packet, int xdp_ret);
@@ -1451,7 +1451,7 @@ FunctionType* get_tap_packet_read_ty(Module& m) {
   return FunctionType::get(res_ty, arg_ty, false);
 }
 
-Constant* create_tap_packet_read(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_read(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_read") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname, get_tap_packet_read_ty(m));
@@ -1518,7 +1518,7 @@ FunctionType* get_tap_packet_write_ty(Module& m) {
   return FunctionType::get(res_ty, arg_ty, false);
 }
 
-Constant* create_tap_packet_write(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_write(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_write") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname, get_tap_packet_write_ty(m));
@@ -1588,7 +1588,7 @@ FunctionType* get_tap_packet_length_ty(Module& m) {
   return FunctionType::get(res_ty, arg_ty, false);
 }
 
-Constant* create_tap_packet_length(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_length(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_length") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname, get_tap_packet_length_ty(m));
@@ -1666,7 +1666,7 @@ FunctionType* get_tap_packet_resize_ingress_ty(Module& m) {
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }
-Constant* create_tap_packet_resize_ingress(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_resize_ingress(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_resize_ingress") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname, get_tap_packet_resize_ingress_ty(m));
@@ -1723,7 +1723,7 @@ FunctionType* get_tap_packet_resize_egress_ty(Module& m) {
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }
-Constant* create_tap_packet_resize_egress(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_resize_egress(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_resize_egress") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname,
@@ -1742,7 +1742,7 @@ FunctionType* get_tap_packet_resize_egress_state_init_ty(Module& m) {
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }
-Constant* create_tap_packet_resize_egress_state_init(Module& m) {
+FunctionCallee create_tap_packet_resize_egress_state_init(Module& m) {
   return m.getOrInsertFunction("nanotube_tap_packet_resize_egress_state_init",
       get_tap_packet_resize_egress_state_init_ty(m));
 }
@@ -1758,7 +1758,7 @@ FunctionType* get_tap_packet_resize_ingress_state_init_ty(Module& m) {
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }
-Constant* create_tap_packet_resize_ingress_state_init(Module& m) {
+FunctionCallee create_tap_packet_resize_ingress_state_init(Module& m) {
   return m.getOrInsertFunction("nanotube_tap_packet_resize_ingress_state_init",
       get_tap_packet_resize_ingress_state_init_ty(m));
 }
@@ -1791,7 +1791,7 @@ FunctionType* get_tap_packet_is_eop_ty(Module& m) {
   };
   return FunctionType::get(res_ty, arg_ty, false);
 }
-Constant* create_tap_packet_is_eop(Module& m, nanotube_bus_id_t bus_type) {
+FunctionCallee create_tap_packet_is_eop(Module& m, nanotube_bus_id_t bus_type) {
   auto fname = std::string("nanotube_tap_packet_is_eop") +
                  get_bus_suffix(bus_type);
   return get_or_insert_function(m, fname, get_tap_packet_is_eop_ty(m));
@@ -1817,7 +1817,7 @@ FunctionType* get_nt_context_create_ty(Module& m) {
   return FunctionType::get(get_nt_context_type(m)->getPointerTo(),
                            false);
 }
-Constant* create_nt_context_create(Module& m) {
+FunctionCallee create_nt_context_create(Module& m) {
   return m.getOrInsertFunction("nanotube_context_create",
       get_nt_context_create_ty(m));
 }
@@ -1838,7 +1838,7 @@ FunctionType* get_nt_context_add_channel_ty(Module& m) {
   };
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_context_add_channel(Module& m) {
+FunctionCallee create_nt_context_add_channel(Module& m) {
   return m.getOrInsertFunction("nanotube_context_add_channel",
       get_nt_context_add_channel_ty(m));
 }
@@ -1855,7 +1855,7 @@ FunctionType* get_nt_context_add_map_ty(Module& m) {
   };
   return FunctionType::get(Type::getVoidTy(c), args, false);
 }
-Constant* create_nt_context_add_map(Module& m) {
+FunctionCallee create_nt_context_add_map(Module& m) {
   return m.getOrInsertFunction("nanotube_context_add_map",
       get_nt_context_add_map_ty(m));
 }
@@ -1897,7 +1897,7 @@ namespace nanotube {
     return FunctionType::get(Type::getVoidTy(c), args, false);
   }
 
-  Constant* create_nt_add_plain_packet_kernel(Module& m)
+  FunctionCallee create_nt_add_plain_packet_kernel(Module& m)
   {
     return m.getOrInsertFunction("nanotube_add_plain_packet_kernel",
                                  add_nt_add_plain_packet_kernel_ty(m));
@@ -1927,7 +1927,7 @@ namespace nanotube {
     };
     return FunctionType::get(Type::getInt1Ty(c), args, false);
   }
-  Constant* create_nt_tap_map_recv_resp(Module& m) {
+  FunctionCallee create_nt_tap_map_recv_resp(Module& m) {
     return m.getOrInsertFunction("nanotube_tap_map_recv_resp",
                                  get_nt_tap_map_recv_resp_ty(m));
 
@@ -1955,7 +1955,7 @@ namespace nanotube {
     };
     return FunctionType::get(Type::getVoidTy(c), args, false);
   }
-  Constant* create_nt_tap_map_send_req(Module& m) {
+  FunctionCallee create_nt_tap_map_send_req(Module& m) {
     return m.getOrInsertFunction("nanotube_tap_map_send_req",
                                  get_nt_tap_map_send_req_ty(m));
 
@@ -1982,7 +1982,7 @@ namespace nanotube {
     return FunctionType::get(get_nt_tap_map_ty(m)->getPointerTo(),
                              args, false);
   }
-  Constant* create_nt_tap_map_create(Module& m) {
+  FunctionCallee create_nt_tap_map_create(Module& m) {
     return m.getOrInsertFunction("nanotube_tap_map_create",
                                  get_nt_tap_map_create_ty(m));
 
@@ -2021,7 +2021,7 @@ namespace nanotube {
     };
     return FunctionType::get(Type::getVoidTy(c), args, false);
   }
-  Constant* create_nt_tap_map_add_client(Module& m) {
+  FunctionCallee create_nt_tap_map_add_client(Module& m) {
     return get_or_insert_function(m, "nanotube_tap_map_add_client",
                                   get_nt_tap_map_add_client_ty(m));
   }
@@ -2035,7 +2035,7 @@ namespace nanotube {
     return FunctionType::get(Type::getVoidTy(c),
              get_nt_tap_map_ty(m)->getPointerTo(), false);
   }
-  Constant* create_nt_tap_map_build(Module& m) {
+  FunctionCallee create_nt_tap_map_build(Module& m) {
     return get_or_insert_function(m, "nanotube_tap_map_build",
                                   get_nt_tap_map_build_ty(m));
   }

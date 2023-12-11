@@ -172,7 +172,7 @@ void platform::adjust_set_port(Instruction *insn)
 
   // Replace the function. 
   auto *call = cast<CallBase>(insn);
-  auto *set_port = create_bus_packet_set_port(*m, m_bus_type);
+  FunctionCallee set_port = create_bus_packet_set_port(*m, m_bus_type);
   call->setCalledFunction(set_port);
 }
 
