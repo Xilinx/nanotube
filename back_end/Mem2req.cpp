@@ -335,13 +335,8 @@ bool is_nanotube_root(const Instruction& inst) {
   return is_map_pointer_source(&inst) || is_packet_pointer_source(&inst);
 }
 
-enum {
-  READ    = 1,
-  WRITE   = 2,
-  UNKNOWN = 4,
-};
 struct arg_info {
-  uint8_t rwu;
+  llvm::ModRefInfo mod_ref;
   Value*  size;
 };
 
@@ -350,7 +345,7 @@ void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
   switch( intrinsic ) {
     case Intrinsics::llvm_memset:
       if( op_idx == 0 ) {
-        ai->rwu  = WRITE;
+        ai->mod_ref  = ModRefInfo::MustMod;
         ai->size = call->getOperand(2);
         return;
       }
@@ -358,17 +353,17 @@ void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
     case Intrinsics::llvm_memcpy:
       ai->size = call->getOperand(2);
       if( op_idx == 0 ) {
-        ai->rwu = WRITE;
+        ai->mod_ref = ModRefInfo::MustMod;
         return;
       } else if( op_idx == 1 ) {
-        ai->rwu = READ;
+        ai->mod_ref = ModRefInfo::MustRef;
         return;
       }
       break;
     case Intrinsics::map_lookup:
       ai->size = call->getOperand(3);
       if( op_idx == 2 ) {
-        ai->rwu = READ;
+        ai->mod_ref = ModRefInfo::MustRef;
         return;
       }
       break;
@@ -376,7 +371,7 @@ void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
       ;/* fall out */
   };
   ai->size = nullptr;
-  ai->rwu  = UNKNOWN;
+  ai->mod_ref  = ModRefInfo::ModRef;
 }
 
 void flow_conversion::flow(BasicBlock *bb) {
@@ -918,7 +913,7 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
 
   arg_info ai;
   get_read_write_unknown(call, i, &ai);
-  if( ai.rwu & UNKNOWN ) {
+  if( ai.mod_ref != ModRefInfo::MustRef && ai.mod_ref != ModRefInfo::MustMod ) {
     errs() << "Unknown read / write pointer argument " << i << *arg
            << " in call " << *call << '\n';
     assert(false);
@@ -928,7 +923,7 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
   IRBuilder<> ir_entry(call->getFunction()->getEntryBlock().getFirstNonPHI());
   /* Perform a read request into a local stack variable and feed that
    *  into the call */
-  if( ai.rwu & READ ) {
+  if( ai.mod_ref == ModRefInfo::MustRef ) {
     LLVM_DEBUG(dbgs() << "  Read ");
     auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
                                     "_in", ai.size, &ir_entry);
@@ -960,7 +955,7 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
 
   /* Write the data to a stack variable, and then into the packet /
    * map. */
-  if( ai.rwu & WRITE ) {
+  if( ai.mod_ref == ModRefInfo::MustMod ) {
     LLVM_DEBUG(dbgs() << "  Write ");
     auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
                                     "_out", ai.size, &ir_entry);
