@@ -811,8 +811,10 @@ void flow_conversion::convert_mem(Instruction* inst) {
   LLVM_DEBUG(dbgs() << " offset: " << *offset
                     << " size: " << size << '\n');
 
-  IRBuilder<> ir(inst);
+  IRBuilder<> ir(is_write ? inst->getNextNode() : inst);
   IRBuilder<> ir_entry(inst->getFunction()->getEntryBlock().getFirstNonPHI());
+
+  ir.SetCurrentDebugLocation(inst->getDebugLoc());
 
   Constant* nt_function = nullptr;
 
@@ -828,9 +830,7 @@ void flow_conversion::convert_mem(Instruction* inst) {
     nt_function = meta->is_map ? create_nt_map_read(m) :
                                  create_nt_packet_read(m);
   } else {
-    /* Generate code for stores: store, nt_packet_write(..) */
-    auto* val = cast<StoreInst>(inst)->getValueOperand();
-    ir.CreateStore(val, alloca);
+    /* Stores are just writes */
     nt_function = meta->is_map ? create_nt_map_write(m) :
                                  create_nt_packet_write(m);
   }
@@ -863,13 +863,8 @@ void flow_conversion::convert_mem(Instruction* inst) {
   LLVM_DEBUG(dbgs() << *call << '\n');
 
   /* Suffix code and cleanup */
-  if( !is_write ) {
-    auto* ld = ir.CreateLoad(alloca);
-    replace_and_cleanup(inst, ld, i2p);
-  } else {
-    inst->eraseFromParent();
-    cleanup(this, i2p);
-  }
+  inst->setOperand(is_write ? 1 : 0, alloca);
+  cleanup(this, i2p);
 }
 void flow_conversion::convert_special_case_call(CallInst* call) {
   switch( get_intrinsic(call) ) {

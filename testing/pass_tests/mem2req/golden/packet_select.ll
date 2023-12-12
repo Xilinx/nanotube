@@ -32,11 +32,11 @@ entry:
 
 edit:                                             ; preds = %entry
   %1 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %byte_0_buffer, i64 0, i64 1)
-  %2 = load i8, i8* %byte_0_buffer
-  %sel = icmp ne i8 %2, 42
+  %byte_0 = load i8, i8* %byte_0_buffer
+  %sel = icmp ne i8 %byte_0, 42
   %ptr1 = select i1 %sel, i64 1, i64 2
   store i8 0, i8* %_buffer
-  %3 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %ptr1, i64 1)
+  %2 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %ptr1, i64 1)
   br label %done
 
 done:                                             ; preds = %edit, %entry

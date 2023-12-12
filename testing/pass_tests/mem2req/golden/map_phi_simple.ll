@@ -44,17 +44,17 @@ entry:
 
 lookup_okay:                                      ; preds = %entry
   %0 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %byte_0_buffer, i64 0, i64 1)
-  %1 = load i8, i8* %byte_0_buffer
-  %cond = icmp ne i8 %1, 0
+  %byte_0 = load i8, i8* %byte_0_buffer
+  %cond = icmp ne i8 %byte_0, 0
   br i1 %cond, label %ne_0, label %edit
 
 ne_0:                                             ; preds = %lookup_okay
   br label %edit
 
 edit:                                             ; preds = %ne_0, %lookup_okay
-  %2 = phi i64 [ 1, %lookup_okay ], [ 2, %ne_0 ]
+  %1 = phi i64 [ 1, %lookup_okay ], [ 2, %ne_0 ]
   store i8 0, i8* %_buffer
-  %3 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer, i64 %2, i64 1)
+  %2 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer, i64 %1, i64 1)
   br label %done
 
 done:                                             ; preds = %edit, %entry
