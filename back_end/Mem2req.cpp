@@ -337,41 +337,19 @@ bool is_nanotube_root(const Instruction& inst) {
 
 struct arg_info {
   llvm::ModRefInfo mod_ref;
-  Value*  size;
+  uint64_t size;
 };
 
 void get_read_write_unknown(CallInst* call, unsigned op_idx, arg_info* ai) {
-  auto intrinsic = get_intrinsic(call);
-  switch( intrinsic ) {
-    case Intrinsics::llvm_memset:
-      if( op_idx == 0 ) {
-        ai->mod_ref  = ModRefInfo::MustMod;
-        ai->size = call->getOperand(2);
-        return;
-      }
-      break;
-    case Intrinsics::llvm_memcpy:
-      ai->size = call->getOperand(2);
-      if( op_idx == 0 ) {
-        ai->mod_ref = ModRefInfo::MustMod;
-        return;
-      } else if( op_idx == 1 ) {
-        ai->mod_ref = ModRefInfo::MustRef;
-        return;
-      }
-      break;
-    case Intrinsics::map_lookup:
-      ai->size = call->getOperand(3);
-      if( op_idx == 2 ) {
-        ai->mod_ref = ModRefInfo::MustRef;
-        return;
-      }
-      break;
-    default:
-      ;/* fall out */
-  };
-  ai->size = nullptr;
-  ai->mod_ref  = ModRefInfo::ModRef;
+  nt_api_call api(call);
+
+  bool precise = false;
+  ai->size = api.get_max_size(op_idx, &precise);
+
+  if( precise )
+    ai->mod_ref = get_nt_arg_info(api.get_intrinsic(), op_idx);
+  else
+    ai->mod_ref = ModRefInfo::ModRef;
 }
 
 void flow_conversion::flow(BasicBlock *bb) {
@@ -921,12 +899,15 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
 
   IRBuilder<> ir(call);
   IRBuilder<> ir_entry(call->getFunction()->getEntryBlock().getFirstNonPHI());
+
+  Value *size_val = ir.getInt64(ai.size);
+
   /* Perform a read request into a local stack variable and feed that
    *  into the call */
   if( ai.mod_ref == ModRefInfo::MustRef ) {
     LLVM_DEBUG(dbgs() << "  Read ");
     auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
-                                    "_in", ai.size, &ir_entry);
+                                    "_in", size_val, &ir_entry);
 
     CallInst* rd_op = nullptr;
     if( meta->is_map ) {
@@ -934,13 +915,13 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
       /* Map read into the new variable */
       auto* map_rd  = create_nt_map_read(*call->getModule());
       Value* args[] = { call->getFunction()->arg_begin(), meta->base,
-                        meta->key, meta->key_sz, alloca, offset, ai.size };
+                        meta->key, meta->key_sz, alloca, offset, size_val };
       rd_op         = ir.CreateCall(map_rd, args, arg->getName() + "_rd");
     } else {
       LLVM_DEBUG(dbgs() << "packet");
       /* Packet read into the new variable */
       auto* pkt_rd  = create_nt_packet_read(*call->getModule());
-      Value* args[] = { meta->base, alloca, offset, ai.size };
+      Value* args[] = { meta->base, alloca, offset, size_val };
       rd_op         = ir.CreateCall(pkt_rd, args, arg->getName() + "_rd");
     }
 
@@ -958,7 +939,7 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
   if( ai.mod_ref == ModRefInfo::MustMod ) {
     LLVM_DEBUG(dbgs() << "  Write ");
     auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
-                                    "_out", ai.size, &ir_entry);
+                                    "_out", size_val, &ir_entry);
     call->setOperand(i, alloca);
 
     /* Hack to allow inserting after the call */
@@ -972,13 +953,13 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
       LLVM_DEBUG(dbgs() << "map");
       auto* map_wr  = create_nt_map_write(*call->getModule());
       Value* args[] = { call->getFunction()->arg_begin(), meta->base,
-                        meta->key, meta->key_sz, alloca, offset, ai.size };
+                        meta->key, meta->key_sz, alloca, offset, size_val };
       wr_op         = ir.CreateCall(map_wr, args, arg->getName() + "_wr");
     } else {
       /* Packet write with new variable */
       LLVM_DEBUG(dbgs() << "packet");
       auto* pkt_wr  = create_nt_packet_write(*call->getModule());
-      Value* args[] = { meta->base, alloca, offset, ai.size };
+      Value* args[] = { meta->base, alloca, offset, size_val };
       wr_op         = ir.CreateCall(pkt_wr, args, arg->getName() + "_wr");
     }
 
