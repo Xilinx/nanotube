@@ -2086,8 +2086,8 @@ static Instruction* group_insertion_point(const merge_group& g,
       continue;
     /* Same BB: find the earliest spot */
     //if( inst.comesBefore(ip) )
-    bool llvm_fwd = isPotentiallyReachable(inst, ip, &dt);
-    bool llvm_bwd = isPotentiallyReachable(ip, inst, &dt);
+    bool llvm_fwd = isPotentiallyReachable(inst, ip, nullptr, &dt);
+    bool llvm_bwd = isPotentiallyReachable(ip, inst, nullptr, &dt);
     bool my_fwd = reach.is_reachable(inst, ip);
     bool my_bwd = reach.is_reachable(ip, inst);
 
