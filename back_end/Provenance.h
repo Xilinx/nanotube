@@ -34,8 +34,8 @@ namespace nanotube {
   ** returned, various options ORed together.
   ** @param v .. Value to be looked for
   **/
-  extern nt_prov get_provenance(llvm::ArrayRef<llvm::Value*> vs);
-  extern nt_prov get_provenance(llvm::Value* v);
+  extern nt_prov get_provenance(llvm::ArrayRef<const llvm::Value*> vs);
+  extern nt_prov get_provenance(const llvm::Value* v);
 }; // namespace nanotube
 
 /* vim: set ts=8 et sw=2 sts=2 tw=75: */

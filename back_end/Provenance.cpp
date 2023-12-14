@@ -25,21 +25,23 @@
 using namespace llvm;
 using namespace nanotube;
 
-static std::map<Value*, nt_prov>  provenance_cache;
+static std::map<const Value*, nt_prov>  provenance_cache;
 
 /**
 ** Finds out where a value comes from / lives.  Encoded in the enum
 ** returned, various options ORed together.
 ** @param v .. Value to be looked for
 **/
-nt_prov nanotube::get_provenance(ArrayRef<Value*> vs) {
+nt_prov nanotube::get_provenance(ArrayRef<const Value*> vs) {
   nt_prov res = NONE;
   for( auto* v : vs)
     res |= get_provenance(v);
   return res;
 }
 
-nt_prov nanotube::get_provenance(Value* v) {
+nt_prov nanotube::get_provenance(const Value* v_const) {
+  Value* v = const_cast<Value*>(v_const);
+
   /* Look up in the cache, first :) */
   auto it = provenance_cache.find(v);
   if( it != provenance_cache.end() )

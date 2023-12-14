@@ -51,8 +51,8 @@ AliasResult NanotubeAAResult::alias(const MemoryLocation& loc_a,
   if( res != MayAlias )
     return res;
 
-  SmallVector<Value*, 4> vals_a;
-  SmallVector<Value*, 4> vals_b;
+  SmallVector<const Value*, 4> vals_a;
+  SmallVector<const Value*, 4> vals_b;
 
   // XXX: More caching here!
   GetUnderlyingObjects(const_cast<Value*>(loc_a.Ptr), vals_a,
