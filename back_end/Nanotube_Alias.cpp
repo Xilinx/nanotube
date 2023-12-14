@@ -314,11 +314,11 @@ NanotubeAAResult::getModRefBehavior(const Function* func) {
 }
 
 bool
-NanotubeAAResult::PointsToConstantMemory(const MemoryLocation& loc, bool or_local) {
+NanotubeAAResult::pointsToConstantMemory(const MemoryLocation& loc, bool or_local) {
   auto res = Base::pointsToConstantMemory(loc, or_local);
 
   LLVM_DEBUG(
-    dbgs() << "PointsToConstantMemory: Loc: " << loc << " or_local: "
+    dbgs() << "pointsToConstantMemory: Loc: " << loc << " or_local: "
            << or_local << " Res: " << res << '\n');
 
   return res;

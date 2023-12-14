@@ -85,7 +85,7 @@ struct NanotubeAAResult : public AAResultBase<NanotubeAAResult> {
   ModRefInfo getModRefInfo(const CallBase* call1, const CallBase* call2);
   FunctionModRefBehavior getModRefBehavior(const CallBase* call);
   FunctionModRefBehavior getModRefBehavior(const Function* func);
-  bool PointsToConstantMemory(const MemoryLocation& loc, bool or_local) __attribute__((unused));
+  bool pointsToConstantMemory(const MemoryLocation& loc, bool or_local);
 
   /******** Helper functions *********/
   Value* get_nt_map_arg(const CallInst* call);
