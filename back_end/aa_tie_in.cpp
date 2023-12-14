@@ -52,19 +52,22 @@ struct custom_aa_result_t : public AAResultBase<custom_aa_result_t> {
     dbgs() << "Result destructor\n";
   }
 
-  AliasResult alias(const MemoryLocation& loc_a, const MemoryLocation& loc_b) {
-    dbgs() << "custom_aa_result::alias(loc_a, loc_b))\n";
+  AliasResult alias(const MemoryLocation& loc_a, const MemoryLocation& loc_b,
+                    AAQueryInfo &QI) {
+    dbgs() << "custom_aa_result::alias(loc_a, loc_b, QI))\n";
     return MayAlias;
   }
   ModRefInfo getArgModRefInfo(const CallBase* call, unsigned arg_idx) {
     dbgs() << "custom_aa_result::getArgModRefInfo(call, arg_idx)\n";
     return ModRefInfo::ModRef;
   }
-  ModRefInfo getModRefInfo(const CallBase* call, const MemoryLocation& loc) {
-    dbgs() << "custom_aa_result::getModRefInfo(call, loc)\n";
+  ModRefInfo getModRefInfo(const CallBase* call, const MemoryLocation& loc,
+                           AAQueryInfo &QI) {
+    dbgs() << "custom_aa_result::getModRefInfo(call, loc, QI)\n";
     return ModRefInfo::ModRef;
   }
-  ModRefInfo getModRefInfo(const CallBase* call1, const CallBase* call2) {
+  ModRefInfo getModRefInfo(const CallBase* call1, const CallBase* call2,
+                           AAQueryInfo &QI) {
     dbgs() << "custom_aa_result::getModRefInfo(call, loc)\n";
     return ModRefInfo::ModRef;
   }

@@ -79,13 +79,17 @@ struct NanotubeAAResult : public AAResultBase<NanotubeAAResult> {
     ~manage_in_alias() { ntaares.in_alias = false; }
   };
 
-  AliasResult alias(const MemoryLocation& loc_a, const MemoryLocation& loc_b);
+  AliasResult alias(const MemoryLocation& loc_a, const MemoryLocation& loc_b,
+                    AAQueryInfo &QI);
   ModRefInfo getArgModRefInfo(const CallBase* call, unsigned arg_idx);
-  ModRefInfo getModRefInfo(const CallBase* call, const MemoryLocation& loc);
-  ModRefInfo getModRefInfo(const CallBase* call1, const CallBase* call2);
+  ModRefInfo getModRefInfo(const CallBase* call, const MemoryLocation& loc,
+                           AAQueryInfo &QI);
+  ModRefInfo getModRefInfo(const CallBase* call1, const CallBase* call2,
+                           AAQueryInfo &QI);
   FunctionModRefBehavior getModRefBehavior(const CallBase* call);
   FunctionModRefBehavior getModRefBehavior(const Function* func);
-  bool pointsToConstantMemory(const MemoryLocation& loc, bool or_local);
+  bool pointsToConstantMemory(const MemoryLocation& loc,
+                              AAQueryInfo &QI, bool or_local);
 
   /******** Helper functions *********/
   Value* get_nt_map_arg(const CallInst* call);

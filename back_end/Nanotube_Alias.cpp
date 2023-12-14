@@ -28,7 +28,8 @@ using namespace nanotube;
 //namespace {
 
 AliasResult NanotubeAAResult::alias(const MemoryLocation& loc_a,
-                  const MemoryLocation& loc_b) {
+                  const MemoryLocation& loc_b,
+                  AAQueryInfo &QI) {
   /* Get a reasonable first result from some other AA, which is sometimes
    * in NTAA to make better decisions. */
   // auto res = (basic_aa != nullptr) ? basic_aa->alias(loc_a, loc_b)
@@ -39,7 +40,7 @@ AliasResult NanotubeAAResult::alias(const MemoryLocation& loc_a,
   if( in_alias )
     return AliasResult::MayAlias;
   manage_in_alias mia(*this);
-  auto res = getBestAAResults().alias(loc_a, loc_b);
+  auto res = getBestAAResults().alias(loc_a, loc_b, QI);
 
   LLVM_DEBUG(
     dbgs() << "alias: \n"
@@ -232,8 +233,9 @@ NanotubeAAResult::getArgModRefInfo(const CallBase* call, unsigned arg_idx) {
 }
 
 ModRefInfo
-NanotubeAAResult::getModRefInfo(const CallBase* call, const MemoryLocation& loc) {
-  auto res = Base::getModRefInfo(call, loc);
+NanotubeAAResult::getModRefInfo(const CallBase* call, const MemoryLocation& loc,
+                                AAQueryInfo &QI) {
+  auto res = Base::getModRefInfo(call, loc, QI);
 
   LLVM_DEBUG(
     dbgs() << "getModRefInfo: Call: " << *call << " Loc: " << loc
@@ -257,7 +259,7 @@ NanotubeAAResult::getModRefInfo(const CallBase* call, const MemoryLocation& loc)
     if( !v->getType()->isPointerTy() )
       continue;
     auto v_loc = get_memory_location(call, arg, target_lib_info);
-    auto aares = alias(v_loc, loc);
+    auto aares = alias(v_loc, loc, QI);
     if( aares != NoAlias) {
       res = unionModRef(res, get_nt_arg_info(intr, arg));
       all_precise &= (aares != MayAlias);
@@ -274,8 +276,9 @@ NanotubeAAResult::getModRefInfo(const CallBase* call, const MemoryLocation& loc)
 }
 
 ModRefInfo
-NanotubeAAResult::getModRefInfo(const CallBase* call1, const CallBase* call2) {
-  auto res = Base::getModRefInfo(call1, call2);
+NanotubeAAResult::getModRefInfo(const CallBase* call1, const CallBase* call2,
+                                AAQueryInfo &QI) {
+  auto res = Base::getModRefInfo(call1, call2, QI);
   LLVM_DEBUG(
     dbgs() << "getModRefInfo: Call1: " << *call1 << " Call2: "
            << *call2 << " Res: " << res << '\n');
@@ -316,8 +319,9 @@ NanotubeAAResult::getModRefBehavior(const Function* func) {
 }
 
 bool
-NanotubeAAResult::pointsToConstantMemory(const MemoryLocation& loc, bool or_local) {
-  auto res = Base::pointsToConstantMemory(loc, or_local);
+NanotubeAAResult::pointsToConstantMemory(const MemoryLocation& loc,
+                                         AAQueryInfo &QI, bool or_local) {
+  auto res = Base::pointsToConstantMemory(loc, QI, or_local);
 
   LLVM_DEBUG(
     dbgs() << "pointsToConstantMemory: Loc: " << loc << " or_local: "
