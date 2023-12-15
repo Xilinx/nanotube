@@ -258,7 +258,7 @@ struct ebpf_to_NT : public ModulePass {
     while( isa<DIDerivedType>(ty) ) {
       if( ty->getTag() != dwarf::DW_TAG_typedef )
         break;
-      ty = cast<DIDerivedType>(ty)->getBaseType().resolve();
+      ty = cast<DIDerivedType>(ty)->getBaseType();
     }
     return ty;
   }
@@ -310,7 +310,7 @@ struct ebpf_to_NT : public ModulePass {
     for( auto* di : debug_info ) {
       auto* di_gv = di->getVariable();
       //auto  name  = di_gv->getName();
-      auto* di_ty = di_gv->getType().resolve();
+      auto* di_ty = di_gv->getType();
 
       auto* di_compty  = parse_cast<DICompositeType>(di_ty,
                            "DICompositeType", g);
@@ -325,10 +325,10 @@ struct ebpf_to_NT : public ModulePass {
 
         /* The second DIDerivedType shows that these are pointers to sth */
         auto* di_memberty = parse_cast<DIDerivedType>(
-                            di_derivty->getBaseType().resolve(),
+                            di_derivty->getBaseType(),
                             "DIDerivedType", g);
         assert( di_memberty->getTag() == dwarf::DW_TAG_pointer_type );
-        auto* di_basety = di_memberty->getBaseType().resolve();
+        auto* di_basety = di_memberty->getBaseType();
 
         /* The type of the struct member elements defines the property that
          * is indicated by their name:
