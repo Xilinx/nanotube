@@ -132,6 +132,78 @@ static void cleanup(flow_conversion *fc, IntToPtrInst *i2p)
   }
 }
 
+Value *convert_ptr(flow_conversion* fc,
+                   IntToPtrInst* i2p,
+                   uint64_t count,
+                   bool is_write,
+                   Instruction *inst)
+{
+  auto* mem_ty  = i2p->getType()->getPointerElementType();
+  auto* offset  = i2p->getOperand(0);
+  auto  it      = fc->val_to_meta.find(i2p);
+  assert(it != fc->val_to_meta.end());
+  auto* meta    = it->second;
+  auto& dl      = fc->m.getDataLayout();
+  uint64_t size = dl.getTypeStoreSize(mem_ty) * count;
+
+  LLVM_DEBUG(dbgs() << " offset: " << *offset
+                    << " size: " << size << '\n');
+
+  IRBuilder<> ir(is_write ? inst->getNextNode() : inst);
+  IRBuilder<> ir_entry(inst->getFunction()->getEntryBlock().getFirstNonPHI());
+
+  ir.SetCurrentDebugLocation(inst->getDebugLoc());
+
+  Constant* nt_function = nullptr;
+
+  /* Common code: alloca + bitcast for data_in / data_out */
+  auto* count_val = (count == 1 ? nullptr : ir_entry.getInt64(count));
+  auto* alloca = ir_entry.CreateAlloca(mem_ty, count_val,
+                                       inst->getName() + "_buffer");
+  auto* bc     = ir_entry.CreateBitCast(alloca, ir.getInt8PtrTy(),
+                                        inst->getName() + "_buffer.bc");
+
+  /* Specific prefix + call */
+  if( !is_write ) {
+    /* Loads are just reads */
+    nt_function = meta->is_map ? create_nt_map_read(fc->m) :
+                                 create_nt_packet_read(fc->m);
+  } else {
+    /* Stores are just writes */
+    nt_function = meta->is_map ? create_nt_map_write(fc->m) :
+                                 create_nt_packet_write(fc->m);
+  }
+
+  /* Arguments: make sure to add key and key size for map access */
+  std::vector<Value*> args;
+  if( meta->is_map )
+    args.push_back(inst->getFunction()->arg_begin());
+  args.push_back(meta->base);
+  if( meta->is_map ) {
+    args.push_back(meta->key);
+    args.push_back(meta->key_sz);
+  }
+  args.push_back(bc);
+  args.push_back(offset);
+  args.push_back(ir.getInt64(size));
+
+#ifdef VERBOSE_DEBUG
+  LLVM_DEBUG(
+    auto* fty = cast<Function>(nt_function)->getFunctionType();
+    for( unsigned i = 0; i < args.size(); ++i ) {
+      dbgs() << "  Arg " << i << " " << *args[i] << " Type "
+             << *args[i]->getType() << " Param type: "
+             << *fty->getParamType(i) << '\n';
+    }
+  );
+#endif //VERBOSE_DEBUG
+
+  auto* call    = ir.CreateCall(nt_function, args);
+  LLVM_DEBUG(dbgs() << *call << '\n');
+
+  return alloca;
+}
+
 static Value* gep_to_arithmetic_zero(GetElementPtrInst *gep);
 static Value* gep_to_arithmetic_base(GetElementPtrInst *gep, Value *base_int);
 
@@ -794,78 +866,20 @@ void flow_conversion::convert_mem(Instruction* inst) {
 
   bool is_write = isa<StoreInst>(inst);
   auto* ptr     = get_pointer_operand(inst);
-  auto* mem_ty  = ptr->getType()->getPointerElementType();
   auto* i2p     = dyn_cast<IntToPtrInst>(ptr);
 
   LLVM_DEBUG(
+    auto* mem_ty  = ptr->getType()->getPointerElementType();
     dbgs() << "Converting " << *inst << " with ptr: " << *ptr
            << " memory type: " << *mem_ty << '\n');
 
-  auto* offset  = i2p->getOperand(0);
-  auto  it      = val_to_meta.find(i2p);
-  assert(it != val_to_meta.end());
-  auto* meta    = it->second;
-  auto& dl      = m.getDataLayout();
-  unsigned size = dl.getTypeStoreSize(mem_ty);
-
-  LLVM_DEBUG(dbgs() << " offset: " << *offset
-                    << " size: " << size << '\n');
-
-  IRBuilder<> ir(is_write ? inst->getNextNode() : inst);
-  IRBuilder<> ir_entry(inst->getFunction()->getEntryBlock().getFirstNonPHI());
-
-  ir.SetCurrentDebugLocation(inst->getDebugLoc());
-
-  Constant* nt_function = nullptr;
-
-  /* Common code: alloca + bitcast for data_in / data_out */
-  auto* alloca = ir_entry.CreateAlloca(mem_ty, nullptr,
-                                       inst->getName() + "_buffer");
-  auto* bc     = ir_entry.CreateBitCast(alloca, ir.getInt8PtrTy(),
-                                        inst->getName() + "_buffer.bc");
-
-  /* Specific prefix + call */
-  if( !is_write) {
-    /* Loads are just reads */
-    nt_function = meta->is_map ? create_nt_map_read(m) :
-                                 create_nt_packet_read(m);
-  } else {
-    /* Stores are just writes */
-    nt_function = meta->is_map ? create_nt_map_write(m) :
-                                 create_nt_packet_write(m);
-  }
-
-  /* Arguments: make sure to add key and key size for map access */
-  std::vector<Value*> args;
-  if( meta->is_map )
-    args.push_back(inst->getFunction()->arg_begin());
-  args.push_back(meta->base);
-  if( meta->is_map ) {
-    args.push_back(meta->key);
-    args.push_back(meta->key_sz);
-  }
-  args.push_back(bc);
-  args.push_back(offset);
-  args.push_back(ir.getInt64(size));
-
-#ifdef VERBOSE_DEBUG
-  LLVM_DEBUG(
-    auto* fty = cast<Function>(nt_function)->getFunctionType();
-    for( unsigned i = 0; i < args.size(); ++i ) {
-      dbgs() << "  Arg " << i << " " << *args[i] << " Type "
-             << *args[i]->getType() << " Param type: "
-             << *fty->getParamType(i) << '\n';
-    }
-  );
-#endif //VERBOSE_DEBUG
-
-  auto* call    = ir.CreateCall(nt_function, args);
-  LLVM_DEBUG(dbgs() << *call << '\n');
+  ptr = convert_ptr(this, i2p, /*count*/1, is_write, inst);
 
   /* Suffix code and cleanup */
-  inst->setOperand(is_write ? 1 : 0, alloca);
+  inst->setOperand(is_write ? 1 : 0, ptr);
   cleanup(this, i2p);
 }
+
 void flow_conversion::convert_special_case_call(CallInst* call) {
   switch( get_intrinsic(call) ) {
     case Intrinsics::llvm_memcpy:
