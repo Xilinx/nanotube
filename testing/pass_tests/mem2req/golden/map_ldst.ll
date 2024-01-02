@@ -45,11 +45,11 @@ entry:
   br i1 %succ, label %edit, label %done
 
 edit:                                             ; preds = %entry
-  %0 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %old_val_buffer.bc, i64 0, i64 4)
+  %ptr_rd = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %old_val_buffer.bc, i64 0, i64 4)
   %old_val = load i32, i32* %old_val_buffer
   %new_val = add i32 %old_val, 1
   store i32 %new_val, i32* %_buffer
-  %1 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer.bc, i64 0, i64 4)
+  %ptr_wr = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer.bc, i64 0, i64 4)
   br label %done
 
 done:                                             ; preds = %edit, %entry

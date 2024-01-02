@@ -33,11 +33,11 @@ entry:
   br i1 %icmp, label %done, label %edit
 
 edit:                                             ; preds = %entry
-  %1 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %old_val_buffer.bc, i64 4, i64 4)
+  %field_i32_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %old_val_buffer.bc, i64 4, i64 4)
   %old_val = load i32, i32* %old_val_buffer
   %new_val = add i32 %old_val, 1
   store i32 %new_val, i32* %_buffer
-  %2 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer.bc, i64 4, i64 4)
+  %field_i32_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer.bc, i64 4, i64 4)
   br label %done
 
 done:                                             ; preds = %edit, %entry

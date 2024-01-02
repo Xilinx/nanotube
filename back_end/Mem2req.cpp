@@ -198,7 +198,9 @@ Value *convert_ptr(flow_conversion* fc,
   );
 #endif //VERBOSE_DEBUG
 
-  auto* call    = ir.CreateCall(nt_function, args);
+  const char* suffix = is_write ? "_wr" : "_rd";
+  auto* call    = ir.CreateCall(nt_function, args,
+                                i2p->getName() + suffix);
   LLVM_DEBUG(dbgs() << *call << '\n');
 
   return alloca;
