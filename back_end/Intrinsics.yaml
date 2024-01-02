@@ -53,6 +53,22 @@
   Args:
   - ModRef: N
 
+- Name: usub.sat
+  Flags: LLVM
+  Fmrb: DNA
+  LlvmName: usub_sat
+  Args:
+  - ModRef: N
+  - ModRef: N
+
+- Name: usub.with.overflow
+  Flags: LLVM
+  Fmrb: DNA
+  LlvmName: usub_with_overflow
+  Args:
+  - ModRef: N
+  - ModRef: N
+
 - Name: dbg_declare
   Flags: LLVM
   Fmrb: UK
