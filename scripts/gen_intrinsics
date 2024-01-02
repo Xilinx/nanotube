@@ -20,6 +20,7 @@ TAG_ENUM_NAME="EnumName"
 TAG_EXTERN_NAME="ExternName"
 TAG_FLAGS="Flags"
 TAG_FMRB="Fmrb"
+TAG_LLVM_NAME="LlvmName"
 TAG_MODREF="ModRef"
 
 FLAG_DUMMY="Dummy"
@@ -204,6 +205,7 @@ class app:
                          (self.__prog, TAG_NAME, e))
         sys.exit(1)
       name = e[TAG_NAME]
+      c_name = name.replace(".", "_")
 
       if TAG_ARGS not in e:
         sys.stderr.write("%s: Missing %r in definition %r.\n" %
@@ -238,9 +240,13 @@ class app:
 
       if TAG_ENUM_NAME not in e:
         if FLAG_LLVM in e[TAG_FLAGS]:
-          e[TAG_ENUM_NAME] = "llvm_" + e[TAG_NAME]
+          e[TAG_ENUM_NAME] = "llvm_" + c_name
         else:
-          e[TAG_ENUM_NAME] = e[TAG_NAME]
+          e[TAG_ENUM_NAME] = c_name
+
+      if TAG_LLVM_NAME not in e:
+        if FLAG_LLVM in e[TAG_FLAGS]:
+          e[TAG_LLVM_NAME] = c_name
 
       if TAG_EXTERN_NAME not in e:
         if FLAG_NANOTUBE in e[TAG_FLAGS]:
@@ -288,7 +294,7 @@ class app:
         fh.write("\n"
                  "  case llvm::Intrinsic::%s:\n"
                  "    return Intrinsics::%s;\n" %
-                 (e[TAG_NAME], e[TAG_ENUM_NAME]))
+                 (e[TAG_LLVM_NAME], e[TAG_ENUM_NAME]))
     fh.write(ID_FROM_LLVM_END)
 
   def write_fmrb(self, fh):
