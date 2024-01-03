@@ -74,7 +74,7 @@ namespace {
 
     void convert_nanotube_root(CallInst* inst);
     void convert_call(CallInst* call);
-    void convert_special_case_call(CallInst* call);
+    bool try_convert_special_case_call(CallInst* call);
 
     void convert_mem(Instruction* inst);
     void convert_memcpy(Instruction* inst);

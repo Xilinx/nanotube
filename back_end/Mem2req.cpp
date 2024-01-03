@@ -853,13 +853,13 @@ void flow_conversion::convert_mem(Instruction* inst) {
   cleanup(this, i2p);
 }
 
-void flow_conversion::convert_special_case_call(CallInst* call) {
+bool flow_conversion::try_convert_special_case_call(CallInst* call) {
   switch( get_intrinsic(call) ) {
     case Intrinsics::llvm_memcpy:
       convert_memcpy(call);
-      return;
+      return true;
     default:
-      assert(false);
+      return false;
   }
 }
 
@@ -977,12 +977,8 @@ void flow_conversion::convert_call(CallInst* call) {
   LLVM_DEBUG(dbgs() << "Converting call " << *call << '\n');
 
   /* Check special cases */
-  auto intrinsic = get_intrinsic(call);
-  bool is_special_case = (intrinsic == Intrinsics::llvm_memcpy);
-  if( is_special_case ) {
-    convert_special_case_call(call);
+  if (try_convert_special_case_call(call))
     return;
-  }
 
   /* Deal with map / packet pointer arguments */
   for( unsigned i = 0; i < call->arg_size(); i++ ) {
