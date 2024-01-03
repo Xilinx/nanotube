@@ -76,7 +76,7 @@ namespace {
     bool try_convert_special_case_call(CallInst* call);
 
     void convert_mem(Instruction* inst);
-    void convert_memcpy(Instruction* inst);
+    bool try_convert_memcpy(Instruction* inst);
     void replace_and_cleanup(Instruction* inst, Value* repl,
                              IntToPtrInst* i2p);
 

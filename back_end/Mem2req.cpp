@@ -837,8 +837,7 @@ void flow_conversion::convert_mem(Instruction* inst) {
 bool flow_conversion::try_convert_special_case_call(CallInst* call) {
   switch( get_intrinsic(call) ) {
     case Intrinsics::llvm_memcpy:
-      convert_memcpy(call);
-      return true;
+      return try_convert_memcpy(call);
     default:
       return false;
   }
@@ -897,7 +896,7 @@ void flow_conversion::convert_call(CallInst* call) {
   }
 }
 
-void flow_conversion::convert_memcpy(Instruction* inst) {
+bool flow_conversion::try_convert_memcpy(Instruction* inst) {
   auto* dst     = inst->getOperand(0);
   auto* src     = inst->getOperand(1);
   auto* size    = inst->getOperand(2);
@@ -909,12 +908,18 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
   pointer_meta* src_meta = (src_meta_it != val_to_meta.end()) ?
                             src_meta_it->second : nullptr;
 
+  auto* size_const = dyn_cast<ConstantInt>(size);
+  if( size_const == nullptr )
+    return false;
+
+  uint64_t count = size_const->getZExtValue();
+
   IRBuilder<> ir(inst);
   IRBuilder<> ir_entry(inst->getFunction()->getEntryBlock().getFirstNonPHI());
 
-  // Ignore mem 2 mem transfer
+  // No conversion needed for mem 2 mem transfer
   if( (dst_meta == nullptr) && (src_meta == nullptr) )
-    return;
+    return true;
 
   LLVM_DEBUG(
     dbgs() << "Memcpy Src: ";
@@ -930,60 +935,76 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
     dbgs() << " for " << *inst << '\n';
   );
 
-  // Pull out / add memory storage
-  Value* mem = nullptr;
-  if( src_meta == nullptr )
-    mem = src;
-  else if( dst_meta == nullptr )
-    mem = dst;
-  if( mem == nullptr )
-    mem = ir_entry.CreateAlloca(ir.getInt8Ty(), size, "tmp_mem");
-  if( mem->getType() != ir.getInt8PtrTy() )
-    mem = ir.CreateBitCast(mem, ir.getInt8PtrTy(), mem->getName());
-
-  LLVM_DEBUG(
-    dbgs() << "Memory location: " << *mem << '\n';
-  );
-
-  /* Handle the source operands */
+  /* Try to merge the memcpy with the source access. */
   if( (src_meta != nullptr) && !src_meta->is_map ) {
     /* Convert source to a packet read */
+    auto* mem = dst;
+    if( dst_meta != nullptr )
+      mem = convert_ptr(this, cast<IntToPtrInst>(dst), count, true, inst);
     auto* offset  = cast<IntToPtrInst>(src)->getOperand(0);
     auto* pkt_rd  = create_nt_packet_read(*inst->getModule());
     Value* args[] = { src_meta->base, mem, offset, size };
     auto* call    = ir.CreateCall(pkt_rd, args, src->getName() + "_rd");
 
     LLVM_DEBUG(dbgs() << "Packet read: " << *call << '\n');
-  } else if( (src_meta != nullptr) && src_meta->is_map ) {
+    inst->eraseFromParent();
+    cleanup(this, dyn_cast<IntToPtrInst>(dst));
+    cleanup(this, dyn_cast<IntToPtrInst>(src));
+    return true;
+  }
+
+  if( (src_meta != nullptr) && src_meta->is_map ) {
     /* Convert source to a map read */
+    auto* mem = dst;
+    if( dst_meta != nullptr )
+      mem = convert_ptr(this, cast<IntToPtrInst>(dst), count, true, inst);
     auto* offset  = cast<IntToPtrInst>(src)->getOperand(0);
     auto* map_rd  = create_nt_map_read(*inst->getModule());
     Value* args[] = { inst->getFunction()->arg_begin(), src_meta->base,
                       src_meta->key, src_meta->key_sz, mem, offset, size };
     auto* call    = ir.CreateCall(map_rd, args);
     LLVM_DEBUG(dbgs() << "Map read: " << *call << '\n');
+    inst->eraseFromParent();
+    cleanup(this, dyn_cast<IntToPtrInst>(dst));
+    cleanup(this, dyn_cast<IntToPtrInst>(src));
+    return true;
   }
 
-  /* Handle destination operands */
+  /* Try to merge the memcpy with the destination access. */
   if( (dst_meta != nullptr) && !dst_meta->is_map ) {
     /* Convert destination to a packet write */
+    auto* mem = src;
+    if( src_meta != nullptr )
+      mem = convert_ptr(this, cast<IntToPtrInst>(src), count, false, inst);
     auto* offset  = cast<IntToPtrInst>(dst)->getOperand(0);
     auto* pkt_wr  = create_nt_packet_write(*inst->getModule());
     Value* args[] = { dst_meta->base, mem, offset, size };
     auto* call    = ir.CreateCall(pkt_wr, args, dst->getName() + "_wr");
     LLVM_DEBUG(dbgs() << "Packet write: " << *call << '\n');
-  } else if( (dst_meta != nullptr) && dst_meta->is_map ) {
+    inst->eraseFromParent();
+    cleanup(this, dyn_cast<IntToPtrInst>(dst));
+    cleanup(this, dyn_cast<IntToPtrInst>(src));
+    return true;
+  }
+
+  if( (dst_meta != nullptr) && dst_meta->is_map ) {
     /* Convert destination to a map write */
+    auto* mem = src;
+    if( src_meta != nullptr )
+      mem = convert_ptr(this, cast<IntToPtrInst>(src), count, false, inst);
     auto* offset  = cast<IntToPtrInst>(dst)->getOperand(0);
     auto* map_wr  = create_nt_map_write(*inst->getModule());
     Value* args[] = { inst->getFunction()->arg_begin(), dst_meta->base,
                       dst_meta->key, dst_meta->key_sz, mem, offset, size };
     auto* call    = ir.CreateCall(map_wr, args);
     LLVM_DEBUG(dbgs() << "Map write: " << *call << '\n');
+    inst->eraseFromParent();
+    cleanup(this, dyn_cast<IntToPtrInst>(dst));
+    cleanup(this, dyn_cast<IntToPtrInst>(src));
+    return true;
   }
-  inst->eraseFromParent();
-  cleanup(this, dyn_cast<IntToPtrInst>(dst));
-  cleanup(this, dyn_cast<IntToPtrInst>(src));
+
+  return false;
 }
 
 flow_conversion::flow_conversion(Function& f) : m(*f.getParent()),
