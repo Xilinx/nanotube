@@ -844,18 +844,6 @@ bool flow_conversion::try_convert_special_case_call(CallInst* call) {
   }
 }
 
-
-Instruction*
-flow_conversion::typed_alloca(Type* ty, const Twine& name, Value* size,
-                              IRBuilder<>* ir)
-{
-  auto* alloca = ir->CreateAlloca(Type::getInt8Ty(c), 0, size, name);
-  if( ty == alloca->getType() )
-    return alloca;
-  else
-    return cast<Instruction>(ir->CreateBitCast(alloca, ty, name+".bc"));
-}
-
 static
 void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
                       Value *arg, val_meta_map::iterator it) {
@@ -863,7 +851,6 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
 
   /* Pull out the integer offset */
   auto* i2p    = cast<IntToPtrInst>(arg);
-  auto* offset = i2p->getOperand(0);
 
   LLVM_DEBUG(
     dbgs() << "Converting arg " << i << " " << *arg << '\n'
@@ -878,78 +865,11 @@ void convert_call_arg(flow_conversion *fc, CallInst *call, unsigned i,
     assert(false);
   }
 
-  IRBuilder<> ir(call);
-  IRBuilder<> ir_entry(call->getFunction()->getEntryBlock().getFirstNonPHI());
+  bool is_write = ai.mod_ref == ModRefInfo::MustMod;
+  assert(i2p->getType()->getPointerElementType()->isIntegerTy(8));
 
-  Value *size_val = ir.getInt64(ai.size);
-
-  /* Perform a read request into a local stack variable and feed that
-   *  into the call */
-  if( ai.mod_ref == ModRefInfo::MustRef ) {
-    LLVM_DEBUG(dbgs() << "  Read ");
-    auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
-                                    "_in", size_val, &ir_entry);
-
-    CallInst* rd_op = nullptr;
-    if( meta->is_map ) {
-      LLVM_DEBUG(dbgs() << "map");
-      /* Map read into the new variable */
-      auto* map_rd  = create_nt_map_read(*call->getModule());
-      Value* args[] = { call->getFunction()->arg_begin(), meta->base,
-                        meta->key, meta->key_sz, alloca, offset, size_val };
-      rd_op         = ir.CreateCall(map_rd, args, arg->getName() + "_rd");
-    } else {
-      LLVM_DEBUG(dbgs() << "packet");
-      /* Packet read into the new variable */
-      auto* pkt_rd  = create_nt_packet_read(*call->getModule());
-      Value* args[] = { meta->base, alloca, offset, size_val };
-      rd_op         = ir.CreateCall(pkt_rd, args, arg->getName() + "_rd");
-    }
-
-    call->setOperand(i, alloca);
-
-    LLVM_DEBUG(
-      dbgs() << '\n' << *alloca <<'\n'
-      << *rd_op << '\n'
-      << *call << '\n'
-    );
-  }
-
-  /* Write the data to a stack variable, and then into the packet /
-   * map. */
-  if( ai.mod_ref == ModRefInfo::MustMod ) {
-    LLVM_DEBUG(dbgs() << "  Write ");
-    auto* alloca = fc->typed_alloca(arg->getType(), arg->getName() +
-                                    "_out", size_val, &ir_entry);
-    call->setOperand(i, alloca);
-
-    /* Hack to allow inserting after the call */
-    ir.SetInsertPoint(call->getParent(), ++call->getIterator());
-    /* .. but make sure the debug information matches the call */
-    ir.SetCurrentDebugLocation(call->getDebugLoc());
-
-    CallInst* wr_op = nullptr;
-    if( meta->is_map ) {
-      /* Map write with new variable */
-      LLVM_DEBUG(dbgs() << "map");
-      auto* map_wr  = create_nt_map_write(*call->getModule());
-      Value* args[] = { call->getFunction()->arg_begin(), meta->base,
-                        meta->key, meta->key_sz, alloca, offset, size_val };
-      wr_op         = ir.CreateCall(map_wr, args, arg->getName() + "_wr");
-    } else {
-      /* Packet write with new variable */
-      LLVM_DEBUG(dbgs() << "packet");
-      auto* pkt_wr  = create_nt_packet_write(*call->getModule());
-      Value* args[] = { meta->base, alloca, offset, size_val };
-      wr_op         = ir.CreateCall(pkt_wr, args, arg->getName() + "_wr");
-    }
-
-    LLVM_DEBUG(
-      dbgs() << '\n' << *alloca <<'\n'
-      << *call << '\n'
-      << *wr_op << '\n'
-    );
-  }
+  auto* ptr = convert_ptr(fc, i2p, ai.size, is_write, call);
+  call->setOperand(i, ptr);
 
   cleanup(fc, i2p);
 }
