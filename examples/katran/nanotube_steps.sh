@@ -56,7 +56,7 @@ $NT_OPT -ebpf2nanotube $INFILE -o $FEFILE
 F=$FEFILE
 NEWF=${F/.bc/.req.bc}
 echo "Back-end: Converting loads / stores to Nanotube requests; $F to $NEWF"
-$NT_OPT -mem2req $F -o $NEWF
+$NT_OPT -constprop -mem2req $F -o $NEWF
 
 F=$NEWF
 NEWF=${F/.bc/.lower.bc}
