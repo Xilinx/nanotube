@@ -56,13 +56,29 @@ namespace {
   typedef std::unordered_map<Value*, pointer_meta*> val_meta_map;
   typedef std::vector<pointer_meta*>                meta_vec;
 
+  /* The abstract state of the program at a single point in the
+   * code. */
+  struct prog_state {
+  };
+
   struct flow_conversion {
     typedef dep_aware_converter<BasicBlock> dac_t;
+    typedef std::unordered_map<BasicBlock*,prog_state> bb_state_t;
 
     meta_vec      meta_nodes;
     val_meta_map  val_to_meta;
     std::vector<Instruction*> deletion_candidates;
     dac_t dac;
+
+    /* The program state at the current instruction. */
+    prog_state    current_state;
+
+    /* The program state on entry to each basic block.  The state for
+     * the entry block is initialized when the pass starts.  The state
+     * for any other basic block is populated as the predecessors are
+     * encountered.  States are removed from this map when the basic
+     * block is processed. */
+    bb_state_t    bb_states;
 
     Module&       m;
     LLVMContext&  c;

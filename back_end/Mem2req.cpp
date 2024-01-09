@@ -132,6 +132,17 @@ static void cleanup(flow_conversion *fc, IntToPtrInst *i2p)
   }
 }
 
+/* Merge two program states for CFG convergence points.
+ *
+ * \param fc The conversion state for the pass.
+ * \param dest The program state to be updated.
+ * \param src The program state to be merged in.
+ */
+static void merge_prog_state(flow_conversion *fc,
+                             prog_state *dest,
+                             const prog_state *src) {
+}
+
 Value *convert_ptr(flow_conversion* fc,
                    IntToPtrInst* i2p,
                    uint64_t count,
@@ -359,10 +370,13 @@ void flow_conversion::flow(BasicBlock *bb) {
     dbgs() << "Processing basic block: " << as_operand(bb) << "\n";
   );
 
-  for( auto succ: successors(bb) ) {
-    dac.mark_dep_ready(succ);
-  }
+  /* Set the current state for this basic block. */
+  auto state_it = bb_states.find(bb);
+  assert(state_it != bb_states.end());
+  std::swap(current_state, state_it->second);
+  bb_states.erase(state_it);
 
+  /* Process the instructions. */
   for( auto it = bb->begin(); it != bb->end(); ) {
     auto cur = it++;
     Instruction &inst = *cur;
@@ -384,6 +398,14 @@ void flow_conversion::flow(BasicBlock *bb) {
         continue;
     }
     flow(&inst);
+  }
+
+  /* Update the states for the successor basic blocks and mark them as
+   * ready. */
+  for( auto succ: successors(bb) ) {
+    prog_state *new_state = &(bb_states[succ]);
+    merge_prog_state(this, new_state, &current_state);
+    dac.mark_dep_ready(succ);
   }
 }
 
@@ -1025,6 +1047,9 @@ bool convert_to_req(Function* f) {
   LLVM_DEBUG( dbgs() << "\nMem2req converting function '"
                      << f->getName() << "'\n";);
   flow_conversion fc(*f);
+
+  BasicBlock *entry_block = &(f->getEntryBlock());
+  fc.bb_states.emplace(entry_block, prog_state());
 
   fc.dac.init_forward(fc.func);
   fc.dac.execute(
