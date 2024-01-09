@@ -441,18 +441,12 @@ void flow_conversion::flow(Instruction* inst) {
        * reaches it, it will get removed. */
       LLVM_DEBUG(dbgs() << "Handling p2i" << *inst << '\n');
       assert( meta != nullptr );
-      if( meta->is_start ) {
-        /* Replace the zeroes with zero */
-        auto* zero = Constant::getNullValue(inst->getType());
-        LLVM_DEBUG(dbgs() << "  Replacing with " << *zero << '\n');
-        replace_and_cleanup(inst, zero, nullptr);
-      } else {
-        /* i2p and p2i just anihilate each other */
-        auto* orig_op = i2p->getOperand(0);
-        auto* repl = ir.CreateZExtOrTrunc(orig_op, inst->getType());
-        replace_and_cleanup(inst, repl, i2p);
-        LLVM_DEBUG(dbgs() << "  Replacing with " << *orig_op << '\n');
-      }
+
+      /* i2p and p2i just anihilate each other */
+      auto* orig_op = i2p->getOperand(0);
+      auto* repl = ir.CreateZExtOrTrunc(orig_op, inst->getType());
+      replace_and_cleanup(inst, repl, i2p);
+      LLVM_DEBUG(dbgs() << "  Replacing with " << *orig_op << '\n');
       break;
     }
 
@@ -463,23 +457,17 @@ void flow_conversion::flow(Instruction* inst) {
       LLVM_DEBUG(dbgs() << "Handling bc" << *inst << '\n'
                         << "  Param: " << *op0 << '\n');
       assert( meta != nullptr );
-      if( meta->is_start ) {
-        /* we are a root / zero base if our argument was, too */
-        LLVM_DEBUG(dbgs() << "  We are a root!\n");
-        val_to_meta.insert({inst, meta});
-      } else {
-        // NB: IRBuilder likes to create ConstExprs which make the parsing
-        //     harder.  Therefore, manually force creation of an i2p
-        //     instruction.
-        //auto *i2p_new = ir.CreateIntToPtr(i2p->getOperand(0),
-        //                                  inst->getType());
-        auto *i2p_new = new IntToPtrInst(i2p->getOperand(0),
-                                         inst->getType(), "", inst);
-        i2p_new->setDebugLoc(inst->getDebugLoc());
-        replace_and_cleanup(inst, i2p_new, i2p);
-        LLVM_DEBUG(dbgs() << "  Converting to" << *i2p_new << '\n');
-        val_to_meta.insert({i2p_new, meta});
-      }
+      // NB: IRBuilder likes to create ConstExprs which make the parsing
+      //     harder.  Therefore, manually force creation of an i2p
+      //     instruction.
+      //auto *i2p_new = ir.CreateIntToPtr(i2p->getOperand(0),
+      //                                  inst->getType());
+      auto *i2p_new = new IntToPtrInst(i2p->getOperand(0),
+                                       inst->getType(), "", inst);
+      i2p_new->setDebugLoc(inst->getDebugLoc());
+      replace_and_cleanup(inst, i2p_new, i2p);
+      LLVM_DEBUG(dbgs() << "  Converting to" << *i2p_new << '\n');
+      val_to_meta.insert({i2p_new, meta});
       break;
     }
 
@@ -490,19 +478,13 @@ void flow_conversion::flow(Instruction* inst) {
       auto* gep = cast<GetElementPtrInst>(inst);
       Value *conv;
       assert( meta != nullptr );
-      if( meta->is_start ) {
-        LLVM_DEBUG(dbgs() << "  We are relative to root!\n");
-        conv = gep_to_arithmetic_zero(gep);
-      } else {
-        conv = gep_to_arithmetic_base(gep, i2p->getOperand(0));
-      }
+      conv = gep_to_arithmetic_base(gep, i2p->getOperand(0));
       // NB: see BitCast
       //auto *i2p_new = ir.CreateIntToPtr(conv, gep->getType());
       auto *i2p_new = new IntToPtrInst(conv, gep->getType(), "", gep);
       i2p_new->setDebugLoc(inst->getDebugLoc());
       LLVM_DEBUG(dbgs() << "  Converting to " << *i2p_new << '\n');
       auto* meta_new = new nt_meta(*meta);
-      meta_new->is_start = false;
       meta_nodes.push_back(meta_new);
       val_to_meta.insert({i2p_new, meta_new});
       replace_and_cleanup(inst, i2p_new, i2p);
@@ -570,7 +552,6 @@ void flow_conversion::flow(Instruction* inst) {
       auto* meta_new = new nt_meta();
       meta_nodes.push_back(meta_new);
       meta_new->is_map = meta->is_map;
-      meta_new->is_start = false;
 
       if( !meta->is_map ) {
         /* Packet needs the same base and no additional work */

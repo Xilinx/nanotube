@@ -52,7 +52,6 @@ namespace {
     Value* dummy_read_ret;  /* return value of the dummy map read */
 
     bool   is_map;    /* true -> map; false -> packet */
-    bool   is_start;
   };
   typedef std::unordered_map<Value*, nt_meta*> val_meta_map;
   typedef std::vector<nt_meta*>                meta_vec;
