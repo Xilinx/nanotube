@@ -56,9 +56,21 @@ namespace {
   typedef std::unordered_map<Value*, pointer_meta*> val_meta_map;
   typedef std::vector<pointer_meta*>                meta_vec;
 
+  /* The state for a buffer at a single point in the program. */
+  struct buffer_state {
+    /* The buffer has been filled on some path to this point. */
+    bool filled = false;
+
+    /* There was a conflicting store on some path to this point. */
+    Instruction *conflict = nullptr;
+  };
+
   /* The abstract state of the program at a single point in the
    * code. */
   struct prog_state {
+    typedef std::unordered_map<Value*,buffer_state> buf_states_t;
+
+    buf_states_t buf_states;
   };
 
   struct flow_conversion {

@@ -141,6 +141,29 @@ static void cleanup(flow_conversion *fc, IntToPtrInst *i2p)
 static void merge_prog_state(flow_conversion *fc,
                              prog_state *dest,
                              const prog_state *src) {
+  /* Merge the state of each buffer.  Note that if a buffer is only
+   * known in one of the prog_states then that value should be used in
+   * the dest state. */
+  for( auto &val: src->buf_states ) {
+    auto res = dest->buf_states.insert(val);
+    auto success = res.second;
+
+    /* If the insert succeeded then the copied value is the correct
+     * one. */
+    if( success )
+      continue;
+
+    /* Merge the two states.  If the buffer may have been filled on
+     * either path then it may have been filled after the paths
+     * convergence.  If there may have been a conflict on either path
+     * then there may have been a conflict after the convergence. */
+    auto it = res.first;
+    auto *dest_buf_state = &(it->second);
+    const auto *src_buf_state = &(val.second);
+    dest_buf_state->filled |= src_buf_state->filled;
+    if( dest_buf_state->conflict == nullptr )
+      dest_buf_state->conflict = src_buf_state->conflict;
+  }
 }
 
 Value *convert_ptr(flow_conversion* fc,
@@ -813,6 +836,11 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
                       ir.getInt64(0), ir.getInt64(1) };
     auto* bytes_read = ir.CreateCall(map_rd, args, "key_check");
     LLVM_DEBUG(dbgs() << *alloca << '\n' << *bytes_read << '\n');
+
+    /* Mark the buffer as filled. */
+    buffer_state bstate;
+    bstate.filled = true;
+    current_state.buf_states.emplace(alloca, bstate);
 
     replacement = ir.getInt64(0);
 
