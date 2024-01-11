@@ -45,7 +45,7 @@ namespace {
     static char ID;
   }; // struct mem_to_req
 
-  struct nt_meta {
+  struct pointer_meta {
     Value* base;      /* base package / map */
     Value* key;       /* key for a map lookup; nullptr for packets */
     Value* key_sz;    /* size of the key as a value */
@@ -53,8 +53,8 @@ namespace {
 
     bool   is_map;    /* true -> map; false -> packet */
   };
-  typedef std::unordered_map<Value*, nt_meta*> val_meta_map;
-  typedef std::vector<nt_meta*>                meta_vec;
+  typedef std::unordered_map<Value*, pointer_meta*> val_meta_map;
+  typedef std::vector<pointer_meta*>                meta_vec;
 
   struct flow_conversion {
     typedef dep_aware_converter<BasicBlock> dac_t;

@@ -104,7 +104,7 @@ using namespace nanotube;
 static Value *get_pointer_operand(Instruction *inst);
 
 
-raw_ostream& operator<<(raw_ostream& os, const nt_meta& meta);
+raw_ostream& operator<<(raw_ostream& os, const pointer_meta& meta);
 
 
 Value *get_pointer_operand(Instruction *inst) {
@@ -402,7 +402,7 @@ void flow_conversion::flow(Instruction* inst) {
   auto* op0  = inst->getOperand(0);
   auto* i2p  = dyn_cast<IntToPtrInst>(op0);
 
-  nt_meta* meta = nullptr;
+  pointer_meta* meta = nullptr;
   auto     it   = val_to_meta.find(i2p);
 
   if( it != val_to_meta.end() )
@@ -484,7 +484,7 @@ void flow_conversion::flow(Instruction* inst) {
       auto *i2p_new = new IntToPtrInst(conv, gep->getType(), "", gep);
       i2p_new->setDebugLoc(inst->getDebugLoc());
       LLVM_DEBUG(dbgs() << "  Converting to " << *i2p_new << '\n');
-      auto* meta_new = new nt_meta(*meta);
+      auto* meta_new = new pointer_meta(*meta);
       meta_nodes.push_back(meta_new);
       val_to_meta.insert({i2p_new, meta_new});
       replace_and_cleanup(inst, i2p_new, i2p);
@@ -549,7 +549,7 @@ void flow_conversion::flow(Instruction* inst) {
                            i2p->getOperand(0), i2p2->getOperand(0),
                            select->getName());
 
-      auto* meta_new = new nt_meta();
+      auto* meta_new = new pointer_meta();
       meta_nodes.push_back(meta_new);
       meta_new->is_map = meta->is_map;
 
@@ -624,7 +624,7 @@ void flow_conversion::flow(Instruction* inst) {
         phi_key = ir.CreatePHI(ir.getInt8PtrTy(), incoming);
       }
 
-      nt_meta* meta = new nt_meta();
+      pointer_meta* meta = new pointer_meta();
       meta_nodes.push_back(meta);
 
       bool base_same = true;
@@ -732,7 +732,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
   LLVM_DEBUG(dbgs() << "Converting root " << *call << '\n');
 
   Value* replacement = nullptr;
-  nt_meta* meta      = new nt_meta();
+  pointer_meta* meta = new pointer_meta();
   IRBuilder<> ir(call);
 
   if( is_packet_pointer_source(call) ) {
@@ -984,10 +984,10 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
 
   auto dst_meta_it = val_to_meta.find(dst);
   auto src_meta_it = val_to_meta.find(src);
-  nt_meta* dst_meta = (dst_meta_it != val_to_meta.end()) ?
-                        dst_meta_it->second : nullptr;
-  nt_meta* src_meta = (src_meta_it != val_to_meta.end()) ?
-                        src_meta_it->second : nullptr;
+  pointer_meta* dst_meta = (dst_meta_it != val_to_meta.end()) ?
+                            dst_meta_it->second : nullptr;
+  pointer_meta* src_meta = (src_meta_it != val_to_meta.end()) ?
+                            src_meta_it->second : nullptr;
 
   IRBuilder<> ir(inst);
   IRBuilder<> ir_entry(inst->getFunction()->getEntryBlock().getFirstNonPHI());
@@ -1096,7 +1096,7 @@ void flow_conversion::replace_and_cleanup(Instruction* inst, Value* repl,
 ** add them (unless already done) to the worklist.
 **/
 
-raw_ostream& operator<<(raw_ostream& os, const nt_meta& meta) {
+raw_ostream& operator<<(raw_ostream& os, const pointer_meta& meta) {
   os << &meta << " ";
   os << (meta.is_map ? "map" : "packet") << " ";
 
