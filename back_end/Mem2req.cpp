@@ -484,9 +484,7 @@ void flow_conversion::flow(Instruction* inst) {
       auto *i2p_new = new IntToPtrInst(conv, gep->getType(), "", gep);
       i2p_new->setDebugLoc(inst->getDebugLoc());
       LLVM_DEBUG(dbgs() << "  Converting to " << *i2p_new << '\n');
-      auto* meta_new = new pointer_meta(*meta);
-      meta_nodes.push_back(meta_new);
-      val_to_meta.insert({i2p_new, meta_new});
+      val_to_meta.insert({i2p_new, meta});
       replace_and_cleanup(inst, i2p_new, i2p);
       break;
     }
