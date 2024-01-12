@@ -598,6 +598,10 @@ void flow_conversion::flow(Instruction* inst) {
       meta_nodes.push_back(meta_new);
       meta_new->is_map = meta->is_map;
 
+      meta_new->possible_roots = meta->possible_roots;
+      meta_new->possible_roots.insert(meta2->possible_roots.begin(),
+                                      meta2->possible_roots.end());
+
       if( !meta->is_map ) {
         /* Packet needs the same base and no additional work */
         assert(meta->base == meta2->base);
@@ -709,6 +713,9 @@ void flow_conversion::flow(Instruction* inst) {
         if( it->second->base != base )
           base_same = false;
 
+        meta->possible_roots.insert(it->second->possible_roots.begin(),
+                                    it->second->possible_roots.end());
+
         if( !is_map )
           continue;
 
@@ -778,6 +785,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
 
   Value* replacement = nullptr;
   pointer_meta* meta = new pointer_meta();
+  root_meta *root = nullptr;
   IRBuilder<> ir(call);
 
   if( is_packet_pointer_source(call) ) {
@@ -801,6 +809,18 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
 
     meta->is_map = false;
     meta->base   = call->getOperand(0);
+
+    /* Make sure the packet is present in packet_metas.  Note that
+     * root_meta_val is discarded in the case where it is already
+     * present. */
+    root_meta root_meta_val = { .map_id = MAP_ID_NONE };
+    auto ins = packet_metas.emplace(meta->base, root_meta_val);
+
+    /* Find the root associated with the packet.  This will either be
+     * the newly inserted value or the root which was previously
+     * associated with the packet. */
+    auto it = ins.first;
+    root = &(it->second);
 
   } else if( is_map_pointer_source(call) ) {
     /* Map lookups do multiple things:
@@ -849,7 +869,39 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     meta->key            = key_copy;
     meta->key_sz         = key_sz;
     meta->dummy_read_ret = bytes_read;
+
+    auto* map_id_const = dyn_cast<ConstantInt>(map_id);
+    if( map_id_const == nullptr ) {
+      errs() << "ERROR: Map ID is not constant in "
+             << *call << "\n";
+      exit(1);
+    }
+
+    nanotube_map_id_t map_id_num = map_id_const->getZExtValue();
+
+    /* Make sure there is a root list associated with the map ID.
+     * Note that the new list created by the emplace is discarded in
+     * the case where the map ID was already being tracked. */
+    auto ins = map_metas.emplace(map_id_num, root_meta_list_t());
+
+    /* Get a pointer to the root list associated with the map ID.
+     * This is the newly inserted list if the map ID was not
+     * previously being tracked and the previously existing list if it
+     * was. */
+    auto it = ins.first;
+    auto *root_list = &(it->second);
+
+    /* Add the root meta for this lookup to the list. */
+    root_meta root_meta_val = {
+      .map_id = map_id_num,
+    };
+    root_list->push_back(root_meta_val);
+
+    /* Get a pointer to the newly added root. */
+    root = &(root_list->back());
   }
+
+  meta->possible_roots.insert(root);
 
   auto* i2p = new IntToPtrInst(replacement, call->getType(),
                                call->getName() + "_",  call);

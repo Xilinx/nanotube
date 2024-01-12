@@ -10,6 +10,7 @@
 ** SPDX-License-Identifier: MIT
 **************************************************************************/
 
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -21,6 +22,7 @@
 #include "llvm/Pass.h"
 
 #include "Dep_Aware_Converter.h"
+#include "nanotube_api.h"
 
 namespace {
   using llvm::BasicBlock;
@@ -45,11 +47,19 @@ namespace {
     static char ID;
   }; // struct mem_to_req
 
+  /* Information about a pointer root. */
+  struct root_meta {
+    nanotube_map_id_t map_id;
+  };
+
   struct pointer_meta {
+    typedef std::unordered_set<root_meta*> possible_roots_t;
+
     Value* base;      /* base package / map */
     Value* key;       /* key for a map lookup; nullptr for packets */
     Value* key_sz;    /* size of the key as a value */
     Value* dummy_read_ret;  /* return value of the dummy map read */
+    possible_roots_t possible_roots; /* A set of possible roots */
 
     bool   is_map;    /* true -> map; false -> packet */
   };
@@ -77,6 +87,15 @@ namespace {
     typedef dep_aware_converter<BasicBlock> dac_t;
     typedef std::unordered_map<BasicBlock*,prog_state> bb_state_t;
 
+    /* Note: Pointers to the root_meta structures are held elsewhere
+     * (e.g. pointer_meta), so these containers must not move them
+     * when other elements are added. */
+    typedef std::list<root_meta> root_meta_list_t;
+    typedef std::unordered_map<nanotube_map_id_t, root_meta_list_t> map_metas_t;
+    typedef std::unordered_map<Value*, root_meta> packet_metas_t;
+
+    map_metas_t   map_metas;
+    packet_metas_t packet_metas;
     meta_vec      meta_nodes;
     val_meta_map  val_to_meta;
     std::vector<Instruction*> deletion_candidates;
