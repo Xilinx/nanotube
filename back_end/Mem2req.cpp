@@ -835,6 +835,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     auto* map_id = call->getOperand(1);
     auto* key    = call->getOperand(2);
     auto* key_sz = call->getOperand(3);
+    auto* value_sz = call->getOperand(4);
 
     IRBuilder<> ir(call);
     IRBuilder<> ir_entry(call->getFunction()->getEntryBlock().getFirstNonPHI());
@@ -845,15 +846,22 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
                        cast<ConstantInt>(key_sz)->getZExtValue());
     LLVM_DEBUG(dbgs() << *key_copy << '\n' << *memcpy << '\n');
 
-    /* Perform the dummy read */
-    auto* alloca = ir_entry.CreateAlloca(ir.getInt8Ty(), nullptr,
+    /* Create a buffer for the map entry. */
+    if( !isa<ConstantInt>(value_sz) ) {
+      errs() << "ERROR: Value size is not constant in "
+             << *call << "\n";
+      exit(1);
+    }
+    auto* alloca = ir_entry.CreateAlloca(ir.getInt8Ty(), value_sz,
                                          call->getName() + "_buf");
+
+    /* Read the map entry */
     auto* map_rd = create_nt_map_read(*call->getModule());
     /* Copy or not does not matter here */
     // Value* args[] = { ctx, map_id, key, key_sz, alloca,
     //                   ir.getInt64(0), ir.getInt64(1) };
     Value* args[] = { ctx, map_id, key_copy, key_sz, alloca,
-                      ir.getInt64(0), ir.getInt64(1) };
+                      ir.getInt64(0), value_sz };
     auto* bytes_read = ir.CreateCall(map_rd, args, "key_check");
     LLVM_DEBUG(dbgs() << *alloca << '\n' << *bytes_read << '\n');
 
