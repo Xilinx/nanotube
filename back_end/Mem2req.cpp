@@ -608,6 +608,15 @@ void flow_conversion::flow(Instruction* inst) {
         meta_new->base = meta->base;
       } else {
         /* Maps need to check whether additional selects are needed */
+
+        /* Create select if needed for the buffer */
+        if( meta->buffer != meta2->buffer ) {
+          meta_new->buffer = ir.CreateSelect(select->getCondition(),
+                                             meta->buffer, meta2->buffer);
+        } else {
+          meta_new->buffer = meta->buffer;
+        }
+
         /* Create select if needed for the key */
         if( meta->key != meta2->key ) {
           meta_new->key = ir.CreateSelect(select->getCondition(),
@@ -663,6 +672,7 @@ void flow_conversion::flow(Instruction* inst) {
       SmallSet<IntToPtrInst*, 8> input_i2ps;
 
       PHINode* phi_map = nullptr;
+      PHINode* phi_buffer = nullptr;
       PHINode* phi_key = nullptr;
       /* Get the type (map vs packet) from the first parameter */
       bool is_map    = val_to_meta[phi->getOperand(0)]->is_map;
@@ -670,6 +680,7 @@ void flow_conversion::flow(Instruction* inst) {
       if( is_map) {
         phi_map = ir.CreatePHI(get_nt_map_id_type(*phi->getModule()),
                     incoming);
+        phi_buffer = ir.CreatePHI(ir.getInt8PtrTy(), incoming);
         phi_key = ir.CreatePHI(ir.getInt8PtrTy(), incoming);
       }
 
@@ -677,8 +688,10 @@ void flow_conversion::flow(Instruction* inst) {
       meta_nodes.push_back(meta);
 
       bool base_same = true;
+      bool buffer_same = true;
       bool keys_same = true;
       Value* base    = nullptr;
+      Value* buffer  = nullptr;
       Value* key     = nullptr;
 
       for( unsigned i = 0; i < phi->getNumIncomingValues(); ++i ) {
@@ -721,13 +734,19 @@ void flow_conversion::flow(Instruction* inst) {
 
         /* More processing for map entries */
         if( i == 0 ) {
+          buffer               = it->second->buffer;
           key                  = it->second->key;
           meta->key_sz         = it->second->key_sz;
           meta->dummy_read_ret = it->second->dummy_read_ret;
         }
 
         phi_map->addIncoming(it->second->base, bb);
+        phi_buffer->addIncoming(it->second->buffer, bb);
         phi_key->addIncoming(it->second->key, bb);
+
+        if( it->second->buffer != buffer )
+          buffer_same = false;
+
         if( it->second->key != key )
           keys_same = false;
       }
@@ -743,11 +762,17 @@ void flow_conversion::flow(Instruction* inst) {
         } else {
           base = phi_map;
         }
+        if( buffer_same ) {
+          phi_buffer->eraseFromParent();
+        } else {
+          buffer = phi_buffer;
+        }
         if( keys_same ) {
           phi_key->eraseFromParent();
         } else {
           key = phi_key;
         }
+        meta->buffer = buffer;
         meta->key    = key;
         LLVM_DEBUG(dbgs() << "  Map: " << *base << '\n'
                           << "  Key: " << *key << '\n');
@@ -874,6 +899,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
 
     meta->is_map         = true;
     meta->base           = map_id;
+    meta->buffer         = alloca;
     meta->key            = key_copy;
     meta->key_sz         = key_sz;
     meta->dummy_read_ret = bytes_read;
@@ -902,6 +928,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     /* Add the root meta for this lookup to the list. */
     root_meta root_meta_val = {
       .map_id = map_id_num,
+      .buffer = alloca,
     };
     root_list->push_back(root_meta_val);
 

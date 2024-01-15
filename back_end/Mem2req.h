@@ -50,12 +50,16 @@ namespace {
   /* Information about a pointer root. */
   struct root_meta {
     nanotube_map_id_t map_id;
+
+    /* The buffer holding the map entry */
+    Value* buffer;
   };
 
   struct pointer_meta {
     typedef std::unordered_set<root_meta*> possible_roots_t;
 
     Value* base;      /* base package / map */
+    Value* buffer;    /* The buffer being referenced */
     Value* key;       /* key for a map lookup; nullptr for packets */
     Value* key_sz;    /* size of the key as a value */
     Value* dummy_read_ret;  /* return value of the dummy map read */
