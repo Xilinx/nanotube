@@ -1031,7 +1031,7 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
     auto* offset  = cast<IntToPtrInst>(src)->getOperand(0);
     auto* pkt_rd  = create_nt_packet_read(*inst->getModule());
     Value* args[] = { src_meta->base, mem, offset, size };
-    auto* call    = ir.CreateCall(pkt_rd, args);
+    auto* call    = ir.CreateCall(pkt_rd, args, src->getName() + "_rd");
 
     LLVM_DEBUG(dbgs() << "Packet read: " << *call << '\n');
   } else if( (src_meta != nullptr) && src_meta->is_map ) {
@@ -1050,7 +1050,7 @@ void flow_conversion::convert_memcpy(Instruction* inst) {
     auto* offset  = cast<IntToPtrInst>(dst)->getOperand(0);
     auto* pkt_wr  = create_nt_packet_write(*inst->getModule());
     Value* args[] = { dst_meta->base, mem, offset, size };
-    auto* call    = ir.CreateCall(pkt_wr, args);
+    auto* call    = ir.CreateCall(pkt_wr, args, dst->getName() + "_wr");
     LLVM_DEBUG(dbgs() << "Packet write: " << *call << '\n');
   } else if( (dst_meta != nullptr) && dst_meta->is_map ) {
     /* Convert destination to a map write */
