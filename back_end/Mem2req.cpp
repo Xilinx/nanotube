@@ -782,7 +782,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
 
     /* Perform the dummy read */
     auto* alloca = ir_entry.CreateAlloca(ir.getInt8Ty(), nullptr,
-                                         "dummy_rd_data");
+                                         call->getName() + "_buf");
     auto* map_rd = create_nt_map_read(*call->getModule());
     /* Copy or not does not matter here */
     // Value* args[] = { ctx, map_id, key, key_sz, alloca,

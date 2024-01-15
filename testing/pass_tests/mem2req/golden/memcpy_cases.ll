@@ -45,23 +45,23 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %tmp_mem6 = alloca i8, i64 4
   %tmp_mem5 = alloca i8, i64 4
   %tmp_mem4 = alloca i8, i64 4
+  %tmp_mem3 = alloca i8, i64 4
   %tmp_mem = alloca i8, i64 4
   %case_buffer = alloca i8
   %_copy1 = alloca i8, i64 4
-  %dummy_rd_data2 = alloca i8
+  %entry_1_buf = alloca i8
   %_copy = alloca i8, i64 4
-  %dummy_rd_data = alloca i8
+  %entry_0_buf = alloca i8
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
   %pkt_okay = icmp ugt i64 12, %0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
-  %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %dummy_rd_data, i64 0, i64 1)
+  %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i64 0, i64 1)
   %entry_0_okay = icmp ne i64 %key_check, 0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy1, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
-  %key_check3 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %dummy_rd_data2, i64 0, i64 1)
-  %entry_1_okay = icmp ne i64 %key_check3, 0
+  %key_check2 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %entry_1_buf, i64 0, i64 1)
+  %entry_1_okay = icmp ne i64 %key_check2, 0
   %entries_okay = and i1 %entry_0_okay, %entry_1_okay
   %all_okay = and i1 %entries_okay, %pkt_okay
   br i1 %all_okay, label %edit, label %done
@@ -85,7 +85,7 @@ case_mem2mem:                                     ; preds = %edit
   br label %done
 
 case_mem2pkt:                                     ; preds = %edit
-  %pkt_0_wr8 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i64 4)
+  %pkt_0_wr7 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i64 4)
   br label %done
 
 case_mem2map:                                     ; preds = %edit
@@ -93,17 +93,17 @@ case_mem2map:                                     ; preds = %edit
   br label %done
 
 case_pkt2mem:                                     ; preds = %edit
-  %pkt_1_rd7 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i64 8, i64 4)
+  %pkt_1_rd6 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i64 8, i64 4)
   br label %done
 
 case_pkt2pkt:                                     ; preds = %edit
-  %pkt_0_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %tmp_mem6, i64 4, i64 4)
-  %pkt_1_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %tmp_mem6, i64 8, i64 4)
+  %pkt_0_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %tmp_mem5, i64 4, i64 4)
+  %pkt_1_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %tmp_mem5, i64 8, i64 4)
   br label %done
 
 case_pkt2map:                                     ; preds = %edit
-  %pkt_1_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %tmp_mem5, i64 8, i64 4)
-  %2 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %tmp_mem5, i64 0, i64 4)
+  %pkt_1_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %tmp_mem4, i64 8, i64 4)
+  %2 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %tmp_mem4, i64 0, i64 4)
   br label %done
 
 case_map2mem:                                     ; preds = %edit
@@ -111,8 +111,8 @@ case_map2mem:                                     ; preds = %edit
   br label %done
 
 case_map2pkt:                                     ; preds = %edit
-  %4 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %tmp_mem4, i64 0, i64 4)
-  %pkt_0_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %tmp_mem4, i64 4, i64 4)
+  %4 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %tmp_mem3, i64 0, i64 4)
+  %pkt_0_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %tmp_mem3, i64 4, i64 4)
   br label %done
 
 case_map2map:                                     ; preds = %edit

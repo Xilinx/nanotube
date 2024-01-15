@@ -37,8 +37,8 @@ entry:
   %byte_0_buffer = alloca i8
   %_copy = alloca i8, i64 4
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
-  %dummy_rd_data = alloca i8
-  %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %dummy_rd_data, i64 0, i64 1)
+  %entry_0_buf = alloca i8
+  %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i64 0, i64 1)
   %succ = icmp ne i64 %key_check, 0
   br i1 %succ, label %lookup_okay, label %done
 
