@@ -1078,6 +1078,8 @@ void flow_conversion::replace_and_cleanup(Instruction* inst, Value* repl,
            << " (" << *inst->getType() << ")\nAborting!\n";
     abort();
   }
+  if( !repl->hasName() )
+    repl->takeName(inst);
   inst->replaceAllUsesWith(repl);
   inst->eraseFromParent();
   cleanup(this, i2p);

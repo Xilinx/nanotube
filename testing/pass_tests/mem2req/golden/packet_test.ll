@@ -22,18 +22,18 @@ declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanot
 ; Function Attrs: uwtable
 define internal i32 @_ZL11memset_testP16nanotube_contextP15nanotube_packet(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) #0 {
 entry:
-  %_out = alloca i8, i64 21
+  %add.ptr_out = alloca i8, i64 21
   %call__out = alloca i8, i64 21
-  %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
-  %sub.ptr.sub = sub i64 %0, 0
+  %sub.ptr.lhs.cast = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, 0
   %cmp = icmp slt i64 %sub.ptr.sub, 42
   br i1 %cmp, label %cleanup, label %if.end
 
 if.end:                                           ; preds = %entry
   tail call void @llvm.memset.p0i8.i64(i8* align 1 %call__out, i8 0, i64 21, i1 false)
   %call__wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %call__out, i64 0, i64 21)
-  tail call void @llvm.memset.p0i8.i64(i8* nonnull align 1 %_out, i8 15, i64 21, i1 false)
-  %_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_out, i64 21, i64 21)
+  tail call void @llvm.memset.p0i8.i64(i8* nonnull align 1 %add.ptr_out, i8 15, i64 21, i1 false)
+  %add.ptr_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %add.ptr_out, i64 21, i64 21)
   br label %cleanup
 
 cleanup:                                          ; preds = %if.end, %entry
