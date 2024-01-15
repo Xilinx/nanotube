@@ -953,23 +953,6 @@ bool flow_conversion::try_convert_memcpy(Instruction* inst) {
     return true;
   }
 
-  if( (src_meta != nullptr) && src_meta->is_map ) {
-    /* Convert source to a map read */
-    auto* mem = dst;
-    if( dst_meta != nullptr )
-      mem = convert_ptr(this, cast<IntToPtrInst>(dst), count, true, inst);
-    auto* offset  = cast<IntToPtrInst>(src)->getOperand(0);
-    auto* map_rd  = create_nt_map_read(*inst->getModule());
-    Value* args[] = { inst->getFunction()->arg_begin(), src_meta->base,
-                      src_meta->key, src_meta->key_sz, mem, offset, size };
-    auto* call    = ir.CreateCall(map_rd, args);
-    LLVM_DEBUG(dbgs() << "Map read: " << *call << '\n');
-    inst->eraseFromParent();
-    cleanup(this, dyn_cast<IntToPtrInst>(dst));
-    cleanup(this, dyn_cast<IntToPtrInst>(src));
-    return true;
-  }
-
   /* Try to merge the memcpy with the destination access. */
   if( (dst_meta != nullptr) && !dst_meta->is_map ) {
     /* Convert destination to a packet write */
@@ -981,23 +964,6 @@ bool flow_conversion::try_convert_memcpy(Instruction* inst) {
     Value* args[] = { dst_meta->base, mem, offset, size };
     auto* call    = ir.CreateCall(pkt_wr, args, dst->getName() + "_wr");
     LLVM_DEBUG(dbgs() << "Packet write: " << *call << '\n');
-    inst->eraseFromParent();
-    cleanup(this, dyn_cast<IntToPtrInst>(dst));
-    cleanup(this, dyn_cast<IntToPtrInst>(src));
-    return true;
-  }
-
-  if( (dst_meta != nullptr) && dst_meta->is_map ) {
-    /* Convert destination to a map write */
-    auto* mem = src;
-    if( src_meta != nullptr )
-      mem = convert_ptr(this, cast<IntToPtrInst>(src), count, false, inst);
-    auto* offset  = cast<IntToPtrInst>(dst)->getOperand(0);
-    auto* map_wr  = create_nt_map_write(*inst->getModule());
-    Value* args[] = { inst->getFunction()->arg_begin(), dst_meta->base,
-                      dst_meta->key, dst_meta->key_sz, mem, offset, size };
-    auto* call    = ir.CreateCall(map_wr, args);
-    LLVM_DEBUG(dbgs() << "Map write: " << *call << '\n');
     inst->eraseFromParent();
     cleanup(this, dyn_cast<IntToPtrInst>(dst));
     cleanup(this, dyn_cast<IntToPtrInst>(src));
