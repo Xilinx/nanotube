@@ -1,3 +1,4 @@
+#include <iostream>
 /*******************************************************/
 /*! \file packet_highlevel.cpp
 ** \author Stephan Diestelhorst <stephand@amd.com>
@@ -31,6 +32,54 @@ size_t nanotube_packet_write(nanotube_packet_t* packet,
   memset(all_one, 0xff, mask_size);
 
   return nanotube_packet_write_masked(packet, data_in, all_one, offset, length);
+}
+
+#ifdef NANOTUBE_SYNTHESIS
+__attribute__((always_inline))
+#endif
+void
+nanotube_init_mask(uint8_t* mask_out,
+                   size_t mask_byte_size,
+                   size_t ones_bit_start,
+                   size_t ones_bit_length)
+{
+  size_t ones_bit_end = ones_bit_start + ones_bit_length;
+
+  /* Loop through the bytes of the bitmask. */
+  for( size_t i = 0; i < mask_byte_size; i++ ) {
+    size_t iter_bit_start = 8 * i;
+    size_t iter_bit_end = iter_bit_start + 8;
+
+    uint8_t after_start_mask;
+    if( iter_bit_end <= ones_bit_start ) {
+      /* The ones haven't started yet. */
+      after_start_mask = 0x00;
+    } else if( iter_bit_start <= ones_bit_start ) {
+      /* The ones start within this byte.  The bit offset will be
+       * between 0 and 7. */
+      uint8_t bit_offset = ones_bit_start - iter_bit_start;
+      after_start_mask = -(1 << bit_offset);
+    } else {
+      /* The ones bits have already started. */
+      after_start_mask = 0xff;
+    }
+
+    uint8_t after_end_mask;
+    if( iter_bit_end <= ones_bit_end ) {
+      /* The ones haven't ended yet. */
+      after_end_mask = 0x00;
+    } else if( iter_bit_start <= ones_bit_end ) {
+      /* The ones end within this byte.  The bit offset will be
+       * between 0 and 7. */
+      uint8_t bit_offset = ones_bit_end - iter_bit_start;
+      after_end_mask = -(1 << bit_offset);
+    } else {
+      /* The ones bits have already ended. */
+      after_end_mask = 0xff;
+    }
+
+    mask_out[i] = after_start_mask & ~after_end_mask;
+  }
 }
 
 #ifdef NANOTUBE_SYNTHESIS

@@ -810,6 +810,28 @@ void nanotube_trace_buffer(uint64_t id, uint8_t *buffer,
 
 
 /******************** Utility functions ********************/
+
+/*!
+** Create a bitmask with contiguous bits with value one.
+**
+** Initializes the array with a bitmask which has ones_bit_offset bits
+** with value zero followed by ones_bit_length bits with value one.
+** The remaining bits have value zero.  If the array is too short to
+** hold any or all of the bits with value one then the bitmask is
+** truncated.  Bits are numbered starting with 0-7 in byte 0 and LSB
+** first within a byte.
+**
+** \param mask_out The array to hold the bitmask.
+** \param mask_byte_size The size of the array in bytes.
+** \param ones_bit_offset The first bit with value one.
+** \param ones_bit_length The number of bits with value one.
+**/
+void
+nanotube_init_mask(uint8_t* mask_out,
+                   size_t mask_byte_size,
+                   size_t ones_bit_offset,
+                   size_t ones_bit_length);
+
 void
 nanotube_merge_data_mask(uint8_t* inout_data, uint8_t* inout_mask,
                          const uint8_t* in_data, const uint8_t* in_mask,
