@@ -36,7 +36,7 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %_buffer = alloca i8, i64 8
+  %entry_0__mask = alloca i8, i64 1
   %_copy = alloca i8, i64 4
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
   %entry_0_buf = alloca i8, i64 8
@@ -45,8 +45,9 @@ entry:
   br i1 %succ, label %edit, label %done
 
 edit:                                             ; preds = %entry
-  call void @llvm.memset.p0i8.i64(i8* %_buffer, i8 42, i64 8, i1 false)
-  %entry_0__wr = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer, i64 0, i64 8)
+  call void @llvm.memset.p0i8.i64(i8* %entry_0_buf, i8 42, i64 8, i1 false)
+  call void @nanotube_init_mask(i8* %entry_0__mask, i64 1, i64 0, i64 8)
+  %entry_0__wr = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i8* %entry_0__mask, i64 0, i64 8)
   br label %done
 
 done:                                             ; preds = %edit, %entry
@@ -59,8 +60,9 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture r
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
 
-; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
+declare void @nanotube_init_mask(i8*, i64, i64, i64)
+
+declare i64 @nanotube_map_update_masked(%struct.nanotube_context*, i16, i8*, i64, i8*, i8*, i64, i64)
 
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { inaccessiblemem_or_argmemonly }

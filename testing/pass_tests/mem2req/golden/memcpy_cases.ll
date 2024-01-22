@@ -45,13 +45,10 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %_buffer10 = alloca i8, i64 4
-  %_buffer8 = alloca i8, i64 4
-  %_buffer7 = alloca i8, i64 4
-  %_buffer5 = alloca i8, i64 4
-  %_buffer4 = alloca i8, i64 4
-  %_buffer3 = alloca i8, i64 4
+  %entry_0__mask4 = alloca i8, i64 1
   %_buffer = alloca i8, i64 4
+  %entry_0__mask = alloca i8, i64 1
+  %entry_1__mask = alloca i8, i64 1
   %case_buffer = alloca i8
   %_copy1 = alloca i8, i64 4
   %entry_1_buf = alloca i8, i64 8
@@ -88,42 +85,42 @@ case_mem2mem:                                     ; preds = %edit
   br label %done
 
 case_mem2pkt:                                     ; preds = %edit
-  %pkt_0_wr12 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i64 4)
+  %pkt_0_wr6 = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i64 4)
   br label %done
 
 case_mem2map:                                     ; preds = %edit
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_buffer10, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i1 false)
-  %entry_0__wr11 = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer10, i64 0, i64 4)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %entry_0_buf, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_1, i32 0, i32 0), i64 4, i1 false)
+  call void @nanotube_init_mask(i8* %entry_0__mask4, i64 1, i64 0, i64 4)
+  %entry_0__wr5 = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i8* %entry_0__mask4, i64 0, i64 8)
   br label %done
 
 case_pkt2mem:                                     ; preds = %edit
-  %pkt_1_rd9 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i64 8, i64 4)
+  %pkt_1_rd3 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i64 8, i64 4)
   br label %done
 
 case_pkt2pkt:                                     ; preds = %edit
-  %pkt_0_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer8, i64 4, i64 4)
-  %pkt_1_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer8, i64 8, i64 4)
+  %pkt_0_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer, i64 4, i64 4)
+  %pkt_1_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 8, i64 4)
   br label %done
 
 case_pkt2map:                                     ; preds = %edit
-  %pkt_1_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer7, i64 8, i64 4)
-  %entry_0__wr = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer7, i64 0, i64 4)
+  %pkt_1_rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %entry_0_buf, i64 8, i64 4)
+  call void @nanotube_init_mask(i8* %entry_0__mask, i64 1, i64 0, i64 4)
+  %entry_0__wr = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i8* %entry_0__mask, i64 0, i64 8)
   br label %done
 
 case_map2mem:                                     ; preds = %edit
-  %entry_1__rd6 = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %_buffer5, i64 0, i64 4)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i8* %_buffer5, i64 4, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @buf_0, i32 0, i32 0), i8* %entry_1_buf, i64 4, i1 false)
   br label %done
 
 case_map2pkt:                                     ; preds = %edit
-  %entry_1__rd = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %_buffer4, i64 0, i64 4)
-  %pkt_0_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer4, i64 4, i64 4)
+  %pkt_0_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %entry_1_buf, i64 4, i64 4)
   br label %done
 
 case_map2map:                                     ; preds = %edit
-  %entry_0__rd = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %_buffer3, i64 0, i64 4)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_buffer, i8* %_buffer3, i64 4, i1 false)
-  %entry_1__wr = call i64 @nanotube_map_write(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %_buffer, i64 0, i64 4)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %entry_1_buf, i8* %entry_0_buf, i64 4, i1 false)
+  call void @nanotube_init_mask(i8* %entry_1__mask, i64 1, i64 0, i64 4)
+  %entry_1__wr = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 1, i8* %_copy1, i64 4, i8* %entry_1_buf, i8* %entry_1__mask, i64 0, i64 8)
   br label %done
 
 done:                                             ; preds = %case_map2map, %case_map2pkt, %case_map2mem, %case_pkt2map, %case_pkt2pkt, %case_pkt2mem, %case_mem2map, %case_mem2pkt, %case_mem2mem, %entry
@@ -139,8 +136,9 @@ declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i6
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #2
 
-; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #2
+declare void @nanotube_init_mask(i8*, i64, i64, i64)
+
+declare i64 @nanotube_map_update_masked(%struct.nanotube_context*, i16, i8*, i64, i8*, i8*, i64, i64)
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #2

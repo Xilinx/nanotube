@@ -166,17 +166,26 @@ static void merge_prog_state(flow_conversion *fc,
   }
 }
 
-Value *convert_ptr(flow_conversion* fc,
+/*!
+** Create a pointer for a packet access.
+**
+** \param fc The pass state.
+** \param i2p The pointer to convert.
+** \param meta The pointer metadata associated with i2p.
+** \param count The number of bytes being accessed.
+** \param is_write Whether the access is reading or writing.
+** \param inst The instruction which performs the access.
+**/
+static Value *
+convert_packet_ptr(flow_conversion* fc,
                    IntToPtrInst* i2p,
+                   pointer_meta* meta,
                    uint64_t count,
                    bool is_write,
                    Instruction *inst)
 {
   auto* mem_ty  = i2p->getType()->getPointerElementType();
   auto* offset  = i2p->getOperand(0);
-  auto  it      = fc->val_to_meta.find(i2p);
-  assert(it != fc->val_to_meta.end());
-  auto* meta    = it->second;
   auto& dl      = fc->m.getDataLayout();
   uint64_t size = dl.getTypeStoreSize(mem_ty) * count;
 
@@ -200,23 +209,15 @@ Value *convert_ptr(flow_conversion* fc,
   /* Specific prefix + call */
   if( !is_write ) {
     /* Loads are just reads */
-    nt_function = meta->is_map ? create_nt_map_read(fc->m) :
-                                 create_nt_packet_read(fc->m);
+    nt_function = create_nt_packet_read(fc->m);
   } else {
     /* Stores are just writes */
-    nt_function = meta->is_map ? create_nt_map_write(fc->m) :
-                                 create_nt_packet_write(fc->m);
+    nt_function = create_nt_packet_write(fc->m);
   }
 
   /* Arguments: make sure to add key and key size for map access */
   std::vector<Value*> args;
-  if( meta->is_map )
-    args.push_back(inst->getFunction()->arg_begin());
   args.push_back(meta->base);
-  if( meta->is_map ) {
-    args.push_back(meta->key);
-    args.push_back(meta->key_sz);
-  }
   args.push_back(bc);
   args.push_back(offset);
   args.push_back(ir.getInt64(size));
@@ -238,6 +239,165 @@ Value *convert_ptr(flow_conversion* fc,
   LLVM_DEBUG(dbgs() << *call << '\n');
 
   return alloca;
+}
+
+/*!
+** Create a pointer for a map access.
+**
+** \param fc The pass state.
+** \param i2p The pointer to convert.
+** \param meta The pointer metadata associated with i2p.
+** \param count The number of bytes being accessed.
+** \param is_write Whether the access is reading or writing.
+** \param inst The instruction which performs the access.
+**/
+Value *convert_map_ptr(flow_conversion* fc,
+                       IntToPtrInst* i2p,
+                       pointer_meta* meta,
+                       uint64_t count,
+                       bool is_write,
+                       Instruction *inst)
+{
+  auto* ptr_ty  = i2p->getType();
+  auto* mem_ty  = ptr_ty->getPointerElementType();
+  auto* offset  = i2p->getOperand(0);
+  auto& dl      = fc->m.getDataLayout();
+  uint64_t size = dl.getTypeStoreSize(mem_ty) * count;
+
+  /* Create the pointer before the access instruction. */
+  IRBuilder<> ir(inst);
+  ir.SetCurrentDebugLocation(inst->getDebugLoc());
+
+  auto* ptr = meta->buffer;
+
+  /* Create a GEP if necessary. */
+  auto* offset_const = dyn_cast<ConstantInt>(offset);
+  if( offset_const == nullptr || !offset_const->isZero() )
+    ptr = ir.CreateGEP(ptr, offset, i2p->getName() + "_gep");
+
+  /* Create a BitCast if necessary. */
+  if( ptr->getType() != ptr_ty )
+    ptr = ir.CreateBitCast(ptr, ptr_ty, i2p->getName() + "_bc");
+
+  auto& buf_states = fc->current_state.buf_states;
+
+  if( !is_write ) {
+    /* Report an error if any of the the cached entries which might be
+     * referenced are stale due to stores in this thread. */
+    for( auto* root: meta->possible_roots ) {
+      auto* buffer = root->buffer;
+      auto it = buf_states.find(buffer);
+      if( it != buf_states.end() &&
+          it->second.conflict != nullptr ) {
+        errs() << "ERROR: Read of overwritten map data is currently"
+               << " unsupported.\n"
+               << "Read instruction is: " << *inst << "\n"
+               << "Write instruction is: " << *it->second.conflict
+               << "\n";
+        exit(1);
+      }
+    }
+    return ptr;
+  }
+
+  /* Invalidate any conflicting buffers.  Start by iterating over the
+   * possible roots for this pointer. */
+  for( auto* this_root: meta->possible_roots ) {
+    /* Find the other roots which use this map.  This lookup should
+     * succeed because this root should be associated with the map. */
+    auto this_it = fc->map_metas.find(this_root->map_id);
+    assert(this_it != fc->map_metas.end());
+
+    for( auto &other_root: this_it->second ) {
+      /* Ignore this root. */
+      if( &other_root == this_root )
+        continue;
+
+      /* The "other" root has a different buffer and accesses the same
+       * map.  That buffer might hold a copy of the same map entry, so
+       * invalidate it if it has been filled.  If it has not been
+       * filled then the buffer will only be used if the fill occurs
+       * after this point in the program. */
+      auto other_it = buf_states.find(other_root.buffer);
+      if( other_it != buf_states.end() && other_it->second.filled )
+        other_it->second.conflict = inst;
+    }
+  }
+
+  /* Generate code to write back the buffer. */
+  auto* value_sz_val = cast<ConstantInt>(meta->value_sz);
+  uint64_t value_sz_u64 = value_sz_val->getZExtValue();
+  uint64_t mask_bytes_u64 = (value_sz_u64 + 7) / 8;
+  auto* mask_bytes_val = ir.getInt64(mask_bytes_u64);
+
+  /* Allocate the mask in the entry basic block. */
+  ir.SetInsertPoint(inst->getFunction()->getEntryBlock().getFirstNonPHI());
+  auto* mask_buf = ir.CreateAlloca(ir.getInt8Ty(), mask_bytes_val,
+                                   i2p->getName() + "_mask");
+
+  /* The writeback needs to go after the instruction which writes to
+   * the buffer. */
+  ir.SetInsertPoint(inst->getNextNode());
+
+  /* Fill the mask buffer. */
+  auto* init_mask = create_nt_init_mask(fc->m);
+  Value* mask_args[] = {
+    mask_buf,
+    mask_bytes_val,
+    offset,
+    ir.getInt64(size),
+  };
+  ir.CreateCall(init_mask, mask_args);
+
+  /* Perform a masked update of the map entry.  If the entry is
+   * cached by other threads then their reads will be reordered to
+   * the initial lookup in those threads.  If the entry no longer
+   * exists then this update will be discarded.  A subsequent lookup
+   * in another thread will fail at this point.  If the entry is
+   * later inserted and then read then it will look like this write
+   * was overwritten by the insert.  If this update occurs after a
+   * delete and insert from another thread then it will look like
+   * the same memory was used for the two entries with the same
+   * key. */
+  auto* update_masked = create_nt_map_update_masked(fc->m);
+  Value* update_args[] = {
+    inst->getFunction()->arg_begin(),
+    meta->base,
+    meta->key,
+    meta->key_sz,
+    meta->buffer,
+    mask_buf,
+    ir.getInt64(0),
+    meta->value_sz,
+  };
+  ir.CreateCall(update_masked, update_args, i2p->getName() + "_wr");
+
+  return ptr;
+}
+
+/*!
+** Create a pointer for a memory access.
+**
+** \param fc The pass state.
+** \param i2p The pointer to convert.
+** \param count The number of bytes being accessed.
+** \param is_write Whether the access is reading or writing.
+** \param inst The instruction which performs the access.
+**/
+Value *convert_ptr(flow_conversion* fc,
+                   IntToPtrInst* i2p,
+                   uint64_t count,
+                   bool is_write,
+                   Instruction *inst)
+{
+  auto  it      = fc->val_to_meta.find(i2p);
+  assert(it != fc->val_to_meta.end());
+  auto* meta    = it->second;
+
+  if( !meta->is_map )
+    return convert_packet_ptr(fc, i2p, meta, count, is_write, inst);
+
+  return convert_map_ptr(fc, i2p, meta, count, is_write, inst);
 }
 
 static Value* gep_to_arithmetic_zero(GetElementPtrInst *gep);
