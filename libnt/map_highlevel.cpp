@@ -48,6 +48,56 @@ size_t nanotube_map_write(nanotube_context_t* ctx, nanotube_map_id_t id,
 #ifdef NANOTUBE_SYNTHESIS
 __attribute__((always_inline))
 #endif
+size_t nanotube_map_write_masked(nanotube_context_t* ctx,
+                                 nanotube_map_id_t map, const uint8_t* key,
+                                 size_t key_length, const uint8_t* data_in,
+                                 const uint8_t* enables, size_t offset,
+                                 size_t data_length) {
+    return nanotube_map_op(ctx, map, NANOTUBE_MAP_WRITE, key, key_length,
+                           data_in, NULL /* data_out */,
+                           enables,  offset, data_length);
+}
+
+#ifdef NANOTUBE_SYNTHESIS
+__attribute__((always_inline))
+#endif
+size_t nanotube_map_insert_masked(nanotube_context_t* ctx,
+                                  nanotube_map_id_t map, const uint8_t* key,
+                                  size_t key_length, const uint8_t* data_in,
+                                  const uint8_t* enables, size_t offset,
+                                  size_t data_length) {
+    return nanotube_map_op(ctx, map, NANOTUBE_MAP_INSERT, key, key_length,
+                           data_in, NULL /* data_out */,
+                           enables,  offset, data_length);
+}
+
+#ifdef NANOTUBE_SYNTHESIS
+__attribute__((always_inline))
+#endif
+size_t nanotube_map_update_masked(nanotube_context_t* ctx,
+                                  nanotube_map_id_t map, const uint8_t* key,
+                                  size_t key_length, const uint8_t* data_in,
+                                  const uint8_t* enables, size_t offset,
+                                  size_t data_length) {
+    return nanotube_map_op(ctx, map, NANOTUBE_MAP_UPDATE, key, key_length,
+                           data_in, NULL /* data_out */,
+                           enables,  offset, data_length);
+}
+
+#ifdef NANOTUBE_SYNTHESIS
+__attribute__((always_inline))
+#endif
+size_t nanotube_map_remove(nanotube_context_t* ctx, nanotube_map_id_t map,
+                           const uint8_t* key, size_t key_length) {
+    return nanotube_map_op(ctx, map, NANOTUBE_MAP_REMOVE, key, key_length,
+                           NULL /* data_in */, NULL /* data_out */,
+                           NULL /* enables */,  0 /* offset */,
+                           0 /* data_length */);
+}
+
+#ifdef NANOTUBE_SYNTHESIS
+__attribute__((always_inline))
+#endif
 void nanotube_map_process_capsule(nanotube_context_t *ctxt,
                                   nanotube_map_id_t map_id,
                                   uint8_t *capsule,
