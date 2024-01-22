@@ -848,6 +848,26 @@ Constant* create_nt_map_write(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
+Constant* create_nt_map_update_masked(Module& m) {
+  LLVMContext& c = m.getContext();
+  /**
+   ** size_t nanotube_map_update_masked(nanotube_context_t* ctx,
+   **                                   nanotube_map_id_t map, const uint8_t* key,
+   **                                   size_t key_length, const uint8_t* data_in,
+   **                                   const uint8_t* enables, size_t offset,
+   **                                   size_t data_length);
+   **/
+  return get_or_insert_function(m, "nanotube_map_update_masked",
+                               Type::getInt64Ty(c),
+                               get_nt_context_type(m)->getPointerTo(),
+                               get_nt_map_id_type(m),
+                               Type::getInt8PtrTy(c),
+                               Type::getInt64Ty(c),
+                               Type::getInt8PtrTy(c),
+                               Type::getInt8PtrTy(c),
+                               Type::getInt64Ty(c),
+                               Type::getInt64Ty(c));
+}
 Constant* create_map_op_adapter(Module& m) {
   LLVMContext& c = m.getContext();
   /*

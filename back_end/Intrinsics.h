@@ -385,6 +385,7 @@ namespace nanotube
   Constant* create_nt_packet_write_masked(Module& m);
   Constant* create_nt_map_read(Module& m);
   Constant* create_nt_map_write(Module& m);
+  Constant* create_nt_map_update_masked(Module& m);
   Constant* create_map_op_adapter(Module& m);
   Constant* create_packet_adjust_head_adapter(Module& m);
   Constant* create_packet_adjust_meta_adapter(Module& m);
