@@ -389,6 +389,7 @@ namespace nanotube
   Constant* create_packet_adjust_head_adapter(Module& m);
   Constant* create_packet_adjust_meta_adapter(Module& m);
   Constant* create_packet_handle_xdp_result(Module& m);
+  Constant* create_nt_init_mask(Module& m);
   Constant* create_nt_merge_data_mask(Module& m);
   Constant* create_bus_packet_set_port(Module& m, nanotube_bus_id_t bus_type);
   FunctionType* get_capsule_classify_ty(Module& m);

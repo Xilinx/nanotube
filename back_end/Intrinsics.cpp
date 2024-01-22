@@ -1018,6 +1018,22 @@ Constant* create_nt_packet_write_masked(Module& m) {
                                Type::getInt64Ty(c),
                                Type::getInt64Ty(c));
 }
+Constant* create_nt_init_mask(Module& m) {
+  LLVMContext& c = m.getContext();
+  /**
+  ** void
+  ** nanotube_init_mask(uint8_t* mask_out,
+  **                    size_t mask_byte_size,
+  **                    size_t ones_bit_offset,
+  **                    size_t ones_bit_length);
+  **/
+  return m.getOrInsertFunction("nanotube_init_mask",
+                               Type::getVoidTy(c),
+                               Type::getInt8PtrTy(c),
+                               Type::getInt64Ty(c),
+                               Type::getInt64Ty(c),
+                               Type::getInt64Ty(c));
+}
 Constant* create_nt_merge_data_mask(Module& m) {
   LLVMContext& c = m.getContext();
   /**
