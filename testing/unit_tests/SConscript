@@ -19,6 +19,7 @@ unit_tests = (
     'channels',
     'duplicate_bits',
     'hash_maps',
+    'init_mask',
     'packets',
     'rotate_down',
     'shift_down_bits',
