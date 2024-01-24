@@ -749,6 +749,11 @@ void flow_conversion::flow(Instruction* inst) {
 
         if( it->second->key != key )
           keys_same = false;
+
+        if( meta->key_sz != it->second->key_sz ) {
+          errs() << "ERROR: Key sizes do not match: " << *inst << '\n';
+          exit(1);
+        }
       }
 
       /* Sanity check and clean up phi nodes */
