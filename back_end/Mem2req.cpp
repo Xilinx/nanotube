@@ -646,6 +646,13 @@ void flow_conversion::flow(Instruction* inst) {
         /* Key size has to be the same */
         assert(meta->key_sz == meta2->key_sz);
         meta_new->key_sz = meta->key_sz;
+
+        /* Value size has to be the same */
+        if( meta->value_sz != meta2->value_sz ) {
+          errs() << "ERROR: Value sizes do not match: " << *inst << '\n';
+          exit(1);
+        }
+        meta_new->value_sz = meta->value_sz;
       }
       LLVM_DEBUG(dbgs() << "  New meta: " << *meta_new << '\n'
                         << "Replacing with: " << *select_new <<'\n');
@@ -737,6 +744,7 @@ void flow_conversion::flow(Instruction* inst) {
           buffer               = it->second->buffer;
           key                  = it->second->key;
           meta->key_sz         = it->second->key_sz;
+          meta->value_sz       = it->second->value_sz;
           meta->dummy_read_ret = it->second->dummy_read_ret;
         }
 
@@ -752,6 +760,11 @@ void flow_conversion::flow(Instruction* inst) {
 
         if( meta->key_sz != it->second->key_sz ) {
           errs() << "ERROR: Key sizes do not match: " << *inst << '\n';
+          exit(1);
+        }
+
+        if( meta->value_sz != it->second->value_sz ) {
+          errs() << "ERROR: Value sizes do not match: " << *inst << '\n';
           exit(1);
         }
       }
@@ -907,6 +920,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     meta->buffer         = alloca;
     meta->key            = key_copy;
     meta->key_sz         = key_sz;
+    meta->value_sz       = value_sz;
     meta->dummy_read_ret = bytes_read;
 
     auto* map_id_const = dyn_cast<ConstantInt>(map_id);
@@ -1157,6 +1171,7 @@ raw_ostream& operator<<(raw_ostream& os, const pointer_meta& meta) {
   if( meta.is_map ) {
     os << "key: " << meta.key << " " << *meta.key << " ";
     os << "key_sz: " << meta.key_sz << " " << *meta.key_sz << " ";
+    os << "value_sz: " << meta.value_sz << " " << *meta.value_sz << " ";
     os << "check_read: " << *meta.dummy_read_ret;
   }
   return os;

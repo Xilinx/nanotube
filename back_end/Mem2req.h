@@ -62,6 +62,7 @@ namespace {
     Value* buffer;    /* The buffer being referenced */
     Value* key;       /* key for a map lookup; nullptr for packets */
     Value* key_sz;    /* size of the key as a value */
+    Value* value_sz;  /* size of the value */
     Value* dummy_read_ret;  /* return value of the dummy map read */
     possible_roots_t possible_roots; /* A set of possible roots */
 
