@@ -62,7 +62,8 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture r
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
 
-declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
 
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { inaccessiblemem_or_argmemonly }

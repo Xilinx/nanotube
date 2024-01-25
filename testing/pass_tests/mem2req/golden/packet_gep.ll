@@ -49,8 +49,14 @@ done:                                             ; preds = %edit, %check_len, %
   ret i32 %retval
 }
 
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
+; Function Attrs: inaccessiblememonly
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #0
 
-declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #1
 
-declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #1
+
+attributes #0 = { inaccessiblememonly }
+attributes #1 = { inaccessiblemem_or_argmemonly }

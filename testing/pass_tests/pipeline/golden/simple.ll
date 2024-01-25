@@ -87,7 +87,8 @@ entry:
 
 declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32) local_unnamed_addr #1
 
-declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32) #3
 
 define void @simple_stage_0(%struct.nanotube_context*, i8*) {
 read_packet_word:
@@ -108,8 +109,8 @@ entry:                                            ; preds = %entry_post
   %buffer_stage_0 = alloca [4 x i8], align 1, !nanotube.pipeline !2
   %mask_stage_0 = alloca i8, align 1
   %2 = getelementptr inbounds [4 x i8], [4 x i8]* %buffer_stage_0, i64 0, i64 0
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %2) #3
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %mask_stage_0) #3
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %2) #4
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %mask_stage_0) #4
   store i8 -1, i8* %mask_stage_0, align 1, !tbaa !3
   br label %stage_0_app_send_guard, !nanotube.pipeline !6
 
@@ -265,8 +266,8 @@ entry3:                                           ; preds = %unmarshal_stage_2
   store i16 0, i16* %req.write_offset.p
   store i16 4, i16* %req.write_length.p
   call void @nanotube_tap_packet_write_sb(i16 4, i8 2, i8* %packet_word.out, %struct.nanotube_tap_packet_write_state* @packet_write_tap_state_stage_2, i8* %packet_word, %struct.nanotube_tap_packet_write_req* %req, i8* %_stage_2, i8* %mask_stack_stage_2)
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %mask_stack_stage_2) #3
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %_stage_2) #3
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %mask_stack_stage_2) #4
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %_stage_2) #4
   br label %stage_2_epilogue, !nanotube.pipeline !6
 
 stage_2_epilogue:                                 ; preds = %entry3
@@ -337,7 +338,8 @@ declare void @nanotube_thread_create(%struct.nanotube_context*, i8*, void (%stru
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #2 = { uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #3 = { nounwind }
+attributes #3 = { inaccessiblemem_or_argmemonly }
+attributes #4 = { nounwind }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}

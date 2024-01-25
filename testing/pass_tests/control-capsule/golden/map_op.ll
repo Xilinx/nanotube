@@ -87,36 +87,39 @@ process_net_packet:                               ; preds = %entry
   %data = alloca [1 x i8], align 1
   %mask = alloca [1 x i8], align 1
   %2 = bitcast i32* %key to i8*
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %2) #3
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %2) #4
   store i32 67305985, i32* %key, align 4
   %3 = getelementptr inbounds [1 x i8], [1 x i8]* %data, i64 0, i64 0
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %3) #3
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %3) #4
   %4 = getelementptr inbounds [1 x i8], [1 x i8]* %mask, i64 0, i64 0
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %4) #3
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %4) #4
   %call = call i64 @nanotube_map_op(%struct.nanotube_context* %context, i16 zeroext 0, i32 0, i8* nonnull %2, i64 4, i8* null, i8* nonnull %3, i8* null, i64 0, i64 1)
   %.promoted = load i8, i8* %3, align 1, !tbaa !2
   %5 = add i8 %.promoted, 4
   store i8 %5, i8* %3, align 1, !tbaa !2
   store i8 -1, i8* %4, align 1
   %call7 = call i64 @nanotube_map_op(%struct.nanotube_context* %context, i16 zeroext 0, i32 0, i8* nonnull %2, i64 4, i8* nonnull %3, i8* null, i8* nonnull %4, i64 0, i64 1)
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %4) #3
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %3) #3
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %2) #3
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %4) #4
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %3) #4
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %2) #4
   ret i32 0
 }
 
-declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #3
 
 declare void @nanotube_map_process_capsule(%struct.nanotube_context*, i16, i8*, i64, i64)
 
 declare i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet*, i64*)
 
-declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #3
 
 attributes #0 = { argmemonly nounwind }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #2 = { uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #3 = { nounwind }
+attributes #3 = { inaccessiblemem_or_argmemonly }
+attributes #4 = { nounwind }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}

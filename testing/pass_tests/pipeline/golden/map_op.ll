@@ -103,7 +103,8 @@ declare void @nanotube_map_op_send(%struct.nanotube_context*, i16, i32, i8*, i64
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_map_op_receive(%struct.nanotube_context*, i16, i8*, i64) #3
 
-declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32)
+; Function Attrs: inaccessiblemem_or_argmemonly
+declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32) #3
 
 define void @simple_stage_0(%struct.nanotube_context*, i8*) {
 read_packet_word:

@@ -130,19 +130,21 @@ done:                                             ; preds = %case_map2map, %case
   ret i32 0
 }
 
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
+; Function Attrs: inaccessiblememonly
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #1
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
+declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #2
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #1
+declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #2
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1
+declare i64 @nanotube_map_write(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #2
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #1
+declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #2
 
 attributes #0 = { argmemonly nounwind }
-attributes #1 = { inaccessiblemem_or_argmemonly }
+attributes #1 = { inaccessiblememonly }
+attributes #2 = { inaccessiblemem_or_argmemonly }

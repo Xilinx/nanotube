@@ -20,17 +20,16 @@ declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_contex
 
 declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
 
-; Function Attrs: inaccessiblemem_or_argmemonly
-declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #0
+declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
 ; Function Attrs: nounwind readnone speculatable
-declare i16 @llvm.bswap.i16(i16) #1
+declare i16 @llvm.bswap.i16(i16) #0
 
 ; Function Attrs: nounwind readnone speculatable
-declare i32 @llvm.bswap.i32(i32) #1
+declare i32 @llvm.bswap.i32(i32) #0
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local i32 @map_op_adapter(%struct.nanotube_context* %ctx, i16 zeroext %map_id, i32 %type, i8* %key, i64 %key_length, i8* %data_in, i8* %data_out, i8* %mask, i64 %offset, i64 %data_length) local_unnamed_addr #2 !dbg !313 {
+define dso_local i32 @map_op_adapter(%struct.nanotube_context* %ctx, i16 zeroext %map_id, i32 %type, i8* %key, i64 %key_length, i8* %data_in, i8* %data_out, i8* %mask, i64 %offset, i64 %data_length) local_unnamed_addr #1 !dbg !313 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %ctx, metadata !329, metadata !DIExpression()), !dbg !340
   call void @llvm.dbg.value(metadata i16 %map_id, metadata !330, metadata !DIExpression()), !dbg !341
@@ -50,12 +49,12 @@ entry:
 }
 
 ; Function Attrs: nounwind readnone speculatable
-declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+declare void @llvm.dbg.value(metadata, metadata, metadata) #0
 
-declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #3
+declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #2
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local i32 @packet_adjust_head_adapter(%struct.nanotube_packet* %p, i32 %offset) #2 !dbg !356 {
+define dso_local i32 @packet_adjust_head_adapter(%struct.nanotube_packet* %p, i32 %offset) #1 !dbg !356 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %p, metadata !363, metadata !DIExpression()), !dbg !366
   call void @llvm.dbg.value(metadata i32 %offset, metadata !364, metadata !DIExpression()), !dbg !367
@@ -66,10 +65,10 @@ entry:
   ret i32 %cond, !dbg !371
 }
 
-declare dso_local i32 @nanotube_packet_resize(%struct.nanotube_packet*, i64, i32) local_unnamed_addr #3
+declare dso_local i32 @nanotube_packet_resize(%struct.nanotube_packet*, i64, i32) local_unnamed_addr #2
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local void @packet_handle_xdp_result(%struct.nanotube_packet* %packet, i32 %xdp_ret) #2 !dbg !372 {
+define dso_local void @packet_handle_xdp_result(%struct.nanotube_packet* %packet, i32 %xdp_ret) #1 !dbg !372 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !376, metadata !DIExpression()), !dbg !378
   call void @llvm.dbg.value(metadata i32 %xdp_ret, metadata !377, metadata !DIExpression()), !dbg !379
@@ -88,10 +87,10 @@ sw.epilog:                                        ; preds = %sw.default, %sw.bb
   ret void, !dbg !386
 }
 
-declare dso_local void @nanotube_packet_set_port(%struct.nanotube_packet*, i8 zeroext) local_unnamed_addr #3
+declare dso_local void @nanotube_packet_set_port(%struct.nanotube_packet*, i8 zeroext) local_unnamed_addr #2
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %data_in, i64 %offset, i64 %length) #2 !dbg !387 {
+define dso_local i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %data_in, i64 %offset, i64 %length) #1 !dbg !387 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
   call void @llvm.dbg.value(metadata i8* %data_in, metadata !392, metadata !DIExpression()), !dbg !398
@@ -108,13 +107,12 @@ entry:
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #4
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #3
 
-; Function Attrs: inaccessiblemem_or_argmemonly
-declare dso_local i64 @nanotube_packet_write_masked(%struct.nanotube_packet*, i8*, i8*, i64, i64) local_unnamed_addr #5
+declare dso_local i64 @nanotube_packet_write_masked(%struct.nanotube_packet*, i8*, i8*, i64, i64) local_unnamed_addr #2
 
 ; Function Attrs: alwaysinline norecurse nounwind uwtable
-define dso_local void @nanotube_merge_data_mask(i8* nocapture %inout_data, i8* nocapture %inout_mask, i8* nocapture readonly %in_data, i8* nocapture readonly %in_mask, i64 %offset, i64 %data_length) local_unnamed_addr #6 !dbg !409 {
+define dso_local void @nanotube_merge_data_mask(i8* nocapture %inout_data, i8* nocapture %inout_mask, i8* nocapture readonly %in_data, i8* nocapture readonly %in_mask, i64 %offset, i64 %data_length) local_unnamed_addr #4 !dbg !409 {
 entry:
   call void @llvm.dbg.value(metadata i8* %inout_data, metadata !413, metadata !DIExpression()), !dbg !432
   call void @llvm.dbg.value(metadata i8* %inout_mask, metadata !414, metadata !DIExpression()), !dbg !433
@@ -172,7 +170,7 @@ if.end:                                           ; preds = %if.then, %for.body
 }
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local i64 @nanotube_map_read(%struct.nanotube_context* %ctx, i16 zeroext %id, i8* %key, i64 %key_length, i8* %data_out, i64 %offset, i64 %data_length) local_unnamed_addr #2 !dbg !468 {
+define dso_local i64 @nanotube_map_read(%struct.nanotube_context* %ctx, i16 zeroext %id, i8* %key, i64 %key_length, i8* %data_out, i64 %offset, i64 %data_length) local_unnamed_addr #1 !dbg !468 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %ctx, metadata !472, metadata !DIExpression()), !dbg !479
   call void @llvm.dbg.value(metadata i16 %id, metadata !473, metadata !DIExpression()), !dbg !480
@@ -186,7 +184,7 @@ entry:
 }
 
 ; Function Attrs: alwaysinline uwtable
-define dso_local i64 @nanotube_map_write(%struct.nanotube_context* %ctx, i16 zeroext %id, i8* %key, i64 %key_length, i8* %data_in, i64 %offset, i64 %data_length) local_unnamed_addr #2 !dbg !488 {
+define dso_local i64 @nanotube_map_write(%struct.nanotube_context* %ctx, i16 zeroext %id, i8* %key, i64 %key_length, i8* %data_in, i64 %offset, i64 %data_length) local_unnamed_addr #1 !dbg !488 {
 entry:
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %ctx, metadata !492, metadata !DIExpression()), !dbg !501
   call void @llvm.dbg.value(metadata i16 %id, metadata !493, metadata !DIExpression()), !dbg !502
@@ -206,19 +204,19 @@ entry:
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #4
+declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #3
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #4
+declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #3
 
 ; Function Attrs: nounwind
-declare i8* @llvm.stacksave() #7
+declare i8* @llvm.stacksave() #5
 
 ; Function Attrs: nounwind
-declare void @llvm.stackrestore(i8*) #7
+declare void @llvm.stackrestore(i8*) #5
 
 ; Function Attrs: nounwind uwtable
-define private i32 @ebpf_filter_nt.1(%struct.nanotube_context* %nt_ctx, %struct.nanotube_packet* %packet) #8 section "prog" {
+define private i32 @ebpf_filter_nt.1(%struct.nanotube_context* %nt_ctx, %struct.nanotube_packet* %packet) #6 section "prog" {
 entry:
   %write_mask_off1511 = alloca i8, i32 3, !dbg !404
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off1511, i8 0, i64 3, i1 false), !dbg !404
@@ -3408,17 +3406,15 @@ cleanup3277:                                      ; preds = %if.end3064, %if.the
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #4
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #3
 
-attributes #0 = { inaccessiblemem_or_argmemonly }
-attributes #1 = { nounwind readnone speculatable }
-attributes #2 = { alwaysinline uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #3 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #4 = { argmemonly nounwind }
-attributes #5 = { inaccessiblemem_or_argmemonly "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #6 = { alwaysinline norecurse nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #7 = { nounwind }
-attributes #8 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { nounwind readnone speculatable }
+attributes #1 = { alwaysinline uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { argmemonly nounwind }
+attributes #4 = { alwaysinline norecurse nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { nounwind }
+attributes #6 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
 !llvm.ident = !{!0, !0, !0, !0}
 !llvm.module.flags = !{!1, !2, !3}

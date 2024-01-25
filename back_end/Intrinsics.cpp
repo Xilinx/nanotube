@@ -673,7 +673,7 @@ static void set_nt_attrs(Constant* co) {
 template <typename...Ts>
 static Constant*
 get_or_insert_function(Module& m, StringRef name, Type* ret, Ts...args) {
-  bool fresh = m.getNamedValue(name) != nullptr;
+  bool fresh = m.getNamedValue(name) == nullptr;
   auto* f = m.getOrInsertFunction(name, ret, args...);
   if( fresh )
     set_nt_attrs(f);
@@ -681,7 +681,7 @@ get_or_insert_function(Module& m, StringRef name, Type* ret, Ts...args) {
 }
 static Constant*
 get_or_insert_function(Module& m, StringRef name, FunctionType* ft) {
-  bool fresh = m.getNamedValue(name) != nullptr;
+  bool fresh = m.getNamedValue(name) == nullptr;
   auto* f = m.getOrInsertFunction(name, ft);
   if( fresh )
     set_nt_attrs(f);
