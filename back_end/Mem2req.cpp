@@ -26,50 +26,123 @@
  *   * memcpy / memset to / from / of packet and map data is supported
  *
  * Output Characteristics:
- *   * remaining loads / stores are only to the stack or parameter pointers
+ *   * remaining loads / stores are only to the stack, parameter pointers,
+ *     or (if used in the input) globals
  *   * every access to a packet / map happens through the (simplified)
  *     request API
  *   * all remaining memcpy / memset calls are only to stack / heap memory
  *   * instead of packet pointers pointing into the packet, all packet
- *     accesses use a base packet and explicit offset in the reoquest
+ *     accesses use a base packet and explicit offset in the request
  *
  * Limitations:
  *   * no loop support
- *   * no support for "mixed mode" accesses where one load / store can
- *     access either map or packet depending on some condition
- *   * no support for select statements; as long as the pointer base is the
- *     same, the select will only ever select the offset it seems! (but see
- *     the point above!!)
- *   * no support for map accesses that can go to different maps
- *   * (in progress) using pieces of packet as key does not work
+ *   * limited support for "mixed mode" accesses where an instruction
+ *     can access different regions of memory depending on some
+ *     condition:
+ *     - mixed stack, parameters and globals are allowed
+ *     - mixed map entries with the same key and values sizes are allowed
+ *     - other cases are not allowed.  e.g. packet/map or stack/map.
+ *   * modifying a map entry will result in all pointers which could
+ *     reference the same map using a different lookup being invalidated.
  *
  * Mode of operation:
- *   Phase 1 does a small instruction replacement, i.e., it replaces a
- *   single load / store with a short sequence of instructions.  It also
- *   identifies the latest packet pointer, and adds that as the packet
- *   parameter, but leaves the actual into-packet pointer as the offset.
  *
- *   * Phase 1a: convert loads / stores
- *     * find out which memory is accessed by the load / store
- *     * do a fairly mechanical translation with temporary buffer memory
- *     * establish the underlying packet / map which is a packet_data or
- *       map_lookup call
- *   * Phase 1b: translate memcpy / memset
- *     * classify cases and split memcpy into a read and a write phase
- *     * allocate temporary memory if necessary (neither "end" on stack)
- *     * convert read part into the right request if necessary (no-op if
- *       from stack)
- *     * convert write part in a similar fashion
+ *   The pass iterates over all basic blocks in the program by
+ *   traversing the CFG in a toplogical ordering.  It iterates over
+ *   the instructions in each basic block and keeps track of various
+ *   aspects of the program state.  In this way, a conversion frontier
+ *   passes through the program with converted code before it and
+ *   unconverted code after it.
  *
- *    Phase 2 cleans up the pointers and replaces the into-packet /
- *    into-map-value pointers used in phase 1 and replaces them with packet
- *    offsets.  For that, it walks computation chains originating from
- *    nanotube_packet_data & nanotube_packet_end / map_lookup and converts
- *    instructions traversing the DAG (no loops yet!) of information flow,
- *    converting consumers one by one; effectively pushing a frontier of
- *    inttoptr instructions away from the converted nanotube_packet_data
- *    origins, all the way into the nanotube_packet_read/writes.
+ *   Each pointer which needs handling is converted into an offset
+ *   into the packet or the map entry.  The pointer is replaced with a
+ *   temporary int2ptr instruction where the operand is the offset.
+ *   Metadata about the int2ptr is held in a struct pointer_meta which
+ *   is added to the val_to_meta map.
  *
+ *   Each instruction which uses a tracked pointer is rewritten to use
+ *   the offset rather than the pointer.  Eventually, all users of the
+ *   int2ptr are converted, so the int2ptr is destroyed and the
+ *   val_to_meta entry is removed.  This means val_to_meta only tracks
+ *   pointers which cross the conversion frontier.
+ *
+ *   Instructions in the input program which generate new tracked
+ *   pointers, like nanotube_map_lookup or nanotube_packet_end, are
+ *   referred to as pointer roots.  They are tracked through the
+ *   root_meta structure.  The instruction which generated the new
+ *   pointer is deleted when it is encountered, but the corresponding
+ *   root_meta lives until the pass finishes processing the function.
+ *
+ *   In simple programs there is a single root_meta and a single
+ *   pointer_meta per pointer in the program.  Things can get more
+ *   complicated if the input program contains a PHI or select
+ *   instruction with a pointer type.  If the pointer operands to a
+ *   PHI/select come from different roots then the new pointer could
+ *   access any/either of them.  To handle this, a new pointer_meta is
+ *   allocated and associated with all the possible root_metas.  This
+ *   means that a single pointer_meta can refer to multiple
+ *   root_metas.  Since the new pointer refers to any root which is
+ *   referred to by one of the operands, the root_metas of those roots
+ *   will now be referenced by multiple pointer_metas.  The
+ *   possible_roots member of pointer_meta makes it easy to find the
+ *   roots associated with a pointer.  There is currently no need to
+ *   get from a root to the possible pointers, so there's no direct
+ *   way to do that.
+ *
+ *   No access to packet data is performed when a packet pointer is
+ *   first created.  At most, the length of the packet is fetched.
+ *   Each use of a packet pointer is replaced with a pointer to a
+ *   buffer on the stack.  A call to read/write packet data to/from
+ *   the buffer is added before/after the accessing instruction to
+ *   transfer the packet data.
+ *
+ *   The only information which needs to be passed from the root to
+ *   the access are the packet pointer and the offset into the packet.
+ *   The packet pointer is retrieved from the base field of the
+ *   pointer_meta and the offset is retrieved from the operand of the
+ *   int2ptr instruction.  Since no other information is needed about
+ *   the original pointer generating instruction, there is only a
+ *   single root_meta per packet.  It is stored in the packet_metas
+ *   member of flow_conversion.
+ *
+ *   When a map lookup is performed, the entry is read into a buffer
+ *   on the stack.  The key is copied at this point in case a
+ *   writeback needs to be performed.  Each use of the pointer is
+ *   replaced with a pointer to the copy of the entry.  The cached
+ *   copy is found through the buffer member of pointer_meta.  If an
+ *   instruction writes through the pointer then the updated bytes of
+ *   the cached copy are written back to the map entry.  The operands
+ *   needed to write back the entry are stored in other members of
+ *   pointer_meta.
+ *
+ *   A separate buffer is used for each map lookup, even if they are
+ *   for the same map.  This means that a single map can have multiple
+ *   buffers associated with it.  To keep track of this, each map can
+ *   have a list of root_metas, one for each lookup.  They are stored
+ *   in the map_metas member of flow_conversion.
+ *
+ *   Keeping a cached copy of the map entry introduces hazards into
+ *   the program because a read from the copy may return the value
+ *   when the lookup occurred rather than the value when the access
+ *   occured.  This doesn't cause problems with writes via the same
+ *   root because they update the cached copy before performing the
+ *   write back, but writes through any other root will update the map
+ *   entry without updating the cached copy.
+ *
+ *   The current approach is to statically track the status of each
+ *   buffer at different locations in the program.  When the buffer is
+ *   created, it is marked as filled.  If a write occurs to a map
+ *   entry then the list of root_metas for the map is examined.  All
+ *   of the buffers associated with those root_metas are invalidated,
+ *   except for the one used to perform the write.  If a read occurs
+ *   to an invalidated buffer then an error is reported.
+ *
+ *   If the write is through a pointer which is associated with more
+ *   than one root then this invalidation will be performed for each
+ *   of those roots.  This is pessimistic in some cases, but that is
+ *   the cautious approach.  An better approach would be to update all
+ *   aliasing buffers when a write occurs instead of invalidating
+ *   them.
  */
 
 #include "Mem2req.h"
