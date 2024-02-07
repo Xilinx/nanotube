@@ -141,7 +141,7 @@ AliasResult NanotubeAAResult::alias(const MemoryLocation& loc_a,
      *
      * The challenge here is of course cases where (one of) the offsets are
      * not constant, but instead come from a (memory) PHI node.  Fully
-     * enumerating all options back to the base package can lead to O(2^N)
+     * enumerating all options back to the base packet can lead to O(2^N)
      * runtime.  Fortunately, the case where that happens:
      *
      *             foo = nt_get_packet_data

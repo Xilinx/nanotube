@@ -58,7 +58,7 @@ namespace {
   struct pointer_meta {
     typedef std::unordered_set<root_meta*> possible_roots_t;
 
-    Value* base;      /* base package / map */
+    Value* base;      /* base packet / map */
     Value* buffer;    /* The buffer being referenced */
     Value* key;       /* key for a map lookup; nullptr for packets */
     Value* key_sz;    /* size of the key as a value */
