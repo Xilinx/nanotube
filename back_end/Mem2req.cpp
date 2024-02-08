@@ -102,7 +102,7 @@
  *   pointer_meta and the offset is retrieved from the operand of the
  *   int2ptr instruction.  Since no other information is needed about
  *   the original pointer generating instruction, there is only a
- *   single root_meta per packet.  It is stored in the packet_metas
+ *   single root_meta per packet.  It is stored in the packet_roots
  *   member of flow_conversion.
  *
  *   When a map lookup is performed, the entry is read into a buffer
@@ -119,7 +119,7 @@
  *   for the same map.  This means that a single map can have multiple
  *   buffers associated with it.  To keep track of this, each map can
  *   have a list of root_metas, one for each lookup.  They are stored
- *   in the map_metas member of flow_conversion.
+ *   in the map_roots member of flow_conversion.
  *
  *   Keeping a cached copy of the map entry introduces hazards into
  *   the program because a read from the copy may return the value
@@ -378,8 +378,8 @@ Value *convert_map_ptr(flow_conversion* fc,
   for( auto* this_root: meta->possible_roots ) {
     /* Find the other roots which use this map.  This lookup should
      * succeed because this root should be associated with the map. */
-    auto this_it = fc->map_metas.find(this_root->map_id);
-    assert(this_it != fc->map_metas.end());
+    auto this_it = fc->map_roots.find(this_root->map_id);
+    assert(this_it != fc->map_roots.end());
 
     for( auto &other_root: this_it->second ) {
       /* Ignore this root. */
@@ -1086,11 +1086,11 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     meta->is_map = false;
     meta->base   = call->getOperand(0);
 
-    /* Make sure the packet is present in packet_metas.  Note that
+    /* Make sure the packet is present in packet_roots.  Note that
      * root_meta_val is discarded in the case where it is already
      * present. */
     root_meta root_meta_val = { .map_id = MAP_ID_NONE };
-    auto ins = packet_metas.emplace(meta->base, root_meta_val);
+    auto ins = packet_roots.emplace(meta->base, root_meta_val);
 
     /* Find the root associated with the packet.  This will either be
      * the newly inserted value or the root which was previously
@@ -1168,7 +1168,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     /* Make sure there is a root list associated with the map ID.
      * Note that the new list created by the emplace is discarded in
      * the case where the map ID was already being tracked. */
-    auto ins = map_metas.emplace(map_id_num, root_meta_list_t());
+    auto ins = map_roots.emplace(map_id_num, root_meta_list_t());
 
     /* Get a pointer to the root list associated with the map ID.
      * This is the newly inserted list if the map ID was not

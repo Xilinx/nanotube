@@ -96,11 +96,11 @@ namespace {
      * (e.g. pointer_meta), so these containers must not move them
      * when other elements are added. */
     typedef std::list<root_meta> root_meta_list_t;
-    typedef std::unordered_map<nanotube_map_id_t, root_meta_list_t> map_metas_t;
-    typedef std::unordered_map<Value*, root_meta> packet_metas_t;
+    typedef std::unordered_map<nanotube_map_id_t, root_meta_list_t> map_roots_t;
+    typedef std::unordered_map<Value*, root_meta> packet_roots_t;
 
-    map_metas_t   map_metas;
-    packet_metas_t packet_metas;
+    map_roots_t   map_roots;
+    packet_roots_t packet_roots;
     meta_vec      meta_nodes;
     val_meta_map  val_to_meta;
     std::vector<Instruction*> deletion_candidates;
