@@ -187,6 +187,9 @@ _infos = [
         'var' : 'EXTRA_TESTS',
         'is_path' : True,
     },
+    {
+        'var' : 'EXTRA_LIBS',
+    },
 ]
 
 class config(object):

@@ -169,5 +169,12 @@ if extra:
     build_tests_and_golden(extra_source)
     # Build the extra tests into the same build directory
     env.VariantDir(env['BUILD_DIR'], extra_source, duplicate=0)
-    # Addiitonal includes from the extra test directory
+    # Additional includes from the extra test directory
     env.Append(CCFLAGS=["-I", extra_source.Dir("include")])
+    env.Append(CCFLAGS=["-I", Dir(extra).Dir("include")])
+    # Add any extra libraries
+    extra_lib = env.get('EXTRA_LIBS')
+    if extra_lib:
+        env.Append(LIBPATH=[Dir(extra).Dir("build")])
+        env.Append(LIBS=[extra_lib])
+        env.Append(RPATH=[Dir(extra).Dir("build")])
