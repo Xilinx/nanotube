@@ -3467,7 +3467,7 @@ attributes #6 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="fals
 !44 = !DIFile(filename: "/usr/lib/gcc/x86_64-linux-gnu/7.5.0/../../../../include/c++/7.5.0/cstdlib", directory: "")
 !45 = !DIImportedEntity(tag: DW_TAG_imported_declaration, scope: !34, entity: !46, file: !44, line: 128)
 !46 = !DIDerivedType(tag: DW_TAG_typedef, name: "ldiv_t", file: !36, line: 70, baseType: !47)
-!47 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !36, line: 66, size: 128, flags: DIFlagTypePassByValue | DIFlagTrivial, elements: !48, identifier: "_ZTS6ldiv_t")
+!47 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !36, line: 66, size: 128, flags: DIFlagTypePassByValue, elements: !48, identifier: "_ZTS6ldiv_t")
 !48 = !{!49, !51}
 !49 = !DIDerivedType(tag: DW_TAG_member, name: "quot", scope: !47, file: !36, line: 68, baseType: !50, size: 64)
 !50 = !DIBasicType(name: "long int", size: 64, encoding: DW_ATE_signed)
@@ -3613,7 +3613,7 @@ attributes #6 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="fals
 !190 = !DIImportedEntity(tag: DW_TAG_imported_declaration, scope: !191, entity: !192, file: !44, line: 200)
 !191 = !DINamespace(name: "__gnu_cxx", scope: null)
 !192 = !DIDerivedType(tag: DW_TAG_typedef, name: "lldiv_t", file: !36, line: 80, baseType: !193)
-!193 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !36, line: 76, size: 128, flags: DIFlagTypePassByValue | DIFlagTrivial, elements: !194, identifier: "_ZTS7lldiv_t")
+!193 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !36, line: 76, size: 128, flags: DIFlagTypePassByValue, elements: !194, identifier: "_ZTS7lldiv_t")
 !194 = !{!195, !197}
 !195 = !DIDerivedType(tag: DW_TAG_member, name: "quot", scope: !193, file: !36, line: 78, baseType: !196, size: 64)
 !196 = !DIBasicType(name: "long long int", size: 64, encoding: DW_ATE_signed)
