@@ -156,6 +156,7 @@ enum hls_type
   HLS_TYPE_ANY,
   HLS_TYPE_INTEGER,
   HLS_TYPE_POINTER,
+  HLS_TYPE_STRUCT,
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -311,6 +312,7 @@ public:
   void write_select(const SelectInst &insn);
   void write_store(const StoreInst &insn);
   void write_switch(const SwitchInst &insn);
+  void write_usub_with_overflow(const CallBase &insn);
 
   void write_cfg_edge(StringRef indent, const BasicBlock &from_bb,
                       const BasicBlock &to_bb);
@@ -1740,6 +1742,10 @@ void stage_writer::write_call(const CallBase &insn)
     write_memcmp(insn);
     break;
 
+  case Intrinsics::llvm_usub_with_overflow:
+    write_usub_with_overflow(insn);
+    break;
+
   default:
     if (!intrinsic_is_nop(iid))
       report_fatal_errorv("Unsupported call in thread function {0}",
@@ -2250,6 +2256,42 @@ void stage_writer::write_switch(const SwitchInst &insn)
   m_out << "  }\n";
 }
 
+void stage_writer::write_usub_with_overflow(const CallBase &insn)
+{
+  // Validate and extract the types involved.
+  auto *ret_ty = cast<StructType>(insn.getType());
+  assert(ret_ty->getNumElements() == 2);
+  auto *ret0_ty = cast<IntegerType>(ret_ty->getElementType(0));
+  auto *ret1_ty = cast<IntegerType>(ret_ty->getElementType(1));
+  assert(ret1_ty->getBitWidth() == 1);
+
+  assert(insn.arg_size() == 2);
+  auto *op0 = insn.getArgOperand(0);
+  auto *op0_ty = cast<IntegerType>(op0->getType());
+  assert(op0_ty == ret0_ty);
+  auto *op1 = insn.getArgOperand(1);
+  auto *op1_ty = cast<IntegerType>(op1->getType());
+  assert(op1_ty == ret0_ty);
+
+  // Write: ret.m0 = op0 - op1;
+  m_out << "  ";
+  write_operand(insn, insn, HLS_TYPE_STRUCT);
+  m_out << ".m0 = ";
+  write_operand(insn, *op0);
+  m_out << " - ";
+  write_operand(insn, *op1);
+  m_out << ";\n";
+
+  // Write: ret.m1 = op0 < op1;
+  m_out << "  ";
+  write_operand(insn, insn, HLS_TYPE_STRUCT);
+  m_out << ".m1 = ";
+  write_operand(insn, *op0);
+  m_out << " < ";
+  write_operand(insn, *op1);
+  m_out << ";\n";
+}
+
 void stage_writer::write_cfg_edge(StringRef indent, const BasicBlock &from_bb,
                                   const BasicBlock &to_bb)
 {
@@ -2286,6 +2328,11 @@ void stage_writer::write_operand(const Instruction &insn, const Value &val_in,
     if (expected_type != HLS_TYPE_INTEGER &&
         expected_type != HLS_TYPE_ANY)
       report_fatal_errorv("Invalid integer arithmetic: {0}", insn);
+  } else if (type->isStructTy()) {
+    if (expected_type != HLS_TYPE_STRUCT &&
+        expected_type != HLS_TYPE_ANY)
+      report_fatal_errorv("Invalid use of struct: {0}", insn);
+
   } else {
     report_fatal_errorv("Invalid type for arithmetic: {0}", insn);
   }
