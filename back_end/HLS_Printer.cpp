@@ -283,6 +283,8 @@ public:
   void write_state();
   void write_state_for_operand(Value *pointer);
   void write_function();
+  void write_decl_for_alloca(const AllocaInst *alloca);
+  void write_decl_for_insn(const Instruction *insn);
   void write_declarations();
   void write_pragmas();
   void write_body();
@@ -1294,6 +1296,73 @@ static uint64_t get_alloca_size(const DataLayout &dl,
   return elem_count_ci->getLimitedValue() * elem_size;
 }
 
+void stage_writer::write_decl_for_alloca(const AllocaInst *alloca)
+{
+  if (!m_is_entry_bb)
+    report_fatal_errorv("Alloca outside the entry block {0}",
+                        *alloca);
+
+  // Declare a buffer for the alloca.
+  uint64_t buffer_size = get_alloca_size(m_data_layout, *alloca);
+
+  LLVM_DEBUG(
+    m_out << formatv("  // {0}\n", *alloca);
+  );
+  m_out << formatv("  uint8_t v{0}[{1}]", m_next_value_id,
+                   buffer_size);
+
+  // Set the alignment if it is not equal to one.
+  if ( alloca->getAlignment() > 1 )
+    m_out << formatv("__attribute__((aligned({0})))",
+                     alloca->getAlignment());
+  m_out << ";\n";
+  m_out << formatv("#pragma HLS array_partition variable=v{0}"
+                   " complete\n", m_next_value_id);
+
+}
+
+void stage_writer::write_decl_for_insn(const Instruction *insn)
+{
+  Type *type = insn->getType();
+
+  // Ignore void instructions.
+  if ( type->isVoidTy() )
+    return;
+
+  auto opcode = insn->getOpcode();
+  if (opcode == Instruction::Alloca) {
+    write_decl_for_alloca(cast<AllocaInst>(insn));
+  } else {
+    auto iid = get_intrinsic(insn);
+    if (iid == Intrinsics::llvm_stacksave)
+      return;
+
+    if (type->isPointerTy()) {
+      // Ignore pointers which will be unwrapped by write_operand.
+      const Value *base = insn->stripInBoundsConstantOffsets();
+      if (base != insn)
+        return;
+
+      // Output the declaration.
+      m_out << formatv("  uint8_t *v{0};\n", m_next_value_id);
+
+    } else {
+      // The instruction produces a non-pointer type.  Just declare
+      // it.
+      auto *int_type = dyn_cast<llvm::IntegerType>(type);
+      if ( int_type == nullptr )
+        report_fatal_errorv("Unsupported expression type {0}", *type);
+
+      // Output the declaration.
+      m_out << formatv("  ap_uint<{0}> v{1};\n", int_type->getBitWidth(),
+                       m_next_value_id);
+    }
+  }
+
+  m_local_var_ids.insert(std::make_pair(insn, m_next_value_id));
+  m_next_value_id++;
+}
+
 void stage_writer::write_declarations()
 {
   // Declare a variable for each port.
@@ -1324,65 +1393,7 @@ void stage_writer::write_declarations()
   for ( const BasicBlock &bb: *m_args.func ) {
     m_is_entry_bb = (&bb == m_entry_bb);
     for ( const Instruction &insn: bb ) {
-      Type *type = insn.getType();
-
-      // Ignore void instructions.
-      if ( type->isVoidTy() )
-        continue;
-
-      auto opcode = insn.getOpcode();
-      if (opcode == Instruction::Alloca) {
-        if (!m_is_entry_bb)
-          report_fatal_errorv("Alloca outside the entry block {0}",
-                              insn);
-
-        // Declare a buffer for the alloca.
-        const auto &alloca = cast<AllocaInst>(insn);
-        uint64_t buffer_size = get_alloca_size(m_data_layout, alloca);
-
-        LLVM_DEBUG(
-          m_out << formatv("  // {0}\n", insn);
-          );
-        m_out << formatv("  uint8_t v{0}[{1}]", m_next_value_id,
-                         buffer_size);
-
-        // Set the alignment if it is not equal to one.
-        if ( alloca.getAlignment() > 1 )
-          m_out << formatv("__attribute__((aligned({0})))",
-                           alloca.getAlignment());
-        m_out << ";\n";
-        m_out << formatv("#pragma HLS array_partition variable=v{0}"
-                         " complete\n", m_next_value_id);
-
-      } else {
-        auto iid = get_intrinsic(&insn);
-        if (iid == Intrinsics::llvm_stacksave)
-          continue;
-
-        if (type->isPointerTy()) {
-          // Ignore pointers which will be unwrapped by write_operand.
-          const Value *base = insn.stripInBoundsConstantOffsets();
-          if (base != &insn)
-            continue;
-
-          // Output the declaration.
-          m_out << formatv("  uint8_t *v{0};\n", m_next_value_id);
-
-        } else {
-          // The instruction produces a non-pointer type.  Just declare
-          // it.
-          auto *int_type = dyn_cast<llvm::IntegerType>(type);
-          if ( int_type == nullptr )
-            report_fatal_errorv("Unsupported expression type {0}", *type);
-
-          // Output the declaration.
-          m_out << formatv("  ap_uint<{0}> v{1};\n", int_type->getBitWidth(),
-                           m_next_value_id);
-        }
-      }
-
-      m_local_var_ids.insert(std::make_pair(&insn, m_next_value_id));
-      m_next_value_id++;
+      write_decl_for_insn(&insn);
     }
   }
 }
