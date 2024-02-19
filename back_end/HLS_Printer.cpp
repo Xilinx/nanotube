@@ -283,7 +283,7 @@ public:
   void write_state();
   void write_state_for_operand(Value *pointer);
   void write_function();
-  void write_decl_type(Type *type);
+  void write_decl_type(Type *type, unsigned depth=0);
   void write_decl_for_alloca(const AllocaInst *alloca);
   void write_decl_for_insn(const Instruction *insn);
   void write_declarations();
@@ -1282,7 +1282,7 @@ void stage_writer::write_function()
   m_out << "}\n";
 }
 
-void stage_writer::write_decl_type(Type *type)
+void stage_writer::write_decl_type(Type *type, unsigned depth)
 {
   // Handle pointer types.
   if (type->isPointerTy()) {
@@ -1297,6 +1297,25 @@ void stage_writer::write_decl_type(Type *type)
 
     // Output the declaration.
     m_out << formatv("ap_uint<{0}> ", int_type->getBitWidth());
+    return;
+  }
+
+  // Handle struct types.
+  if (type->isStructTy()) {
+    if (depth > 0) {
+      report_fatal_errorv("Encountered nested struct type: {0}",
+                          *type);
+    }
+
+    auto *struct_ty = cast<StructType>(type);
+    m_out << "struct { ";
+    unsigned count = struct_ty->getNumElements();
+    for( unsigned i = 0; i < count; i++ ) {
+      Type *elem_type = struct_ty->getElementType(i);
+      write_decl_type(elem_type, depth+1);
+      m_out << formatv("m{0}; ", i);
+    }
+    m_out << "}";
     return;
   }
 
