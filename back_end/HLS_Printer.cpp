@@ -283,6 +283,7 @@ public:
   void write_state();
   void write_state_for_operand(Value *pointer);
   void write_function();
+  void write_decl_type(Type *type);
   void write_decl_for_alloca(const AllocaInst *alloca);
   void write_decl_for_insn(const Instruction *insn);
   void write_declarations();
@@ -1281,6 +1282,24 @@ void stage_writer::write_function()
   m_out << "}\n";
 }
 
+void stage_writer::write_decl_type(Type *type)
+{
+  if (type->isPointerTy()) {
+    // Output the declaration.
+    m_out << "uint8_t *";
+
+  } else {
+    // The instruction produces a non-pointer type.  Just declare
+    // it.
+    auto *int_type = dyn_cast<llvm::IntegerType>(type);
+    if ( int_type == nullptr )
+      report_fatal_errorv("Unsupported expression type {0}", *type);
+
+    // Output the declaration.
+    m_out << formatv("ap_uint<{0}> ", int_type->getBitWidth());
+  }
+}
+
 static uint64_t get_alloca_size(const DataLayout &dl,
                                 const AllocaInst &alloca)
 {
@@ -1337,26 +1356,16 @@ void stage_writer::write_decl_for_insn(const Instruction *insn)
     if (iid == Intrinsics::llvm_stacksave)
       return;
 
+    // Ignore pointers which will be unwrapped by write_operand.
     if (type->isPointerTy()) {
-      // Ignore pointers which will be unwrapped by write_operand.
       const Value *base = insn->stripInBoundsConstantOffsets();
       if (base != insn)
         return;
-
-      // Output the declaration.
-      m_out << formatv("  uint8_t *v{0};\n", m_next_value_id);
-
-    } else {
-      // The instruction produces a non-pointer type.  Just declare
-      // it.
-      auto *int_type = dyn_cast<llvm::IntegerType>(type);
-      if ( int_type == nullptr )
-        report_fatal_errorv("Unsupported expression type {0}", *type);
-
-      // Output the declaration.
-      m_out << formatv("  ap_uint<{0}> v{1};\n", int_type->getBitWidth(),
-                       m_next_value_id);
     }
+
+    m_out << "  ";
+    write_decl_type(type);
+    m_out << formatv("v{0};\n", m_next_value_id);
   }
 
   m_local_var_ids.insert(std::make_pair(insn, m_next_value_id));
