@@ -312,6 +312,7 @@ public:
   void write_select(const SelectInst &insn);
   void write_store(const StoreInst &insn);
   void write_switch(const SwitchInst &insn);
+  void write_usub_sat(const CallBase &insn);
   void write_usub_with_overflow(const CallBase &insn);
 
   void write_cfg_edge(StringRef indent, const BasicBlock &from_bb,
@@ -1742,6 +1743,10 @@ void stage_writer::write_call(const CallBase &insn)
     write_memcmp(insn);
     break;
 
+  case Intrinsics::llvm_usub_sat:
+    write_usub_sat(insn);
+    break;
+
   case Intrinsics::llvm_usub_with_overflow:
     write_usub_with_overflow(insn);
     break;
@@ -2254,6 +2259,33 @@ void stage_writer::write_switch(const SwitchInst &insn)
   m_out << "  default:\n";
   write_cfg_edge("    ", *insn.getParent(), *insn.getDefaultDest());
   m_out << "  }\n";
+}
+
+void stage_writer::write_usub_sat(const CallBase &insn)
+{
+  // Validate and extract the types involved.
+  auto *ret_ty = cast<IntegerType>(insn.getType());
+
+  assert(insn.arg_size() == 2);
+  auto *op0 = insn.getArgOperand(0);
+  auto *op0_ty = cast<IntegerType>(op0->getType());
+  assert(op0_ty == ret_ty);
+  auto *op1 = insn.getArgOperand(1);
+  auto *op1_ty = cast<IntegerType>(op1->getType());
+  assert(op1_ty == ret_ty);
+
+  // Write: ret = op0 >= op1 ? ap_uint<n>(op0 - op1) : ap_uint<n>(0);
+  m_out << "  ";
+  write_operand(insn, insn);
+  m_out << " = ";
+  write_operand(insn, *op0);
+  m_out << " >= ";
+  write_operand(insn, *op1);
+  m_out << formatv(" ? ap_uint<{0}>(", ret_ty->getBitWidth());
+  write_operand(insn, *op0);
+  m_out << " - ";
+  write_operand(insn, *op1);
+  m_out << formatv(") : ap_uint<{0}>(0);\n", ret_ty->getBitWidth());
 }
 
 void stage_writer::write_usub_with_overflow(const CallBase &insn)
