@@ -356,6 +356,13 @@ private:
 
   // A mapping from basic block to label ID, used to name labels.
   DenseMap<const BasicBlock *, label_id_t> m_label_ids;
+
+  // Indicates whether the current basic block is the entry basic
+  // block.
+  bool m_is_entry_bb = true;
+
+  // The next variable ID to use.
+  value_id_t m_next_value_id = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1314,9 +1321,8 @@ void stage_writer::write_declarations()
   }
 
   // Declare a variable for every instruction which produces a value.
-  value_id_t next_value_id = 0;
   for ( const BasicBlock &bb: *m_args.func ) {
-    bool is_entry_bb = (&bb == m_entry_bb);
+    m_is_entry_bb = (&bb == m_entry_bb);
     for ( const Instruction &insn: bb ) {
       Type *type = insn.getType();
 
@@ -1326,7 +1332,7 @@ void stage_writer::write_declarations()
 
       auto opcode = insn.getOpcode();
       if (opcode == Instruction::Alloca) {
-        if (!is_entry_bb)
+        if (!m_is_entry_bb)
           report_fatal_errorv("Alloca outside the entry block {0}",
                               insn);
 
@@ -1337,7 +1343,7 @@ void stage_writer::write_declarations()
         LLVM_DEBUG(
           m_out << formatv("  // {0}\n", insn);
           );
-        m_out << formatv("  uint8_t v{0}[{1}]", next_value_id,
+        m_out << formatv("  uint8_t v{0}[{1}]", m_next_value_id,
                          buffer_size);
 
         // Set the alignment if it is not equal to one.
@@ -1346,7 +1352,7 @@ void stage_writer::write_declarations()
                            alloca.getAlignment());
         m_out << ";\n";
         m_out << formatv("#pragma HLS array_partition variable=v{0}"
-                         " complete\n", next_value_id);
+                         " complete\n", m_next_value_id);
 
       } else {
         auto iid = get_intrinsic(&insn);
@@ -1360,7 +1366,7 @@ void stage_writer::write_declarations()
             continue;
 
           // Output the declaration.
-          m_out << formatv("  uint8_t *v{0};\n", next_value_id);
+          m_out << formatv("  uint8_t *v{0};\n", m_next_value_id);
 
         } else {
           // The instruction produces a non-pointer type.  Just declare
@@ -1371,12 +1377,12 @@ void stage_writer::write_declarations()
 
           // Output the declaration.
           m_out << formatv("  ap_uint<{0}> v{1};\n", int_type->getBitWidth(),
-                           next_value_id);
+                           m_next_value_id);
         }
       }
 
-      m_local_var_ids.insert(std::make_pair(&insn, next_value_id));
-      next_value_id++;
+      m_local_var_ids.insert(std::make_pair(&insn, m_next_value_id));
+      m_next_value_id++;
     }
   }
 }
