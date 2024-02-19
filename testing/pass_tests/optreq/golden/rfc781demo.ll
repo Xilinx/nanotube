@@ -60,7 +60,7 @@ declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_contex
 declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32)
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #0
 
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
@@ -71,10 +71,10 @@ declare i16 @llvm.bswap.i16(i16) #1
 declare i32 @llvm.bswap.i32(i32) #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #0
 
 ; Function Attrs: alwaysinline uwtable
 define dso_local i32 @map_op_adapter(%struct.nanotube_context* %ctx, i16 zeroext %map_id, i32 %type, i8* %key, i64 %key_length, i8* %data_in, i8* %data_out, i8* %mask, i64 %offset, i64 %data_length) #2 !dbg !313 {
@@ -155,7 +155,7 @@ entry:
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #0
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 declare dso_local i64 @nanotube_packet_write_masked(%struct.nanotube_packet*, i8*, i8*, i64, i64) local_unnamed_addr #3
 

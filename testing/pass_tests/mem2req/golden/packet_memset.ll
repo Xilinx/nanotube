@@ -18,7 +18,7 @@ declare dso_local i8* @nanotube_packet_data(%struct.nanotube_packet*) local_unna
 declare dso_local i8* @nanotube_packet_end(%struct.nanotube_packet*) local_unnamed_addr
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #0
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 define void @nanotube_setup() {
   call void @nanotube_add_plain_packet_kernel(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @name, i32 0, i32 0), i32 (%struct.nanotube_context*, %struct.nanotube_packet*)* @prog, i32 0, i32 1)

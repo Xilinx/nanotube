@@ -13,12 +13,12 @@ target triple = "x86_64-unknown-linux-gnu"
 @.str = private unnamed_addr constant [7 x i8] c"simple\00", align 1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #0
 
 declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #0
 
 ; Function Attrs: uwtable
 define dso_local void @nanotube_setup() local_unnamed_addr #2 {

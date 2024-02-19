@@ -27,7 +27,7 @@ declare void @nanotube_thread_create(%struct.nanotube_context*, i8*, void (%stru
 declare void @nanotube_thread_wait()
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #0
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 define void @logic_0(%struct.nanotube_context* %ctxt, i8* %data) {
 entry:

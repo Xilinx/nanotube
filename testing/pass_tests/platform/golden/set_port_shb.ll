@@ -21,12 +21,12 @@ entry:
 declare dso_local void @nanotube_add_plain_packet_kernel(i8*, void (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #2
+declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #2
 
 declare dso_local void @nanotube_packet_set_port(%struct.nanotube_packet*, i8 zeroext) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #2
+declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #2
 
 ; Function Attrs: nounwind uwtable
 define private void @kernel.1(%struct.nanotube_context* nocapture readnone %context, %struct.nanotube_packet* %packet) #0 {

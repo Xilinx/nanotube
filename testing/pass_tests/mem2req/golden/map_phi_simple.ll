@@ -62,7 +62,7 @@ done:                                             ; preds = %edit, %entry
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1

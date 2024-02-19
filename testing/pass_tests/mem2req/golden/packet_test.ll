@@ -47,7 +47,7 @@ declare dso_local i8* @nanotube_packet_data(%struct.nanotube_packet*) local_unna
 declare dso_local i8* @nanotube_packet_end(%struct.nanotube_packet*) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #2
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
 
 ; Function Attrs: nounwind readnone speculatable
 declare void @llvm.dbg.value(metadata, metadata, metadata) #3

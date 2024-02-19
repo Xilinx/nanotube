@@ -24,7 +24,7 @@ declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_contex
 declare dso_local i8* @nanotube_map_lookup(%struct.nanotube_context*, i16 zeroext, i8*, i64, i64) local_unnamed_addr
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #0
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 define void @nanotube_setup() {
   %call = tail call %struct.nanotube_context* @nanotube_context_create()
@@ -55,7 +55,7 @@ done:                                             ; preds = %edit, %entry
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_map_read(%struct.nanotube_context*, i16, i8*, i64, i8*, i64, i64) #1

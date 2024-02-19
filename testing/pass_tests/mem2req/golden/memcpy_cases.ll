@@ -16,7 +16,7 @@ target triple = "x86_64-unknown-linux-gnu"
 @buf_1 = internal unnamed_addr global [4 x i8] zeroinitializer
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) local_unnamed_addr #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) local_unnamed_addr #0
 
 declare dso_local %struct.nanotube_context* @nanotube_context_create() local_unnamed_addr
 

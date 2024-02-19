@@ -38,12 +38,12 @@ target triple = "x86_64-unknown-linux-gnu"
 @8 = private unnamed_addr constant [8 x i8] c"stage_3\00", align 1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #0
 
 declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #0
+declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #0
 
 ; Function Attrs: uwtable
 define dso_local void @nanotube_setup() local_unnamed_addr #2 {
@@ -331,7 +331,7 @@ declare void @nanotube_thread_wait()
 declare i1 @nanotube_tap_packet_is_eop_sb(i8*, %struct.nanotube_tap_packet_eop_state*)
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
 
 declare void @nanotube_channel_write(%struct.nanotube_context*, i32, i8*, i64)
 
