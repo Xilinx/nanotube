@@ -26,6 +26,7 @@ namespace nanotube
   using llvm::CallInst;
   using llvm::CastInst;
   using llvm::CmpInst;
+  using llvm::ExtractValueInst;
   using llvm::GetElementPtrInst;
   using llvm::ICmpInst;
   using llvm::LoadInst;

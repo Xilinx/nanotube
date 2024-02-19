@@ -300,6 +300,7 @@ public:
   void write_cast(const CastInst &insn, bool is_signed);
   void write_channel_call(const CallBase &insn, bool is_read);
   void write_debug_trace_call(const CallBase &insn);
+  void write_extract_value(const ExtractValueInst &insn);
   void write_trace_buffer_call(const CallBase &insn);
   void write_gep(const GetElementPtrInst &insn);
   void write_icmp(const ICmpInst &insn);
@@ -1529,6 +1530,10 @@ void stage_writer::write_body()
         write_call(cast<CallBase>(insn));
         break;
 
+      case Instruction::ExtractValue:
+        write_extract_value(cast<ExtractValueInst>(insn));
+        break;
+
       case Instruction::GetElementPtr:
         write_gep(cast<GetElementPtrInst>(insn));
         break;
@@ -1919,6 +1924,23 @@ stage_writer::write_debug_trace_call(const CallBase &insn)
   m_out << ", ";
   write_operand(insn, *args.value);
   m_out << ");\n";
+}
+
+void
+stage_writer::write_extract_value(const ExtractValueInst &insn)
+{
+  auto *aggr = insn.getAggregateOperand();
+  unsigned num_idx = insn.getNumIndices();
+
+  m_out << "  ";
+  write_operand(insn, insn);
+  m_out << " = ";
+  write_operand(insn, *aggr, HLS_TYPE_STRUCT);
+  for (unsigned i = 0; i < num_idx; i++) {
+    unsigned idx = insn.getIndices()[i];
+    m_out << formatv(".m{0}", idx);
+  }
+  m_out << ";\n";
 }
 
 void
