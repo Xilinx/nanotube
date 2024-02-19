@@ -1284,20 +1284,23 @@ void stage_writer::write_function()
 
 void stage_writer::write_decl_type(Type *type)
 {
+  // Handle pointer types.
   if (type->isPointerTy()) {
     // Output the declaration.
     m_out << "uint8_t *";
+    return;
+  }
 
-  } else {
-    // The instruction produces a non-pointer type.  Just declare
-    // it.
-    auto *int_type = dyn_cast<llvm::IntegerType>(type);
-    if ( int_type == nullptr )
-      report_fatal_errorv("Unsupported expression type {0}", *type);
+  // Handle integer types.
+  if (type->isIntegerTy()) {
+    auto *int_type = cast<llvm::IntegerType>(type);
 
     // Output the declaration.
     m_out << formatv("ap_uint<{0}> ", int_type->getBitWidth());
+    return;
   }
+
+  report_fatal_errorv("Unsupported expression type {0}", *type);
 }
 
 static uint64_t get_alloca_size(const DataLayout &dl,
