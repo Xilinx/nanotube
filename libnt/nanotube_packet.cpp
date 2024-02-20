@@ -50,10 +50,8 @@ uint8_t* nanotube_packet_meta(nanotube_packet_t* packet) {
 }
 
 size_t nanotube_packet_bounded_length(nanotube_packet_t* packet,
-                                      size_t max) {
-  auto sec = ( packet->get_is_capsule()
-               ? NANOTUBE_SECTION_WHOLE
-               : NANOTUBE_SECTION_PAYLOAD );
+                                      size_t max, nanotube_packet_section_t sec)
+{
   auto pkt_len = packet->size(sec);
   return std::min(pkt_len, max);
 }

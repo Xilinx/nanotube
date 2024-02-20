@@ -16,7 +16,7 @@
 void complex_test(nanotube_context_t *nt_ctx,
                  nanotube_packet_t *packet)
 {
-  if( nanotube_packet_bounded_length(packet, 19) < 19 )
+  if( nanotube_packet_bounded_length(packet, 19, NANOTUBE_SECTION_WHOLE) < 19 )
     return ;
 
   uint8_t pos;

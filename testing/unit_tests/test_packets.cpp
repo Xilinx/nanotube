@@ -59,12 +59,12 @@ int test_packets(size_t pkt_len) {
 
   /* Basics, first :) */
   size_t len;
-  len = nanotube_packet_bounded_length(pkt, 16);
+  len = nanotube_packet_bounded_length(pkt, 16, NANOTUBE_SECTION_WHOLE);
   printf("Packet restricted length %zu\n", len);
   if( len != 16 )
     ++err;
 
-  len = nanotube_packet_bounded_length(pkt, buffer_size);
+  len = nanotube_packet_bounded_length(pkt, buffer_size, NANOTUBE_SECTION_WHOLE);
   printf("Packet length %zu\n", len);
   if( len != pkt_len && pkt_len < buffer_size )
     ++err;

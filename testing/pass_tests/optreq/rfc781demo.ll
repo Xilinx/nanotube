@@ -58,7 +58,7 @@ declare i8* @nanotube_map_create(i16, i32, i64, i64)
 
 declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32)
 
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32)
 
 ; Function Attrs: argmemonly nounwind
 declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #0
@@ -618,7 +618,7 @@ entry:
   %key1416 = alloca %struct.MyProcessing_MATCH_RFC781_key, align 4
   %key1449 = alloca %struct.MyProcessing_IPV4_CNT_key, align 1
   %key1475 = alloca %struct.MyProcessing_IPV4_CNT_key, align 1
-  %141 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768)
+  %141 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %142 = add i64 %141, -1
   %143 = bitcast i32* %ebpf_zero to i8*
   call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %143) #5
@@ -1474,7 +1474,7 @@ cleanup.cont1507:                                 ; preds = %cleanup1494, %if.en
   call void @llvm.dbg.value(metadata i32 %call.i15, metadata !365, metadata !DIExpression()), !dbg !369
   %tobool.i = icmp eq i32 %call.i15, 0, !dbg !370
   %cond.i = sext i1 %tobool.i to i32, !dbg !370
-  %410 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768)
+  %410 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %411 = add i64 %410, -1
   %412 = load i8, i8* getelementptr inbounds (%struct.headers, %struct.headers* @hdr, i64 0, i32 0, i32 1), align 4, !tbaa !570
   %tobool1556 = icmp eq i8 %412, 0

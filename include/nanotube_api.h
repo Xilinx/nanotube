@@ -337,6 +337,26 @@ int nanotube_channel_has_space(nanotube_context_t* context,
 
 
 /******************** Packets ********************/
+// Defines sections of a packet.  The interpretation of the sections
+// may depend on the bus type.
+typedef enum {
+  // The whole packet, including all metadata.
+  NANOTUBE_SECTION_WHOLE,
+
+  // The packet payload.  Typically Ethernet.
+  NANOTUBE_SECTION_PAYLOAD,
+
+  // All the metadata.  This may be the same as
+  // NANOTUBE_SECTION_SYS_META.
+  NANOTUBE_SECTION_METADATA,
+
+  // The system metadata.  This may or may not include
+  // NANOTUBE_SECTION_USER_META.
+  NANOTUBE_SECTION_SYS_META,
+
+  // The user metadata, available for application use.
+  NANOTUBE_SECTION_USER_META,
+} nanotube_packet_section_t;
 
 typedef uint16_t nanotube_packet_size_t;
 static const nanotube_packet_size_t NANOTUBE_PACKET_SIZE_INVALID = -1;
@@ -368,11 +388,14 @@ uint8_t* nanotube_packet_meta(nanotube_packet_t* packet);
 ** Get a bounded length of the specified packet.
 ** \param packet     The input packet
 ** \param max_length The maximum length supported by the caller
+** \param section Return length of section rather than payload
 ** \return MIN(packet length, max_length)
 **/
 extern
 size_t nanotube_packet_bounded_length(nanotube_packet_t* packet,
-                                      size_t max_length);
+                                      size_t max_length,
+                                      nanotube_packet_section_t section);
+
 
 /*!
 ** Get the destination port of the specified packet.

@@ -18,7 +18,7 @@ nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
   uint16_t max_length;
   nanotube_packet_read(packet, (uint8_t*)&max_length, 0, 2);
   uint16_t length =
-    (uint16_t)nanotube_packet_bounded_length(packet, (size_t)max_length);
+    (uint16_t)nanotube_packet_bounded_length(packet, (size_t)max_length, NANOTUBE_SECTION_PAYLOAD);
   length ^= 0x8080;
   nanotube_packet_write(packet, (uint8_t*)&length, 0, 2);
   return NANOTUBE_PACKET_PASS;

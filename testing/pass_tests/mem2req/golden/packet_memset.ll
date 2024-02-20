@@ -28,7 +28,7 @@ define void @nanotube_setup() {
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
   %_buffer = alloca i8, i64 4
-  %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
+  %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %icmp_len = icmp ugt i64 4, %0
   br i1 %icmp_len, label %done, label %edit
 
@@ -43,7 +43,7 @@ done:                                             ; preds = %edit, %entry
 }
 
 ; Function Attrs: inaccessiblememonly
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #1
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) #1
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #2

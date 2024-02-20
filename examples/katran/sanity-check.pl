@@ -48,7 +48,7 @@ while (<>) {
 
   next if /^ *%[\w\._]+ = call i64 \@nanotube_get_time_ns\(/;
   next if /^ *%[\w\._]+ = call %struct\.nanotube_packet\* \@nanotube_packet_adjust_head\(%struct\.nanotube_packet\* %packet, i32 -?\d+\)/;
-  next if /^ *%[\w\._]+ = call i64 \@nanotube_packet_bounded_length\(%struct\.nanotube_packet\* %packet, i64 \d+\)/;
+  next if /^ *%[\w\._]+ = call i64 \@nanotube_packet_bounded_length\(%struct\.nanotube_packet\* %packet, i64 \d+\, i32 \d+\)/;
   next if /^ *%[\w\._]+ = call i64 \@nanotube_packet_read\(%struct\.nanotube_packet\* %packet, i8\* %[\w\._]+, i64 (\d+|%[\w\._]+), i64 \d+\)/;
   next if /^ *%[\w\._]+ = call i64 \@nanotube_packet_write_masked\(%struct\.nanotube_packet\* %packet, i8\* %[\w\._]+, i8\* nonnull %[\w\._]+, i64 \d+, i64 \d+\)/;
   next if /^ *call void \@nanotube_packet_set_port\(%struct\.nanotube_packet\* %packet, i8 zeroext (-?\d+|%[\w\._])\)/;

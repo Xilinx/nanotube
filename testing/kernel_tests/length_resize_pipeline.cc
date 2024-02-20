@@ -21,7 +21,7 @@ static const uint16_t platform_offset = sizeof(simple_bus::header);
 nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
                                     nanotube_packet_t *packet) {
   //size_t len = 0xdeadbeef;
-  auto len = (uint16_t)nanotube_packet_bounded_length(packet, 65535);
+  auto len = (uint16_t)nanotube_packet_bounded_length(packet, 65535, NANOTUBE_SECTION_WHOLE);
   nanotube_packet_resize(packet, 0 + platform_offset, sizeof(len));
   nanotube_packet_write(packet, (uint8_t*)&len, 0 + platform_offset,
                         sizeof(len));

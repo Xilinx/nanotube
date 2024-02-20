@@ -332,11 +332,12 @@ packet_bounded_length_args::packet_bounded_length_args(Instruction* inst) {
   auto  nt_call = nt_api_call(call);
 
   /* Make sure it is all solid :) */
-  check_intrinsic_call(*call, 2);
+  check_intrinsic_call(*call, 3);
   assert(nt_call.get_intrinsic() == Intrinsics::packet_bounded_length);
 
   packet     = call->getArgOperand(0);
   max_length = call->getArgOperand(1);
+  section = call->getArgOperand(2);
 }
 
 packet_resize_args::packet_resize_args(Instruction* inst) {
@@ -925,12 +926,14 @@ Constant* create_nt_packet_bounded_length(Module& m) {
   LLVMContext& c = m.getContext();
   /**
   ** size_t nanotube_packet_bounded_length(nanotube_packet_t* packet,
-  **                                       size_t max_length);
+  **                                       size_t max_length,
+  **                                       nanotube_packet_section_t section);
   **/
   return get_or_insert_function(m, "nanotube_packet_bounded_length",
                                 Type::getInt64Ty(c),
                                 get_nt_packet_type(m)->getPointerTo(),
-                                Type::getInt64Ty(c));
+                                Type::getInt64Ty(c),
+                                Type::getInt32Ty(c));
 }
 Constant* create_nt_packet_resize(Module& m) {
   LLVMContext& c = m.getContext();

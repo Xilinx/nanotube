@@ -25,7 +25,7 @@ define internal i32 @_ZL11memset_testP16nanotube_contextP15nanotube_packet(%stru
 entry:
   %_buffer1 = alloca i8, i64 21
   %_buffer = alloca i8, i64 21
-  %sub.ptr.lhs.cast = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
+  %sub.ptr.lhs.cast = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, 0
   %cmp = icmp slt i64 %sub.ptr.sub, 42
   br i1 %cmp, label %cleanup, label %if.end
@@ -53,7 +53,7 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1) #2
 declare void @llvm.dbg.value(metadata, metadata, metadata) #3
 
 ; Function Attrs: inaccessiblememonly
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #4
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) #4
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #5

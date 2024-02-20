@@ -35,7 +35,7 @@ entry:
   %one_idx = alloca i32, align 4
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %nt_ctx, metadata !1164, metadata !DIExpression()), !dbg !1174
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !1165, metadata !DIExpression()), !dbg !1175
-  %call = tail call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768), !dbg !1176
+  %call = tail call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0), !dbg !1176
   %sub = add i64 %call, -1, !dbg !1177
   call void @llvm.dbg.value(metadata i64 %sub, metadata !1166, metadata !DIExpression()), !dbg !1178
   %0 = bitcast i64* %count to i8*, !dbg !1179
@@ -88,7 +88,7 @@ entry:
 ; Function Attrs: argmemonly nounwind
 declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #4
 
-declare dso_local i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) local_unnamed_addr #0
+declare dso_local i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) local_unnamed_addr #0
 
 declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #0
 

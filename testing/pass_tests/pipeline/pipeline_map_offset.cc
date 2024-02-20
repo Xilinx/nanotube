@@ -30,7 +30,7 @@ static const nanotube_map_id_t map_A = 0;
  */
 nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
                                     nanotube_packet_t *packet) {
-  uint64_t len = nanotube_packet_bounded_length(packet, 32768) -
+  uint64_t len = nanotube_packet_bounded_length(packet, 32768, NANOTUBE_SECTION_WHOLE) -
                    platform_offset;
 
   uint64_t count, tot_size;

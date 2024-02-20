@@ -28,7 +28,7 @@ entry:
   %_buffer.bc = bitcast i32* %_buffer to i8*
   %old_val_buffer = alloca i32
   %old_val_buffer.bc = bitcast i32* %old_val_buffer to i8*
-  %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
+  %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %icmp = icmp ugt i64 8, %0
   br i1 %icmp, label %done, label %edit
 
@@ -46,7 +46,7 @@ done:                                             ; preds = %edit, %entry
 }
 
 ; Function Attrs: inaccessiblememonly
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #0
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) #0
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #1

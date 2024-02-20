@@ -19,7 +19,7 @@ define void @nanotube_setup() {
 
 declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_context*, %struct.nanotube_packet*)*, i32, i32)
 
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64)
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32)
 
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
@@ -518,7 +518,7 @@ entry:
   %_buffer4 = alloca i8
   %_buffer3 = alloca i8
   %_buffer = alloca i8
-  %127 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768)
+  %127 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %128 = add i64 %127, -1
   %129 = icmp ugt i64 14, %128
   br i1 %129, label %cleanup3277, label %if.end1118
@@ -1374,7 +1374,7 @@ if.then1258:                                      ; preds = %if.else1190.thread.
   call void @llvm.dbg.value(metadata i32 %call.i, metadata !365, metadata !DIExpression()), !dbg !369
   %tobool.i = icmp eq i32 %call.i, 0, !dbg !370
   %cond.i = sext i1 %tobool.i to i32, !dbg !370
-  %309 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768)
+  %309 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %310 = add i64 %309, -1
   %311 = icmp ugt i64 14, %310
   br i1 %311, label %cleanup3277, label %if.end1474

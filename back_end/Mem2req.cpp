@@ -1074,7 +1074,7 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
         /* Packet end pointer requests return the length of the packet; that
          * way all comparisons etc still work as expected. */
         auto* len = create_nt_packet_bounded_length(m);
-        Value* args[] = {call->getOperand(0), ir.getInt64(32767)};
+        Value* args[] = {call->getOperand(0), ir.getInt64(32767), ir.getInt32(NANOTUBE_SECTION_PAYLOAD)};
         replacement = ir.CreateCall(len, args);
         LLVM_DEBUG(dbgs() << *replacement << '\n');
         break;

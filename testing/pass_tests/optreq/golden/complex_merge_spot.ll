@@ -34,7 +34,7 @@ entry:
   %pos = alloca i8, align 1
   %d = alloca [11 x i8], align 1
   %tmp = alloca i8, align 1
-  %call = tail call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 19)
+  %call = tail call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 19, i32 0)
   %cmp = icmp ult i64 %call, 19
   br i1 %cmp, label %return, label %if.end
 
@@ -263,7 +263,7 @@ return:                                           ; preds = %if.end76, %entry
   ret void
 }
 
-declare dso_local i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) local_unnamed_addr #1
+declare dso_local i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) local_unnamed_addr #1
 
 ; Function Attrs: argmemonly nounwind
 declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #2

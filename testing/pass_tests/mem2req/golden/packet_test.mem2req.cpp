@@ -18,7 +18,7 @@
 int memset_test(nanotube_context_t *nt_ctx,
                 nanotube_packet_t *packet)
 {
-  size_t len = nanotube_packet_bounded_length(packet, 65535);
+  size_t len = nanotube_packet_bounded_length(packet, 65535, NANOTUBE_SECTION_PAYLOAD);
 
   if( len < 42 )
     return -1;

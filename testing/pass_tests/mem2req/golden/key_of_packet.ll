@@ -40,7 +40,7 @@ define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %
   %entry_0_buffer_copy = alloca i8, i64 4
   %entry_0_buf = alloca i8, i64 8
   %entry_0_buffer = alloca i8, i64 4
-  %1 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767)
+  %1 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %icmp = icmp ugt i64 8, %1
   br i1 %icmp, label %done, label %lookup
 
@@ -64,7 +64,7 @@ done:                                             ; preds = %edit, %lookup, %0
 }
 
 ; Function Attrs: inaccessiblememonly
-declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64) #0
+declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) #0
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #1

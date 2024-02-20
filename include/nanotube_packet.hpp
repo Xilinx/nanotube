@@ -23,28 +23,6 @@
 #include "nanotube_api.h"
 #include "bus_id.h"
 
-// Defines sections of a packet.  The interpretation of the sections
-// may depend on the bus type.
-// For the time being we only support WHOLE, METADATA, and PAYLOAD.
-typedef enum {
-  // The whole packet, including all metadata.
-  NANOTUBE_SECTION_WHOLE,
-
-  // The packet payload.  Typically Ethernet.
-  NANOTUBE_SECTION_PAYLOAD,
-
-  // All the metadata.  This may be the same as
-  // NANOTUBE_SECTION_SYS_META.
-  NANOTUBE_SECTION_METADATA,
-
-  // The system metadata.  This may or may not include
-  // NANOTUBE_SECTION_USER_META.
-  NANOTUBE_SECTION_SYS_META,
-
-  // The user metadata, available for application use.
-  NANOTUBE_SECTION_USER_META,
-} nanotube_packet_section_t;
-
 /*!
 ** Implementation of a Nanotube packet.
 **

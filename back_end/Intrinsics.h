@@ -209,6 +209,7 @@ namespace nanotube
 
   // Information about nanotube_packet_bounded_length.
   static const unsigned PACKET_BOUNDED_LENGTH_MAX_LEN_ARG = 1;
+  static const unsigned PACKET_BOUNDED_LENGTH_SECTION_ARG = 2;
 
   // Information about nanotube_packet_get_port.
   static const unsigned PACKET_GET_PORT_PACKET_ARG = 0;
@@ -249,6 +250,7 @@ namespace nanotube
     packet_bounded_length_args(Instruction* inst);
     Value* packet;
     Value* max_length;
+    Value* section;
   };
   static const unsigned PACKET_BOUNDED_LENGTH_ARG = 1;
   static const unsigned PACKET_BOUNDED_LENGTH_BIT_WIDTH = 64;

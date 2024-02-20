@@ -32,7 +32,7 @@ static const nanotube_map_id_t map_id = 0;
 
 nanotube_kernel_rc_t one_pkt_one_map(nanotube_context_t *nt_ctx,
                                      nanotube_packet_t *packet) {
-  size_t len = nanotube_packet_bounded_length(packet, 65535);
+  size_t len = nanotube_packet_bounded_length(packet, 65535, NANOTUBE_SECTION_PAYLOAD);
   if( len < sizeof(eth_ip_hdr) ) {
     return NANOTUBE_PACKET_DROP;
   }

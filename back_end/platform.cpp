@@ -75,6 +75,7 @@ namespace {
     void getAnalysisUsage(AnalysisUsage &info) const override;
 
     void adjust_offset_arg(Instruction *insn, int offset_arg);
+    void adjust_section_arg(Instruction *insn, int section_arg);
     void adjust_return(Instruction *insn);
     void adjust_set_port(Instruction *insn);
     void process_packet_kernel(CallBase *call);
@@ -115,6 +116,31 @@ void platform::adjust_offset_arg(Instruction *insn, int offset_arg)
   auto ir = llvm::IRBuilder<>(insn);
   Value *new_val = ir.CreateAdd(val, const_offset);
   call->setArgOperand(offset_arg, new_val);
+}
+
+
+void platform::adjust_section_arg(Instruction *insn, int section_arg)
+{
+  // Replace nanotube_packet_bounded_length(section=NANOTUBE_SECTION_PAYLOAD)
+  // with nanotube_packet_bounded_length(section=NANOTUBE_SECTION_WHOLE)
+  auto *call = cast<CallBase>(insn);
+  Value *val = call->getArgOperand(section_arg);
+
+  // Check current value is NANOTUBE_SECTION_PAYLOAD
+  auto *section_const = dyn_cast<ConstantInt>(val);
+  if (section_const == nullptr) {
+    report_fatal_errorv("Non-constant for section operand {0} of {1}",
+                        section_arg, *insn);
+  }
+
+  if (section_const->getZExtValue() != NANOTUBE_SECTION_PAYLOAD) {
+    report_fatal_errorv("Unexpected value (wanted NANOTUBE_SECTION_PAYLOAD) for section operand {0} of {1}",
+                        section_arg, *insn);  
+  }
+
+  // Replace with NANOTUBE_SECTION_WHOLE
+  auto const_section = ConstantInt::get(val->getType(), NANOTUBE_SECTION_WHOLE);
+  call->setArgOperand(section_arg, const_section);
 }
 
 void platform::adjust_return(Instruction *insn)
@@ -189,6 +215,7 @@ void platform::process_packet_kernel(CallBase *setup_call)
 
       case Intrinsics::packet_bounded_length:
         adjust_offset_arg(&insn, PACKET_BOUNDED_LENGTH_MAX_LEN_ARG);
+        adjust_section_arg(&insn, PACKET_BOUNDED_LENGTH_SECTION_ARG);
         adjust_return(&insn);
         break;
 

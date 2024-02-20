@@ -28,7 +28,7 @@ static const nanotube_map_id_t map_B = 1;
  */
 nanotube_kernel_rc_t process_packet(nanotube_context_t *nt_ctx,
                                     nanotube_packet_t *packet) {
-  uint64_t len = nanotube_packet_bounded_length(packet, 32768);
+  uint64_t len = nanotube_packet_bounded_length(packet, 32768, NANOTUBE_SECTION_PAYLOAD);
 
   const uint32_t zero_idx = 0;
   const uint32_t one_idx  = 0;
