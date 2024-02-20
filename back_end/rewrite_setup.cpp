@@ -653,6 +653,7 @@ rewrite_setup_tracer::clone_call(setup_func_builder *builder,
   LLVM_DEBUG(dbgv("  Callee {0} with type {1}.\n",
                   as_operand(callee), *fn_ty););
   auto result = m_builder.CreateCall(fn_ty, callee, new_args, call_name);
+  result->setDebugLoc(orig->getDebugLoc());
   return result;
 }
 

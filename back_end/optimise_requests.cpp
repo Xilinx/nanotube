@@ -2294,6 +2294,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
 
   /* Create the final, merged write */
   ir.SetInsertPoint(g->insert_point);
+  ir.SetCurrentDebugLocation(g->accesses[0].inst->getDebugLoc());
   packet_write_args pwa(g->accesses[0].inst);
   auto* nt_packet_write = create_nt_packet_write_masked(*f->getParent());
   auto* scaled_base = g->key.to_ir(&ir);

@@ -1658,7 +1658,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @llvm.dbg.value(metadata i8* %89, metadata !396, metadata !DIExpression()), !dbg !405
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %89, i8 -1, i64 1, i1 false), !dbg !406
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer5, i8* %89, i64 13, i64 1), !dbg !407
-  %319 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i64 1, i64 14), !dbg !408
+  %319 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i64 1, i64 14), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %89), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack27), !dbg !408
   br i1 %tobool119343994403, label %if.end1942, label %if.then1478
@@ -1993,7 +1993,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @llvm.dbg.value(metadata i8* %69, metadata !396, metadata !DIExpression()), !dbg !405
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %69, i8 -1, i64 1, i1 false), !dbg !406
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer111, i8* %69, i64 19, i64 1), !dbg !407
-  %324 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i64 15, i64 20), !dbg !408
+  %324 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i64 15, i64 20), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %69), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack67), !dbg !408
   br label %if.end1942
@@ -2711,10 +2711,10 @@ if.end1954:                                       ; preds = %if.then1946
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %29, i8 -1, i64 1, i1 false), !dbg !406
   %412 = add i64 %411, 1
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off16, i8* %write_mask_off17, i8* %_buffer82, i8* %29, i64 39, i64 1), !dbg !407
-  %413 = lshr i32 %ebpf_packetOffsetInBits.4, 3, !dbg !408
-  %ebpf_packetOffsetInBits.4.scaled = zext i32 %413 to i64, !dbg !408
-  %414 = add i64 %ebpf_packetOffsetInBits.4.scaled, 1, !dbg !408
-  %415 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off16, i8* %write_mask_off17, i64 %414, i64 40), !dbg !408
+  %413 = lshr i32 %ebpf_packetOffsetInBits.4, 3, !dbg !407
+  %ebpf_packetOffsetInBits.4.scaled = zext i32 %413 to i64, !dbg !407
+  %414 = add i64 %ebpf_packetOffsetInBits.4.scaled, 1, !dbg !407
+  %415 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off16, i8* %write_mask_off17, i64 %414, i64 40), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %29), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack147), !dbg !408
   br label %if.end2547
@@ -3008,10 +3008,10 @@ if.end2559:                                       ; preds = %if.then2551
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %16, i8 -1, i64 1, i1 false), !dbg !406
   %443 = add i64 %442, 1
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off13, i8* %write_mask_off14, i8* %_buffer164, i8* %16, i64 12, i64 1), !dbg !407
-  %444 = lshr i32 %ebpf_packetOffsetInBits.5, 3, !dbg !408
-  %ebpf_packetOffsetInBits.5.scaled = zext i32 %444 to i64, !dbg !408
-  %445 = add i64 %ebpf_packetOffsetInBits.5.scaled, 1, !dbg !408
-  %446 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off13, i8* %write_mask_off14, i64 %445, i64 13), !dbg !408
+  %444 = lshr i32 %ebpf_packetOffsetInBits.5, 3, !dbg !407
+  %ebpf_packetOffsetInBits.5.scaled = zext i32 %444 to i64, !dbg !407
+  %445 = add i64 %ebpf_packetOffsetInBits.5.scaled, 1, !dbg !407
+  %446 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off13, i8* %write_mask_off14, i64 %445, i64 13), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %16), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack173), !dbg !408
   %add2841 = add nsw i32 %ebpf_packetOffsetInBits.5, 100
@@ -3191,10 +3191,10 @@ if.end2559:                                       ; preds = %if.then2551
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %8, i8 -1, i64 1, i1 false), !dbg !406
   %474 = add i64 %473, 1
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off15, i8* %write_mask_off15, i8* %_buffer145, i8* %8, i64 5, i64 1), !dbg !407
-  %475 = lshr i32 %ebpf_packetOffsetInBits.5, 3, !dbg !408
-  %ebpf_packetOffsetInBits.5.scaled5 = zext i32 %475 to i64, !dbg !408
-  %476 = add i64 %ebpf_packetOffsetInBits.5.scaled5, 15, !dbg !408
-  %477 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off15, i8* %write_mask_off15, i64 %476, i64 6), !dbg !408
+  %475 = lshr i32 %ebpf_packetOffsetInBits.5, 3, !dbg !407
+  %ebpf_packetOffsetInBits.5.scaled5 = zext i32 %475 to i64, !dbg !407
+  %476 = add i64 %ebpf_packetOffsetInBits.5.scaled5, 15, !dbg !407
+  %477 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off15, i8* %write_mask_off15, i64 %476, i64 6), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %8), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack189), !dbg !408
   br label %if.end3052
@@ -3381,10 +3381,10 @@ if.end3064:                                       ; preds = %if.then3056
   call void @llvm.memset.p0i8.i64(i8* nonnull align 16 %0, i8 -1, i64 1, i1 false), !dbg !406
   %495 = add i64 %494, 1
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1, i8* %write_mask_off1, i8* %_buffer64, i8* %0, i64 7, i64 1), !dbg !407
-  %496 = lshr i32 %ebpf_packetOffsetInBits.6, 3, !dbg !408
-  %ebpf_packetOffsetInBits.6.scaled = zext i32 %496 to i64, !dbg !408
-  %497 = add i64 %ebpf_packetOffsetInBits.6.scaled, 1, !dbg !408
-  %498 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off1, i8* %write_mask_off1, i64 %497, i64 8), !dbg !408
+  %496 = lshr i32 %ebpf_packetOffsetInBits.6, 3, !dbg !407
+  %ebpf_packetOffsetInBits.6.scaled = zext i32 %496 to i64, !dbg !407
+  %497 = add i64 %ebpf_packetOffsetInBits.6.scaled, 1, !dbg !407
+  %498 = call i64 @nanotube_packet_write_masked(%struct.nanotube_packet* %packet, i8* %nanotube_packet_write_masked_buf_off1, i8* %write_mask_off1, i64 %497, i64 8), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %0), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack205), !dbg !408
   br label %cleanup3277
