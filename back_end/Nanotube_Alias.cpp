@@ -350,7 +350,7 @@ bool NanotubeAAPass::runOnFunction(Function& f) {
   LLVM_DEBUG(dbgs() << "NTAAPass::runOnFunction " << f.getName()
                     << '\n');
   auto& li  = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-  auto& tli = getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
+  auto& tli = getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(f);
   auto& baa = getAnalysis<BasicAAWrapperPass>().getResult();
 
   /* Stash the AA result into the AA aggregator directly, instead of

@@ -155,7 +155,7 @@ void Pipeline::get_all_analysis_results(Function& f) {
   pdt  = &getAnalysis<PostDominatorTreeWrapperPass>(f).getPostDomTree();
   mssa = &getAnalysis<MemorySSAWrapperPass>(f).getMSSA();
   aa   = &getAnalysis<AAResultsWrapperPass>(f).getAAResults();
-  tli  = &getAnalysis<TargetLibraryInfoWrapperPass>(f).getTLI();
+  tli  = &getAnalysis<TargetLibraryInfoWrapperPass>(f).getTLI(f);
   livi = &getAnalysis<liveness_analysis>(f).get_liveness_info();
 }
 void Pipeline::getAnalysisUsage(AnalysisUsage &info) const {

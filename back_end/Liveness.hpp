@@ -151,14 +151,14 @@ struct liveness_analysis : public FunctionPass {
     // TODO: Add things we preserve
   }
 
-  void get_all_analysis_results() {
+  void get_all_analysis_results(Function& f) {
     info.mssa = &getAnalysis<MemorySSAWrapperPass>().getMSSA();
     info.aa   = &getAnalysis<AAResultsWrapperPass>().getAAResults();
-    info.tli  = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
+    info.tli  = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(f);
   }
 
   bool runOnFunction(Function& f) override {
-    get_all_analysis_results();
+    get_all_analysis_results(f);
     info.recompute(f);
     return false;
   }

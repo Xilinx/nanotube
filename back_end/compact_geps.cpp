@@ -55,10 +55,10 @@ struct compact_geps : public FunctionPass {
     info.addRequired<TargetLibraryInfoWrapperPass>();
   }
 
-  void get_all_analysis_results() {
+  void get_all_analysis_results(Function &f) {
     dt   = &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
     pdt  = &getAnalysis<PostDominatorTreeWrapperPass>().getPostDomTree();
-    tli  = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
+    tli  = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(f);
   }
 
   bool move_gep_and_casts(Function& f);
@@ -68,7 +68,7 @@ struct compact_geps : public FunctionPass {
   bool runOnFunction(Function& f) override {
     bool mod     = false;
     bool new_mod = false;
-    get_all_analysis_results();
+    get_all_analysis_results(f);
 
     const unsigned max_iters = 10; // Totally arbitrary iteration cut-off
     unsigned n = 0;
