@@ -32,9 +32,11 @@
 
 #include <map>
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Pass.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
 
 using namespace llvm;
 /********** The Custom AA **********/

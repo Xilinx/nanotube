@@ -18,6 +18,8 @@
 
 #include "Nanotube_Alias.hpp"
 
+#include "llvm/InitializePasses.h"
+
 #define DEBUG_TYPE "ntaa"
 
 using namespace llvm;
