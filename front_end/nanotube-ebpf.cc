@@ -41,6 +41,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <memory>
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -73,7 +74,7 @@ void gen_llvm()
   std::unique_ptr<Module> the_module;
 //  std::map<std::string, Value *> NamedValues;
 
-  the_module = llvm::make_unique<Module>("simple_test", the_context);
+  the_module = std::make_unique<Module>("simple_test", the_context);
 
   std::vector<Type *> func_arg_types;
   FunctionType *func_type =
