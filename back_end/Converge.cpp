@@ -1502,7 +1502,9 @@ void converged_access_block::add_access(BasicBlock* src, CallInst* access,
       unsigned access_sz = nt_acc.get_max_size(idx);
 
       IRBuilder<> ir(dst->getFirstNonPHI());
-      ir.CreateMemCpy(access_mem_out, 0, alloca, 0, access_sz);
+      ir.CreateMemCpy(access_mem_out, MaybeAlign(0),
+                      alloca, MaybeAlign(0),
+                      access_sz);
     }
   }
 
@@ -1692,15 +1694,19 @@ bool converged_access_block::convert_phi_of_addr(MemoryLocation& loc, bool is_in
     if( is_input ) {
       /* Insert the copy-in at the end of the predecessor block. */
       ir.SetInsertPoint(loc_in_bb->getTerminator());
-      auto* memcpy = ir.CreateMemCpy(alloca, alloca->getAlignment(),
-                                     loc_in_val, 0, req_size);
+      unsigned dst_align = alloca->getAlignment();
+      auto* memcpy = ir.CreateMemCpy(alloca, MaybeAlign(dst_align),
+                                     loc_in_val, MaybeAlign(0),
+                                     req_size);
       LLVM_DEBUG(dbgs() << "  Memcpy: " << *memcpy << '\n');
     } else {
       /* Insert copy-out out at the beginning of the right successor block */
       auto* out_bb = get_successor_bb_for(loc_in_bb);
       ir.SetInsertPoint(out_bb, out_bb->getFirstInsertionPt());
-      auto* memcpy = ir.CreateMemCpy(loc_in_val, 0, alloca,
-                                     alloca->getAlignment(), req_size);
+      unsigned src_align = alloca->getAlignment();
+      auto* memcpy = ir.CreateMemCpy(loc_in_val, MaybeAlign(0),
+                                     alloca, MaybeAlign(src_align),
+                                     req_size);
       LLVM_DEBUG(dbgs() << "  Memcpy: " << *memcpy << '\n');
     }
   }

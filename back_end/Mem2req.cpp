@@ -1118,7 +1118,8 @@ void flow_conversion::convert_nanotube_root(CallInst* call) {
     /* Copy the key to a new stack variable */
     auto* key_copy = ir_entry.CreateAlloca(ir.getInt8Ty(), key_sz,
                                            get_proper_name(key) + "_copy");
-    auto* memcpy   = ir.CreateMemCpy(key_copy, 0, key, 0,
+    auto* memcpy   = ir.CreateMemCpy(key_copy, MaybeAlign(0),
+                       key, MaybeAlign(0),
                        cast<ConstantInt>(key_sz)->getZExtValue());
     LLVM_DEBUG(dbgs() << *key_copy << '\n' << *memcpy << '\n');
 

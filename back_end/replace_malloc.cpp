@@ -52,6 +52,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 using namespace nanotube;
+using namespace llvm;
 
 namespace
 {
@@ -122,7 +123,9 @@ void replace_malloc_pass::update_thread_func(CallBase *call,
   Value *data_arg = call->getArgOperand(info_area_arg_num);
   Value *size_arg = call->getArgOperand(info_area_size_arg_num);
   auto builder = llvm::IRBuilder<>(call);
-  builder.CreateMemCpy(buf, 1, data_arg, 1, args->info_area_size);
+  builder.CreateMemCpy(buf, MaybeAlign(1),
+                       data_arg, MaybeAlign(1),
+                       args->info_area_size);
 
   // Find the old function.
   Value *func_val = call->getArgOperand(func_arg_num);

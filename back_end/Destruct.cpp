@@ -165,7 +165,7 @@ struct Destruct : public FunctionPass {
                              alloca->getType()->getPointerElementType());
         auto *newa   = new AllocaInst(new_ty,
             alloca->getType()->getAddressSpace(), alloca->getArraySize(),
-            alloca->getAlignment(), "", alloca);
+            Align(alloca->getAlignment()), "", alloca);
 
         LLVM_DEBUG(dbgs() << "Replacing " << *alloca << " with "
                           << *newa << '\n');
@@ -207,7 +207,7 @@ struct Destruct : public FunctionPass {
 
         auto *new_ld = new LoadInst(get_simple_ty(C, DL, ld->getType()),
                                     ptr_new, "", ld->isVolatile(),
-                                    ld->getAlignment(), ld);
+                                    Align(ld->getAlignment()), ld);
         LLVM_DEBUG(dbgs() << "Replacing " << *ld << " with "
                           << *new_ld << '\n');
         return new_ld; // we need follow-on processing
@@ -229,7 +229,7 @@ struct Destruct : public FunctionPass {
         Value *data_new = get_bc_op(st->getValueOperand(), bc_users);
 
         auto *new_st = new StoreInst(data_new, ptr_new, st->isVolatile(),
-                                     st->getAlignment(), st);
+                                     Align(st->getAlignment()), st);
         LLVM_DEBUG(dbgs() << "Replacing " << *st << " with "
                           << *new_st << '\n');
 

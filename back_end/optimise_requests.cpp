@@ -2268,7 +2268,8 @@ static void merge_packet_read_group(merge_group* g, Value* buffer,
 
     auto* buf_gep = ir.CreateConstInBoundsGEP1_32(ir.getInt8Ty(),
                       buffer, from - start);
-    auto* memcpy = ir.CreateMemCpy(pra.data_out, 1, buf_gep, 1,
+    auto* memcpy = ir.CreateMemCpy(pra.data_out, MaybeAlign(1),
+                                   buf_gep, MaybeAlign(1),
                                    pra.length);
     LLVM_DEBUG(dbgs() << "Replacing " << *inst << " with\n"
                       << *buf_gep << '\n' << *memcpy << '\n');
@@ -2290,7 +2291,7 @@ static void merge_packet_write_group(merge_group* g, Value* buffer,
   unsigned mask_len = (len + 7) / 8;
   auto* mask = ir.CreateAlloca(ir.getInt8Ty(), ir.getInt32(mask_len),
                                "write_mask_off" + Twine(start));
-  ir.CreateMemSet(mask, ir.getInt8(0), mask_len, 0);
+  ir.CreateMemSet(mask, ir.getInt8(0), mask_len, MaybeAlign(0));
 
   /* Create the final, merged write */
   ir.SetInsertPoint(g->insert_point);

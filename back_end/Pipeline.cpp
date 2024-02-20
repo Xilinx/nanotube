@@ -1138,7 +1138,9 @@ stage_function_t::marshal_live_state(std::vector<Value*> live_out_val,
 
     idxv[1] = ir.getInt32(idx++);
     auto* gep = ir.CreateGEP(buffer, idxv, m.Ptr->getName() + "_ptr");
-    auto* cpy = ir.CreateMemCpy(gep, 0, const_cast<Value*>(m.Ptr), 0, m.Size.getValue());
+    auto* cpy = ir.CreateMemCpy(gep, MaybeAlign(0),
+                                const_cast<Value*>(m.Ptr), MaybeAlign(0),
+                                m.Size.getValue());
     LLVM_DEBUG(dbgs() << *gep << '\n' << *cpy << '\n');
   }
   return marshal_bb;
@@ -1208,7 +1210,9 @@ stage_function_t::unmarshal_live_state(ArrayRef<Value*> live_val,
 
     /* Now copy from the static live-in state to the local stack copy */
     auto* gep = ir.CreateGEP(buffer, idxv, name + "_state_" + stage_name);
-    auto* memcpy = ir.CreateMemCpy(buf_stack, 0, gep, 0, sz);
+    auto* memcpy = ir.CreateMemCpy(buf_stack, MaybeAlign(0),
+                                   gep, MaybeAlign(0),
+                                   sz);
 
     /* Remember the mapping */
     (*vmap)[m.Ptr] = bc;
@@ -2326,7 +2330,9 @@ void stage_function_t::convert_packet_read(Value* packet_word, BasicBlock* bypas
   /* Copy out the data to the application buffer at the beginning of the
    * post_call_bb */
   ir.SetInsertPoint(post_call_bb, post_call_bb->getFirstInsertionPt());
-  ir.CreateMemCpy(pra.data_out, 0, res_buf, 0, n);
+  ir.CreateMemCpy(pra.data_out, MaybeAlign(0),
+                  res_buf, MaybeAlign(0),
+                  n);
 
   /* Patch up the post-call logic */
   ir.SetInsertPoint(nt_call);
@@ -2414,7 +2420,8 @@ Value* stage_function_t::convert_packet_write(Value* packet_word) {
   if( req_mask_in == nullptr ) {
     req_mask_in = ir.CreateAlloca(ir.getInt8Ty(),
                                   ir.getInt32(mask_size), "mask");
-    ir.CreateMemSet(req_mask_in, ir.getInt8(0xff), mask_size, 1);
+    ir.CreateMemSet(req_mask_in, ir.getInt8(0xff), mask_size,
+                    MaybeAlign(1));
   }
 
   /* fill the request structure with arguments from the original call */
@@ -2925,8 +2932,8 @@ stage_function_t::convert_map_op_receive() {
              << " Type size (src): "
              << dl.getTypeStoreSize(src_ty->getElementType())
              << '\n');
-    memcpy = ir.CreateMemCpy(moa.data_out, 0,
-                             get_static_map_resp_data(), 0,
+    memcpy = ir.CreateMemCpy(moa.data_out, MaybeAlign(0),
+                             get_static_map_resp_data(), MaybeAlign(0),
                              data_length);
   }
 
@@ -4401,8 +4408,8 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
           auto& loc = v_to_loc[v];
           auto* bb  = phi->getIncomingBlock(i);
           ir.SetInsertPoint(&bb->back());
-          auto* cpy = ir.CreateMemCpy(new_alloc, 0,
-                                      const_cast<Value*>(loc.Ptr), 0,
+          auto* cpy = ir.CreateMemCpy(new_alloc, MaybeAlign(0),
+                                      const_cast<Value*>(loc.Ptr), MaybeAlign(0),
                                       ir.getInt64(loc.Size.getValue()));
           LLVM_DEBUG(
             dbgs() << "Copying value " << *loc.Ptr << " to " << *new_alloc

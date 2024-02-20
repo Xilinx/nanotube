@@ -67,6 +67,7 @@
 #define DEBUG_TYPE "rewrite-setup"
 
 using namespace nanotube;
+using namespace llvm;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -271,7 +272,7 @@ void rewrite_setup_tracer::process_alloca(
   auto addr_space = ptr_ty->getAddressSpace();
   auto clone = m_builder.CreateAlloca(elem_ty, addr_space, num_elem_new);
   clone->setName(insn->getName());
-  clone->setAlignment(insn->getAlignment());
+  clone->setAlignment(Align(insn->getAlignment()));
   clone->setUsedWithInAlloca(insn->isUsedWithInAlloca());
   auto ins = m_allocs.try_emplace(alloc_id, clone);
   assert(ins.second);
