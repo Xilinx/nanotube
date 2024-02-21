@@ -90,7 +90,7 @@ declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanot
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32) #3
 
-define void @simple_stage_0(%struct.nanotube_context*, i8*) {
+define void @simple_stage_0(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
   %packet_word = alloca i8, i64 65
   %read_channel = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
@@ -137,7 +137,7 @@ exit:                                             ; preds = %stage_0_epilogue
   ret void
 }
 
-define void @simple_stage_1(%struct.nanotube_context*, i8*) {
+define void @simple_stage_1(%struct.nanotube_context* %0, i8* %1) {
 entry:
   %2 = load i1, i1* @have_app_state_stage_1
   %mask_stack_stage_1 = alloca i8
@@ -215,7 +215,7 @@ exit:                                             ; preds = %stage_1_epilogue
   ret void
 }
 
-define void @simple_stage_2(%struct.nanotube_context*, i8*) {
+define void @simple_stage_2(%struct.nanotube_context* %0, i8* %1) {
 entry:
   %2 = load i1, i1* @have_app_state_stage_2
   %buffer_stack_stage_2 = alloca i8, i32 4
@@ -278,7 +278,7 @@ exit:                                             ; preds = %stage_2_epilogue
   ret void
 }
 
-define void @simple_stage_3(%struct.nanotube_context*, i8*) {
+define void @simple_stage_3(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
   %packet_word = alloca i8, i64 65
   %read_channel = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)

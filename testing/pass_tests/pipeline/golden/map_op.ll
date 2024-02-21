@@ -106,7 +106,7 @@ declare i64 @nanotube_map_op_receive(%struct.nanotube_context*, i16, i8*, i64) #
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32) #3
 
-define void @simple_stage_0(%struct.nanotube_context*, i8*) {
+define void @simple_stage_0(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
   %2 = bitcast i8* %1 to [1 x %struct.nanotube_tap_map*]*
   %3 = getelementptr inbounds [1 x %struct.nanotube_tap_map*], [1 x %struct.nanotube_tap_map*]* %2, i32 0, i32 0
@@ -162,7 +162,7 @@ exit:                                             ; preds = %stage_0_epilogue
   ret void
 }
 
-define void @simple_stage_1(%struct.nanotube_context*, i8*) {
+define void @simple_stage_1(%struct.nanotube_context* %0, i8* %1) {
 entry:
   %2 = bitcast i8* %1 to [1 x %struct.nanotube_tap_map*]*
   %3 = getelementptr inbounds [1 x %struct.nanotube_tap_map*], [1 x %struct.nanotube_tap_map*]* %2, i32 0, i32 0
@@ -248,7 +248,7 @@ exit:                                             ; preds = %stage_1_epilogue
   ret void
 }
 
-define void @simple_stage_2(%struct.nanotube_context*, i8*) {
+define void @simple_stage_2(%struct.nanotube_context* %0, i8* %1) {
 entry:
   %2 = bitcast i8* %1 to [1 x %struct.nanotube_tap_map*]*
   %3 = getelementptr inbounds [1 x %struct.nanotube_tap_map*], [1 x %struct.nanotube_tap_map*]* %2, i32 0, i32 0
@@ -292,7 +292,7 @@ exit:                                             ; preds = %stage_2_epilogue
   ret void
 }
 
-define void @simple_stage_3(%struct.nanotube_context*, i8*) {
+define void @simple_stage_3(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
   %packet_word = alloca i8, i64 65
   %read_channel = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
