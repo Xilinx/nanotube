@@ -10,7 +10,7 @@ target triple = "x86_64-unknown-linux-gnu"
 
 declare i8* @nanotube_malloc(i64)
 
-; Function Attrs: argmemonly nounwind
+; Function Attrs: argmemonly nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
 
 define void @nanotube_setup() {
@@ -32,4 +32,4 @@ entry:
   ret void
 }
 
-attributes #0 = { argmemonly nounwind }
+attributes #0 = { argmemonly nounwind willreturn }

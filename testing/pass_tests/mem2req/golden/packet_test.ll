@@ -46,10 +46,10 @@ declare dso_local i8* @nanotube_packet_data(%struct.nanotube_packet*) local_unna
 
 declare dso_local i8* @nanotube_packet_end(%struct.nanotube_packet*) local_unnamed_addr #1
 
-; Function Attrs: argmemonly nounwind
+; Function Attrs: argmemonly nounwind willreturn
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
 
-; Function Attrs: nounwind readnone speculatable
+; Function Attrs: nounwind readnone speculatable willreturn
 declare void @llvm.dbg.value(metadata, metadata, metadata) #3
 
 ; Function Attrs: inaccessiblememonly
@@ -60,8 +60,8 @@ declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #5
 
 attributes #0 = { uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #2 = { argmemonly nounwind }
-attributes #3 = { nounwind readnone speculatable }
+attributes #2 = { argmemonly nounwind willreturn }
+attributes #3 = { nounwind readnone speculatable willreturn }
 attributes #4 = { inaccessiblememonly }
 attributes #5 = { inaccessiblemem_or_argmemonly }
 
