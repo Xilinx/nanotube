@@ -39,7 +39,7 @@ declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #1
 declare dso_local void @nanotube_thread_wait() local_unnamed_addr #2
 
 ; Function Attrs: argmemonly nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #1
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
 
 ; Function Attrs: nounwind uwtable
 define private void @stage_0.1(%struct.nanotube_context* nocapture readnone %ctxt, i8* nocapture readonly %data) #0 {

@@ -317,7 +317,7 @@ declare void @nanotube_thread_wait()
 declare i1 @nanotube_tap_packet_is_eop_sb(i8*, %struct.nanotube_tap_packet_eop_state*)
 
 ; Function Attrs: argmemonly nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i1 immarg) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 declare void @nanotube_channel_write(%struct.nanotube_context*, i32, i8*, i64)
 
