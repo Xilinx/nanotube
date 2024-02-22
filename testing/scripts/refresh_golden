@@ -1,0 +1,49 @@
+#! /bin/bash
+###########################################################################
+# Copyright (C) 2024, Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+###########################################################################
+
+set -eu
+
+# This script updates the golden files in the source directory from
+# the output from the previous test run.  It takes care to preserve
+# the copyright header.  The aim is to make it easier to requalify
+# tests after a compiler change which results in expected changes in
+# the output.
+#
+# To use, run the script with no arguments.  Then diff the golden
+# files and revert any unintended changes before checking them in.
+
+# Find the testing source and build directories.
+SCRIPT_DIR=$(dirname $0)
+TEST_SRC_DIR=$(readlink -f ${SCRIPT_DIR}/..)
+TOP_DIR=$(readlink -f ${SCRIPT_DIR}/../..)
+TEST_BUILD_DIR=${TOP_DIR}/build/testing
+
+# Process all the sub-directories of pass_tests.
+for S_DIR in ${TEST_SRC_DIR}/pass_tests/*
+do
+  # Only process directories.
+  [ -d $S_DIR ] || continue
+
+  SUBDIR=$(basename $S_DIR)
+  B_DIR=${TEST_BUILD_DIR}/pass_tests/$SUBDIR
+
+  for S_FILE in $S_DIR/golden/*.ll
+  do
+    FILE=$(basename $S_FILE)
+    B_FILE=${B_DIR}/output/$FILE
+
+    # Only process files which are already present in both
+    # directories.
+    [ -f $S_FILE ] || continue
+    [ -f $B_FILE ] || continue
+
+    # Take 4 lines from the original source which is assumed to be the
+    # copyright.  Then append the output file.  Write the result to a
+    # temporary file so that the original source can be read.
+    (head -n 4 $S_FILE ; cat $B_FILE) > $S_FILE.new
+    mv $S_FILE.new $S_FILE
+  done
+done
