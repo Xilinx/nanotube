@@ -667,33 +667,26 @@ rewrite_setup_pass::rewrite_setup_pass():
 bool rewrite_setup_pass::runOnModule(Module &M)
 {
   // Find the setup function.
-  Function *func = &(setup_func::get_setup_func(M));
-  LLVM_DEBUG(dbgv("Setup function: {0}\n", func->getName()););
+  Function *old_func = &(setup_func::get_setup_func(M));
+  LLVM_DEBUG(dbgv("Setup function: {0}\n", old_func->getName()););
+
+  // Create the new function.
+  auto *new_func = Function::Create(old_func->getFunctionType(),
+                                    GlobalValue::ExternalLinkage,
+                                    "dummy_name", M);
 
   // Create and populate the new basic block.
-  BasicBlock *bb = BasicBlock::Create(M.getContext(), "");
+  auto *bb = BasicBlock::Create(M.getContext(), "entry", new_func);
   {
     rewrite_setup_tracer tracer(&M, bb);
     setup_func setup(M, &tracer);
   }
 
-  // Remove the terminator instructions so that none of the basic
-  // blocks have predecessors.
-  for (auto &old_bb: *func) {
-    old_bb.getTerminator()->eraseFromParent();
-  }
+  // Take the name from the old function.
+  new_func->takeName(old_func);
 
-  // Remove the old basic blocks.  Using eraseFromParent here would
-  // cause instructions to be deleted while still being referenced by
-  // other basic blocks which will be deleted later.  Instead, use
-  // DeleteDeadBlock which breaks the references cleanly.
-  while (!func->empty()) {
-    llvm::DeleteDeadBlock(&(func->front()));
-  }
-
-  // Add the new basic block to the function as the only one.
-  bb->setName("entry");
-  bb->insertInto(func);
+  // Remove the old function.
+  old_func->eraseFromParent();
 
   // This pass always makes changes.
   return true;
