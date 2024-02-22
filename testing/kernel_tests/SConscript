@@ -49,7 +49,7 @@ pass_opts = {
                     ' -enable-loop-unroll -loop-unroll'
                     ' -move-alloca -simplifycfg -instcombine'
                     ' -thread-const -constprop -simplifycfg' ),
-    'pipeline' : ( '-compact-geps -basicaa -tbaa '
+    'pipeline' : ( '-compact-geps -basic-aa -tbaa '
                    '-nanotube-aa -pipeline' ),
     'flatten' : ( '-flatten-cfg' ),
 }

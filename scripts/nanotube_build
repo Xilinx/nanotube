@@ -53,7 +53,7 @@ step_specs = {
                     ' -move-alloca -simplifycfg -instcombine'
                     ' -thread-const -constprop -simplifycfg' ),
     'pipeline' : ( 'opt',
-                   '-compact-geps -basicaa -tbaa '
+                   '-compact-geps -basic-aa -tbaa '
                    '-nanotube-aa -pipeline' ),
     'byteify' : ('opt', '-byteify'),
     'destruct': ('opt', '-destruct'),
