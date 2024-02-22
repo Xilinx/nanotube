@@ -1424,7 +1424,7 @@ bool thread_const::process_thread(const thread_info *thread)
 bool thread_const::runOnModule(Module &m)
 {
   // Create the setup_func.
-  auto setup = setup_func(m);
+  setup_func setup(m);
 
   // Initialise the temporary data.
   m_data_layout = &(m.getDataLayout());

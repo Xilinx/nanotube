@@ -113,7 +113,7 @@ void platform::adjust_offset_arg(Instruction *insn, int offset_arg)
   auto bit_width = int_ty->getBitWidth();
   auto offset = APInt(bit_width, m_md_size);
   auto const_offset = ConstantInt::get(int_ty, offset);
-  auto ir = llvm::IRBuilder<>(insn);
+  llvm::IRBuilder<> ir(insn);
   Value *new_val = ir.CreateAdd(val, const_offset);
   call->setArgOperand(offset_arg, new_val);
 }

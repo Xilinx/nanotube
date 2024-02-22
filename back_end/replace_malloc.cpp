@@ -122,7 +122,7 @@ void replace_malloc_pass::update_thread_func(CallBase *call,
   // Copy the operands into the buffer.
   Value *data_arg = call->getArgOperand(info_area_arg_num);
   Value *size_arg = call->getArgOperand(info_area_size_arg_num);
-  auto builder = llvm::IRBuilder<>(call);
+  llvm::IRBuilder<> builder(call);
   builder.CreateMemCpy(buf, MaybeAlign(1),
                        data_arg, MaybeAlign(1),
                        args->info_area_size);
@@ -170,7 +170,7 @@ bool replace_malloc_pass::runOnModule(Module &module)
   bool any_changes = false;
 
   // Find the entry basic block of the setup function.
-  auto setup = setup_func(module);
+  setup_func setup(module);
   Function &f = setup.get_function();
   BasicBlock &bb = f.getEntryBlock();
 

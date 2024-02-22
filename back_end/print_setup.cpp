@@ -71,7 +71,7 @@ bool print_setup::runOnModule(Module &m)
   raw_os_ostream output(std::cout);
 
   // Create the setup_func.
-  auto setup = setup_func(m);
+  setup_func setup(m);
 
   output << formatv("Setup function: {0}\n", setup.get_function().getName());
 

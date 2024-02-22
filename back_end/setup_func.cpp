@@ -486,7 +486,7 @@ setup_func::setup_func(Module &m, setup_tracer *tracer, bool strict):
 {
   m_max_ptr_bits = 8 * m_data_layout->getMaxPointerSize();
   assert(m_max_ptr_bits <= setup_ptr_value_num_bits);
-  auto builder = setup_func_builder(*this, tracer, strict);
+  setup_func_builder builder(*this, tracer, strict);
   builder.build();
 }
 

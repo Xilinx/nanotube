@@ -962,7 +962,7 @@ struct ebpf_to_NT : public ModulePass {
     BasicBlock *bb = &(setup_func->getEntryBlock());
     Instruction *term = bb->getTerminator();
     FunctionCallee add_kernel = create_nt_add_plain_packet_kernel(*module);
-    auto ir = IRBuilder<>(term);
+    IRBuilder<> ir(term);
     GlobalValue *name_var = ir.CreateGlobalString(name);
     Type *uint8_type = ir.getInt8PtrTy();
     Value *name_ptr = ir.CreateBitCast(name_var, uint8_type);
