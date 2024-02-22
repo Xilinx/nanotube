@@ -1,4 +1,4 @@
 ERROR: Read of overwritten map data is currently unsupported.
-Read instruction is:   %old_val = load i8, i8* %entry_1_
-Write instruction is:   store i8 0, i8* %entry_0_buf
+Read instruction is:   %old_val = load i8, i8* %entry_1_, align 1
+Write instruction is:   store i8 0, i8* %entry_0_buf, align 1
 Exit code 1

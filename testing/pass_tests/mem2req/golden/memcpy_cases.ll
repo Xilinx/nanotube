@@ -44,15 +44,15 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %entry_0__mask4 = alloca i8, i64 1
-  %_buffer = alloca i8, i64 4
-  %entry_0__mask = alloca i8, i64 1
-  %entry_1__mask = alloca i8, i64 1
-  %case_buffer = alloca i8
-  %_copy1 = alloca i8, i64 4
-  %entry_1_buf = alloca i8, i64 8
-  %_copy = alloca i8, i64 4
-  %entry_0_buf = alloca i8, i64 8
+  %entry_0__mask4 = alloca i8, i64 1, align 1
+  %_buffer = alloca i8, i64 4, align 1
+  %entry_0__mask = alloca i8, i64 1, align 1
+  %entry_1__mask = alloca i8, i64 1, align 1
+  %case_buffer = alloca i8, align 1
+  %_copy1 = alloca i8, i64 4, align 1
+  %entry_1_buf = alloca i8, i64 8, align 1
+  %_copy = alloca i8, i64 4, align 1
+  %entry_0_buf = alloca i8, i64 8, align 1
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %pkt_okay = icmp ugt i64 12, %0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
@@ -67,7 +67,7 @@ entry:
 
 edit:                                             ; preds = %entry
   %pkt_begin__rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %case_buffer, i64 0, i64 1)
-  %case = load i8, i8* %case_buffer
+  %case = load i8, i8* %case_buffer, align 1
   switch i8 %case, label %case_mem2mem [
     i8 1, label %case_mem2pkt
     i8 2, label %case_mem2map

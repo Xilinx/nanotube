@@ -24,18 +24,18 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %_buffer = alloca i8
-  %byte_0_buffer = alloca i8
+  %_buffer = alloca i8, align 1
+  %byte_0_buffer = alloca i8, align 1
   %0 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %icmp = icmp ugt i64 3, %0
   br i1 %icmp, label %done, label %edit
 
 edit:                                             ; preds = %entry
   %pkt_0__rd = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %byte_0_buffer, i64 0, i64 1)
-  %byte_0 = load i8, i8* %byte_0_buffer
+  %byte_0 = load i8, i8* %byte_0_buffer, align 1
   %sel = icmp ne i8 %byte_0, 42
   %ptr1 = select i1 %sel, i64 1, i64 2
-  store i8 0, i8* %_buffer
+  store i8 0, i8* %_buffer, align 1
   %ptr_wr = call i64 @nanotube_packet_write(%struct.nanotube_packet* %packet, i8* %_buffer, i64 %ptr1, i64 1)
   br label %done
 

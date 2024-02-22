@@ -218,27 +218,27 @@ declare void @llvm.stackrestore(i8*) #6
 ; Function Attrs: nounwind uwtable
 define private i32 @ebpf_filter_nt.1(%struct.nanotube_context* %nt_ctx, %struct.nanotube_packet* %packet) #7 section "prog" {
 entry:
-  %write_mask_off1511 = alloca i8, i32 3, !dbg !517
+  %write_mask_off1511 = alloca i8, i32 3, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off1511, i8 0, i64 3, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off1510 = alloca i8, i32 20, !dbg !517
-  %write_mask_off19 = alloca i8, i32 2, !dbg !517
+  %nanotube_packet_write_masked_buf_off1510 = alloca i8, i32 20, align 1, !dbg !517
+  %write_mask_off19 = alloca i8, i32 2, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off19, i8 0, i64 2, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off18 = alloca i8, i32 14, !dbg !517
-  %write_mask_off17 = alloca i8, i32 5, !dbg !517
+  %nanotube_packet_write_masked_buf_off18 = alloca i8, i32 14, align 1, !dbg !517
+  %write_mask_off17 = alloca i8, i32 5, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off17, i8 0, i64 5, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off16 = alloca i8, i32 40, !dbg !517
-  %write_mask_off15 = alloca i8, !dbg !517
+  %nanotube_packet_write_masked_buf_off16 = alloca i8, i32 40, align 1, !dbg !517
+  %write_mask_off15 = alloca i8, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off15, i8 0, i64 1, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off15 = alloca i8, i32 6, !dbg !517
-  %write_mask_off14 = alloca i8, i32 2, !dbg !517
+  %nanotube_packet_write_masked_buf_off15 = alloca i8, i32 6, align 1, !dbg !517
+  %write_mask_off14 = alloca i8, i32 2, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off14, i8 0, i64 2, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off13 = alloca i8, i32 13, !dbg !517
-  %write_mask_off1 = alloca i8, !dbg !517
+  %nanotube_packet_write_masked_buf_off13 = alloca i8, i32 13, align 1, !dbg !517
+  %write_mask_off1 = alloca i8, align 1, !dbg !517
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off1, i8 0, i64 1, i1 false), !dbg !517
-  %nanotube_packet_write_masked_buf_off1 = alloca i8, i32 8, !dbg !517
-  %nanotube_packet_read_buf_off12 = alloca i8, i32 54, !dbg !517
-  %nanotube_packet_read_buf_off11 = alloca i8, i32 20, !dbg !517
-  %nanotube_packet_read_buf_off1 = alloca i8, i32 8, !dbg !517
+  %nanotube_packet_write_masked_buf_off1 = alloca i8, i32 8, align 1, !dbg !517
+  %nanotube_packet_read_buf_off12 = alloca i8, i32 54, align 1, !dbg !517
+  %nanotube_packet_read_buf_off11 = alloca i8, i32 20, align 1, !dbg !517
+  %nanotube_packet_read_buf_off1 = alloca i8, i32 8, align 1, !dbg !517
   %0 = alloca i8, i64 1, align 16, !dbg !517
   %1 = alloca i8, i64 1, align 16, !dbg !404
   %2 = alloca i8, i64 1, align 16, !dbg !404
@@ -343,202 +343,202 @@ entry:
   %101 = alloca i8, i64 1, align 16, !dbg !404
   %102 = alloca i8, i64 1, align 16, !dbg !404
   %103 = alloca i8, i64 1, align 16, !dbg !404
-  %_buffer173 = alloca i8
-  %_buffer172 = alloca i8
-  %_buffer171 = alloca i16
+  %_buffer173 = alloca i8, align 1
+  %_buffer172 = alloca i8, align 1
+  %_buffer171 = alloca i16, align 2
   %104 = bitcast i16* %_buffer171 to i8*
-  %_buffer170 = alloca i8
-  %_buffer169 = alloca i8
-  %_buffer168 = alloca i8
-  %_buffer167 = alloca i8
-  %_buffer166 = alloca i8
-  %_buffer165 = alloca i8
-  %_buffer164 = alloca i8
-  %_buffer163 = alloca i8
-  %_buffer162 = alloca i8
-  %_buffer161 = alloca i8
-  %_buffer160 = alloca i8
-  %_buffer159 = alloca i8
-  %_buffer158 = alloca i8
-  %_buffer157 = alloca i8
-  %_buffer156 = alloca i8
-  %_buffer155 = alloca i8
-  %_buffer154 = alloca i8
-  %_buffer153 = alloca i8
-  %_buffer152 = alloca i8
-  %_buffer151 = alloca i8
-  %_buffer150 = alloca i8
-  %_buffer149 = alloca i32
+  %_buffer170 = alloca i8, align 1
+  %_buffer169 = alloca i8, align 1
+  %_buffer168 = alloca i8, align 1
+  %_buffer167 = alloca i8, align 1
+  %_buffer166 = alloca i8, align 1
+  %_buffer165 = alloca i8, align 1
+  %_buffer164 = alloca i8, align 1
+  %_buffer163 = alloca i8, align 1
+  %_buffer162 = alloca i8, align 1
+  %_buffer161 = alloca i8, align 1
+  %_buffer160 = alloca i8, align 1
+  %_buffer159 = alloca i8, align 1
+  %_buffer158 = alloca i8, align 1
+  %_buffer157 = alloca i8, align 1
+  %_buffer156 = alloca i8, align 1
+  %_buffer155 = alloca i8, align 1
+  %_buffer154 = alloca i8, align 1
+  %_buffer153 = alloca i8, align 1
+  %_buffer152 = alloca i8, align 1
+  %_buffer151 = alloca i8, align 1
+  %_buffer150 = alloca i8, align 1
+  %_buffer149 = alloca i32, align 4
   %105 = bitcast i32* %_buffer149 to i8*
-  %_buffer148 = alloca i8
-  %_buffer147 = alloca i8
-  %_buffer146 = alloca i8
-  %_buffer145 = alloca i8
-  %_buffer144 = alloca i16
+  %_buffer148 = alloca i8, align 1
+  %_buffer147 = alloca i8, align 1
+  %_buffer146 = alloca i8, align 1
+  %_buffer145 = alloca i8, align 1
+  %_buffer144 = alloca i16, align 2
   %106 = bitcast i16* %_buffer144 to i8*
-  %_buffer143 = alloca i16
+  %_buffer143 = alloca i16, align 2
   %107 = bitcast i16* %_buffer143 to i8*
-  %_buffer142 = alloca i8
-  %_buffer141 = alloca i8
-  %_buffer140 = alloca i8
-  %_buffer139 = alloca i8
-  %_buffer138 = alloca i8
-  %_buffer137 = alloca i8
-  %_buffer136 = alloca i8
-  %_buffer135 = alloca i8
-  %_buffer134 = alloca i8
-  %_buffer133 = alloca i8
-  %_buffer132 = alloca i8
-  %_buffer131 = alloca i8
-  %_buffer130 = alloca i8
-  %_buffer129 = alloca i8
-  %_buffer128 = alloca i8
-  %_buffer127 = alloca i8
-  %_buffer126 = alloca i8
-  %_buffer125 = alloca i8
-  %_buffer124 = alloca i8
-  %_buffer123 = alloca i8
-  %_buffer122 = alloca i8
-  %_buffer121 = alloca i8
-  %_buffer120 = alloca i8
-  %_buffer119 = alloca i8
-  %_buffer118 = alloca i8
-  %_buffer117 = alloca i8
-  %_buffer116 = alloca i8
-  %_buffer115 = alloca i8
-  %_buffer114 = alloca i8
-  %_buffer113 = alloca i8
-  %_buffer112 = alloca i16
+  %_buffer142 = alloca i8, align 1
+  %_buffer141 = alloca i8, align 1
+  %_buffer140 = alloca i8, align 1
+  %_buffer139 = alloca i8, align 1
+  %_buffer138 = alloca i8, align 1
+  %_buffer137 = alloca i8, align 1
+  %_buffer136 = alloca i8, align 1
+  %_buffer135 = alloca i8, align 1
+  %_buffer134 = alloca i8, align 1
+  %_buffer133 = alloca i8, align 1
+  %_buffer132 = alloca i8, align 1
+  %_buffer131 = alloca i8, align 1
+  %_buffer130 = alloca i8, align 1
+  %_buffer129 = alloca i8, align 1
+  %_buffer128 = alloca i8, align 1
+  %_buffer127 = alloca i8, align 1
+  %_buffer126 = alloca i8, align 1
+  %_buffer125 = alloca i8, align 1
+  %_buffer124 = alloca i8, align 1
+  %_buffer123 = alloca i8, align 1
+  %_buffer122 = alloca i8, align 1
+  %_buffer121 = alloca i8, align 1
+  %_buffer120 = alloca i8, align 1
+  %_buffer119 = alloca i8, align 1
+  %_buffer118 = alloca i8, align 1
+  %_buffer117 = alloca i8, align 1
+  %_buffer116 = alloca i8, align 1
+  %_buffer115 = alloca i8, align 1
+  %_buffer114 = alloca i8, align 1
+  %_buffer113 = alloca i8, align 1
+  %_buffer112 = alloca i16, align 2
   %108 = bitcast i16* %_buffer112 to i8*
-  %_buffer111 = alloca i8
-  %_buffer110 = alloca i8
-  %_buffer109 = alloca i8
-  %_buffer108 = alloca i8
-  %_buffer107 = alloca i8
-  %_buffer106 = alloca i8
-  %_buffer105 = alloca i8
-  %_buffer104 = alloca i8
-  %_buffer103 = alloca i8
-  %_buffer102 = alloca i8
-  %_buffer101 = alloca i8
-  %_buffer100 = alloca i8
-  %_buffer99 = alloca i8
-  %_buffer98 = alloca i8
-  %_buffer97 = alloca i8
-  %_buffer96 = alloca i8
-  %_buffer95 = alloca i8
-  %_buffer94 = alloca i8
-  %_buffer93 = alloca i8
-  %_buffer92 = alloca i8
-  %_buffer91 = alloca i8
-  %_buffer90 = alloca i64
+  %_buffer111 = alloca i8, align 1
+  %_buffer110 = alloca i8, align 1
+  %_buffer109 = alloca i8, align 1
+  %_buffer108 = alloca i8, align 1
+  %_buffer107 = alloca i8, align 1
+  %_buffer106 = alloca i8, align 1
+  %_buffer105 = alloca i8, align 1
+  %_buffer104 = alloca i8, align 1
+  %_buffer103 = alloca i8, align 1
+  %_buffer102 = alloca i8, align 1
+  %_buffer101 = alloca i8, align 1
+  %_buffer100 = alloca i8, align 1
+  %_buffer99 = alloca i8, align 1
+  %_buffer98 = alloca i8, align 1
+  %_buffer97 = alloca i8, align 1
+  %_buffer96 = alloca i8, align 1
+  %_buffer95 = alloca i8, align 1
+  %_buffer94 = alloca i8, align 1
+  %_buffer93 = alloca i8, align 1
+  %_buffer92 = alloca i8, align 1
+  %_buffer91 = alloca i8, align 1
+  %_buffer90 = alloca i64, align 8
   %109 = bitcast i64* %_buffer90 to i8*
-  %_buffer89 = alloca i8
-  %_buffer88 = alloca i16
+  %_buffer89 = alloca i8, align 1
+  %_buffer88 = alloca i16, align 2
   %110 = bitcast i16* %_buffer88 to i8*
-  %_buffer87 = alloca i8
-  %_buffer86 = alloca i8
-  %_buffer85 = alloca i8
-  %_buffer84 = alloca i16
+  %_buffer87 = alloca i8, align 1
+  %_buffer86 = alloca i8, align 1
+  %_buffer85 = alloca i8, align 1
+  %_buffer84 = alloca i16, align 2
   %111 = bitcast i16* %_buffer84 to i8*
-  %_buffer83 = alloca i16
+  %_buffer83 = alloca i16, align 2
   %112 = bitcast i16* %_buffer83 to i8*
-  %_buffer82 = alloca i8
-  %_buffer81 = alloca i8
-  %_buffer80 = alloca i8
-  %_buffer79 = alloca i16
+  %_buffer82 = alloca i8, align 1
+  %_buffer81 = alloca i8, align 1
+  %_buffer80 = alloca i8, align 1
+  %_buffer79 = alloca i16, align 2
   %113 = bitcast i16* %_buffer79 to i8*
-  %_buffer78 = alloca i32
+  %_buffer78 = alloca i32, align 4
   %114 = bitcast i32* %_buffer78 to i8*
-  %_buffer77 = alloca i8
-  %_buffer76 = alloca i8
-  %_buffer75 = alloca i8
-  %_buffer74 = alloca i8
-  %_buffer73 = alloca i32
+  %_buffer77 = alloca i8, align 1
+  %_buffer76 = alloca i8, align 1
+  %_buffer75 = alloca i8, align 1
+  %_buffer74 = alloca i8, align 1
+  %_buffer73 = alloca i32, align 4
   %115 = bitcast i32* %_buffer73 to i8*
-  %_buffer72 = alloca i8
-  %_buffer71 = alloca i8
-  %_buffer70 = alloca i8
-  %_buffer69 = alloca i8
-  %_buffer68 = alloca i8
-  %_buffer67 = alloca i8
-  %_buffer66 = alloca i8
-  %_buffer65 = alloca i8
-  %_buffer64 = alloca i8
-  %_buffer63 = alloca i8
-  %_buffer62 = alloca i8
-  %_buffer61 = alloca i8
-  %_buffer60 = alloca i8
-  %_buffer59 = alloca i8
-  %_buffer58 = alloca i8
-  %_buffer57 = alloca i16
+  %_buffer72 = alloca i8, align 1
+  %_buffer71 = alloca i8, align 1
+  %_buffer70 = alloca i8, align 1
+  %_buffer69 = alloca i8, align 1
+  %_buffer68 = alloca i8, align 1
+  %_buffer67 = alloca i8, align 1
+  %_buffer66 = alloca i8, align 1
+  %_buffer65 = alloca i8, align 1
+  %_buffer64 = alloca i8, align 1
+  %_buffer63 = alloca i8, align 1
+  %_buffer62 = alloca i8, align 1
+  %_buffer61 = alloca i8, align 1
+  %_buffer60 = alloca i8, align 1
+  %_buffer59 = alloca i8, align 1
+  %_buffer58 = alloca i8, align 1
+  %_buffer57 = alloca i16, align 2
   %116 = bitcast i16* %_buffer57 to i8*
-  %_buffer56 = alloca i8
-  %_buffer55 = alloca i8
-  %_buffer54 = alloca i16
+  %_buffer56 = alloca i8, align 1
+  %_buffer55 = alloca i8, align 1
+  %_buffer54 = alloca i16, align 2
   %117 = bitcast i16* %_buffer54 to i8*
-  %_buffer53 = alloca i8
-  %_buffer52 = alloca i16
+  %_buffer53 = alloca i8, align 1
+  %_buffer52 = alloca i16, align 2
   %118 = bitcast i16* %_buffer52 to i8*
-  %_buffer51 = alloca i32
+  %_buffer51 = alloca i32, align 4
   %119 = bitcast i32* %_buffer51 to i8*
-  %_buffer50 = alloca i8
-  %_buffer49 = alloca i8
-  %_buffer48 = alloca i16
+  %_buffer50 = alloca i8, align 1
+  %_buffer49 = alloca i8, align 1
+  %_buffer48 = alloca i16, align 2
   %120 = bitcast i16* %_buffer48 to i8*
-  %_buffer47 = alloca i8
-  %_buffer46 = alloca i16
+  %_buffer47 = alloca i8, align 1
+  %_buffer46 = alloca i16, align 2
   %121 = bitcast i16* %_buffer46 to i8*
-  %_buffer45 = alloca i16
+  %_buffer45 = alloca i16, align 2
   %122 = bitcast i16* %_buffer45 to i8*
-  %_buffer44 = alloca i8
-  %_buffer43 = alloca i16
+  %_buffer44 = alloca i8, align 1
+  %_buffer43 = alloca i16, align 2
   %123 = bitcast i16* %_buffer43 to i8*
-  %_buffer42 = alloca i8
-  %_buffer41 = alloca i8
-  %_buffer40 = alloca i8
-  %_buffer39 = alloca i8
-  %_buffer38 = alloca i32
+  %_buffer42 = alloca i8, align 1
+  %_buffer41 = alloca i8, align 1
+  %_buffer40 = alloca i8, align 1
+  %_buffer39 = alloca i8, align 1
+  %_buffer38 = alloca i32, align 4
   %124 = bitcast i32* %_buffer38 to i8*
-  %_buffer37 = alloca i8
-  %_buffer36 = alloca i8
-  %_buffer35 = alloca i8
-  %_buffer34 = alloca i8
-  %_buffer33 = alloca i8
-  %_buffer32 = alloca i8
-  %_buffer31 = alloca i8
-  %_buffer30 = alloca i8
-  %_buffer29 = alloca i8
-  %_buffer28 = alloca i8
-  %_buffer27 = alloca i8
-  %_buffer26 = alloca i8
-  %_buffer25 = alloca i8
-  %_buffer24 = alloca i8
-  %_buffer23 = alloca i8
-  %_buffer22 = alloca i16
+  %_buffer37 = alloca i8, align 1
+  %_buffer36 = alloca i8, align 1
+  %_buffer35 = alloca i8, align 1
+  %_buffer34 = alloca i8, align 1
+  %_buffer33 = alloca i8, align 1
+  %_buffer32 = alloca i8, align 1
+  %_buffer31 = alloca i8, align 1
+  %_buffer30 = alloca i8, align 1
+  %_buffer29 = alloca i8, align 1
+  %_buffer28 = alloca i8, align 1
+  %_buffer27 = alloca i8, align 1
+  %_buffer26 = alloca i8, align 1
+  %_buffer25 = alloca i8, align 1
+  %_buffer24 = alloca i8, align 1
+  %_buffer23 = alloca i8, align 1
+  %_buffer22 = alloca i16, align 2
   %125 = bitcast i16* %_buffer22 to i8*
-  %_buffer21 = alloca i8
-  %_buffer20 = alloca i16
+  %_buffer21 = alloca i8, align 1
+  %_buffer20 = alloca i16, align 2
   %126 = bitcast i16* %_buffer20 to i8*
-  %_buffer19 = alloca i64
+  %_buffer19 = alloca i64, align 8
   %127 = bitcast i64* %_buffer19 to i8*
-  %_buffer18 = alloca i8
-  %_buffer17 = alloca i8
-  %_buffer16 = alloca i8
-  %_buffer15 = alloca i8
-  %_buffer14 = alloca i8
-  %_buffer13 = alloca i8
-  %_buffer12 = alloca i8
-  %_buffer11 = alloca i8
-  %_buffer10 = alloca i8
-  %_buffer9 = alloca i8
-  %_buffer8 = alloca i8
-  %_buffer7 = alloca i8
-  %_buffer6 = alloca i8
-  %_buffer5 = alloca i8
-  %_buffer4 = alloca i8
-  %_buffer3 = alloca i8
-  %_buffer = alloca i8
+  %_buffer18 = alloca i8, align 1
+  %_buffer17 = alloca i8, align 1
+  %_buffer16 = alloca i8, align 1
+  %_buffer15 = alloca i8, align 1
+  %_buffer14 = alloca i8, align 1
+  %_buffer13 = alloca i8, align 1
+  %_buffer12 = alloca i8, align 1
+  %_buffer11 = alloca i8, align 1
+  %_buffer10 = alloca i8, align 1
+  %_buffer9 = alloca i8, align 1
+  %_buffer8 = alloca i8, align 1
+  %_buffer7 = alloca i8, align 1
+  %_buffer6 = alloca i8, align 1
+  %_buffer5 = alloca i8, align 1
+  %_buffer4 = alloca i8, align 1
+  %_buffer3 = alloca i8, align 1
+  %_buffer = alloca i8, align 1
   %128 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %129 = add i64 %128, -1
   %130 = icmp ugt i64 14, %129
@@ -551,33 +551,33 @@ parse_ipv4:                                       ; preds = %if.end1118
 if.end:                                           ; preds = %parse_ipv4
   %132 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 14
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer119, i8* align 1 %132, i64 1, i1 false)
-  %133 = load i8, i8* %_buffer119
+  %133 = load i8, i8* %_buffer119, align 1
   %134 = lshr i8 %133, 4
   %135 = and i8 %133, 15
   %136 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 15
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer58, i8* align 1 %136, i64 1, i1 false)
-  %137 = load i8, i8* %_buffer58
+  %137 = load i8, i8* %_buffer58, align 1
   %138 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 16
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %106, i8* align 1 %138, i64 2, i1 false)
-  %139 = load i16, i16* %_buffer144
+  %139 = load i16, i16* %_buffer144, align 2
   %rev4038 = tail call i16 @llvm.bswap.i16(i16 %139)
   %hdr.sroa.314064.sroa.0.0.extract.trunc = trunc i16 %rev4038 to i8
   %hdr.sroa.314064.sroa.7.0.extract.shift = lshr i16 %rev4038, 8
   %hdr.sroa.314064.sroa.7.0.extract.trunc = trunc i16 %hdr.sroa.314064.sroa.7.0.extract.shift to i8
   %140 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 18
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %104, i8* align 1 %140, i64 2, i1 false)
-  %141 = load i16, i16* %_buffer171
+  %141 = load i16, i16* %_buffer171, align 2
   %rev4037 = tail call i16 @llvm.bswap.i16(i16 %141)
   %hdr.sroa.36.sroa.0.0.extract.trunc4192 = trunc i16 %rev4037 to i8
   %hdr.sroa.36.sroa.7.0.extract.shift4193 = lshr i16 %rev4037, 8
   %hdr.sroa.36.sroa.7.0.extract.trunc4194 = trunc i16 %hdr.sroa.36.sroa.7.0.extract.shift4193 to i8
   %142 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 20
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer47, i8* align 1 %142, i64 1, i1 false)
-  %143 = load i8, i8* %_buffer47
+  %143 = load i8, i8* %_buffer47, align 1
   %144 = lshr i8 %143, 5
   %145 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 20
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %121, i8* align 1 %145, i64 2, i1 false)
-  %146 = load i16, i16* %_buffer46
+  %146 = load i16, i16* %_buffer46, align 2
   %147 = and i16 %146, -225
   %148 = tail call i16 @llvm.bswap.i16(i16 %147)
   %hdr.sroa.434069.sroa.0.0.extract.trunc = trunc i16 %148 to i8
@@ -585,20 +585,20 @@ if.end:                                           ; preds = %parse_ipv4
   %hdr.sroa.434069.sroa.5.0.extract.trunc = trunc i16 %hdr.sroa.434069.sroa.5.0.extract.shift to i8
   %149 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 22
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer153, i8* align 1 %149, i64 1, i1 false)
-  %150 = load i8, i8* %_buffer153
+  %150 = load i8, i8* %_buffer153, align 1
   %151 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 23
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer44, i8* align 1 %151, i64 1, i1 false)
-  %152 = load i8, i8* %_buffer44
+  %152 = load i8, i8* %_buffer44, align 1
   %153 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 24
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %113, i8* align 1 %153, i64 2, i1 false)
-  %154 = load i16, i16* %_buffer79
+  %154 = load i16, i16* %_buffer79, align 2
   %rev4035 = tail call i16 @llvm.bswap.i16(i16 %154)
   %hdr.sroa.51.sroa.0.0.extract.trunc = trunc i16 %rev4035 to i8
   %hdr.sroa.51.sroa.7.0.extract.shift = lshr i16 %rev4035, 8
   %hdr.sroa.51.sroa.7.0.extract.trunc = trunc i16 %hdr.sroa.51.sroa.7.0.extract.shift to i8
   %155 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 26
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %124, i8* align 1 %155, i64 4, i1 false)
-  %156 = load i32, i32* %_buffer38
+  %156 = load i32, i32* %_buffer38, align 4
   %or178 = tail call i32 @llvm.bswap.i32(i32 %156)
   %hdr.sroa.56.sroa.0.0.extract.trunc = trunc i32 %or178 to i8
   %hdr.sroa.56.sroa.7.0.extract.shift = lshr i32 %or178, 8
@@ -609,7 +609,7 @@ if.end:                                           ; preds = %parse_ipv4
   %hdr.sroa.56.sroa.9.0.extract.trunc = trunc i32 %hdr.sroa.56.sroa.9.0.extract.shift to i8
   %157 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 30
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %105, i8* align 1 %157, i64 4, i1 false)
-  %158 = load i32, i32* %_buffer149
+  %158 = load i32, i32* %_buffer149, align 4
   %or213 = tail call i32 @llvm.bswap.i32(i32 %158)
   %hdr.sroa.63.sroa.0.0.extract.trunc4175 = trunc i32 %or213 to i8
   %hdr.sroa.63.sroa.7.0.extract.shift4176 = lshr i32 %or213, 8
@@ -636,17 +636,17 @@ parse_ipv6:                                       ; preds = %if.end1118
 if.end247:                                        ; preds = %parse_ipv6
   %160 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 14
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer21, i8* align 1 %160, i64 1, i1 false)
-  %161 = load i8, i8* %_buffer21
+  %161 = load i8, i8* %_buffer21, align 1
   %162 = lshr i8 %161, 4
   %163 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 14
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %126, i8* align 1 %163, i64 2, i1 false)
-  %164 = load i16, i16* %_buffer20
+  %164 = load i16, i16* %_buffer20, align 2
   %rev4032 = tail call i16 @llvm.bswap.i16(i16 %164)
   %165 = lshr i16 %rev4032, 4
   %conv285 = trunc i16 %165 to i8
   %166 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 15
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %119, i8* align 1 %166, i64 4, i1 false)
-  %167 = load i32, i32* %_buffer51
+  %167 = load i32, i32* %_buffer51, align 4
   %or314 = tail call i32 @llvm.bswap.i32(i32 %167)
   %shr321 = lshr i32 %or314, 8
   %hdr.sroa.784084.sroa.0.0.extract.trunc = trunc i32 %shr321 to i8
@@ -657,113 +657,113 @@ if.end247:                                        ; preds = %parse_ipv6
   %hdr.sroa.784084.sroa.6.0.extract.trunc = and i8 %168, 15
   %169 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 18
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %125, i8* align 1 %169, i64 2, i1 false)
-  %170 = load i16, i16* %_buffer22
+  %170 = load i16, i16* %_buffer22, align 2
   %rev4030 = tail call i16 @llvm.bswap.i16(i16 %170)
   %hdr.sroa.82.sroa.0.0.extract.trunc4169 = trunc i16 %rev4030 to i8
   %hdr.sroa.82.sroa.7.0.extract.shift4170 = lshr i16 %rev4030, 8
   %hdr.sroa.82.sroa.7.0.extract.trunc4171 = trunc i16 %hdr.sroa.82.sroa.7.0.extract.shift4170 to i8
   %171 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 20
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer132, i8* align 1 %171, i64 1, i1 false)
-  %172 = load i8, i8* %_buffer132
+  %172 = load i8, i8* %_buffer132, align 1
   %173 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 21
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer136, i8* align 1 %173, i64 1, i1 false)
-  %174 = load i8, i8* %_buffer136
+  %174 = load i8, i8* %_buffer136, align 1
   %175 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 22
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer89, i8* align 1 %175, i64 1, i1 false)
-  %176 = load i8, i8* %_buffer89
+  %176 = load i8, i8* %_buffer89, align 1
   %177 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 23
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer100, i8* align 1 %177, i64 1, i1 false)
-  %178 = load i8, i8* %_buffer100
+  %178 = load i8, i8* %_buffer100, align 1
   %179 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 24
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer32, i8* align 1 %179, i64 1, i1 false)
-  %180 = load i8, i8* %_buffer32
+  %180 = load i8, i8* %_buffer32, align 1
   %181 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 25
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer34, i8* align 1 %181, i64 1, i1 false)
-  %182 = load i8, i8* %_buffer34
+  %182 = load i8, i8* %_buffer34, align 1
   %183 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 26
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer50, i8* align 1 %183, i64 1, i1 false)
-  %184 = load i8, i8* %_buffer50
+  %184 = load i8, i8* %_buffer50, align 1
   %185 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 27
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer36, i8* align 1 %185, i64 1, i1 false)
-  %186 = load i8, i8* %_buffer36
+  %186 = load i8, i8* %_buffer36, align 1
   %187 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 28
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer110, i8* align 1 %187, i64 1, i1 false)
-  %188 = load i8, i8* %_buffer110
+  %188 = load i8, i8* %_buffer110, align 1
   %189 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 29
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer39, i8* align 1 %189, i64 1, i1 false)
-  %190 = load i8, i8* %_buffer39
+  %190 = load i8, i8* %_buffer39, align 1
   %191 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 30
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer41, i8* align 1 %191, i64 1, i1 false)
-  %192 = load i8, i8* %_buffer41
+  %192 = load i8, i8* %_buffer41, align 1
   %193 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 31
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer30, i8* align 1 %193, i64 1, i1 false)
-  %194 = load i8, i8* %_buffer30
+  %194 = load i8, i8* %_buffer30, align 1
   %195 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 32
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer161, i8* align 1 %195, i64 1, i1 false)
-  %196 = load i8, i8* %_buffer161
+  %196 = load i8, i8* %_buffer161, align 1
   %197 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 33
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer128, i8* align 1 %197, i64 1, i1 false)
-  %198 = load i8, i8* %_buffer128
+  %198 = load i8, i8* %_buffer128, align 1
   %199 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 34
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer23, i8* align 1 %199, i64 1, i1 false)
-  %200 = load i8, i8* %_buffer23
+  %200 = load i8, i8* %_buffer23, align 1
   %201 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 35
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer24, i8* align 1 %201, i64 1, i1 false)
-  %202 = load i8, i8* %_buffer24
+  %202 = load i8, i8* %_buffer24, align 1
   %203 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 36
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer25, i8* align 1 %203, i64 1, i1 false)
-  %204 = load i8, i8* %_buffer25
+  %204 = load i8, i8* %_buffer25, align 1
   %205 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 37
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer26, i8* align 1 %205, i64 1, i1 false)
-  %206 = load i8, i8* %_buffer26
+  %206 = load i8, i8* %_buffer26, align 1
   %207 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 38
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer27, i8* align 1 %207, i64 1, i1 false)
-  %208 = load i8, i8* %_buffer27
+  %208 = load i8, i8* %_buffer27, align 1
   %209 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 39
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer53, i8* align 1 %209, i64 1, i1 false)
-  %210 = load i8, i8* %_buffer53
+  %210 = load i8, i8* %_buffer53, align 1
   %211 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 40
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer106, i8* align 1 %211, i64 1, i1 false)
-  %212 = load i8, i8* %_buffer106
+  %212 = load i8, i8* %_buffer106, align 1
   %213 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 41
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer114, i8* align 1 %213, i64 1, i1 false)
-  %214 = load i8, i8* %_buffer114
+  %214 = load i8, i8* %_buffer114, align 1
   %215 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 42
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer28, i8* align 1 %215, i64 1, i1 false)
-  %216 = load i8, i8* %_buffer28
+  %216 = load i8, i8* %_buffer28, align 1
   %217 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 43
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer29, i8* align 1 %217, i64 1, i1 false)
-  %218 = load i8, i8* %_buffer29
+  %218 = load i8, i8* %_buffer29, align 1
   %219 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 44
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer75, i8* align 1 %219, i64 1, i1 false)
-  %220 = load i8, i8* %_buffer75
+  %220 = load i8, i8* %_buffer75, align 1
   %221 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 45
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer31, i8* align 1 %221, i64 1, i1 false)
-  %222 = load i8, i8* %_buffer31
+  %222 = load i8, i8* %_buffer31, align 1
   %223 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 46
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer101, i8* align 1 %223, i64 1, i1 false)
-  %224 = load i8, i8* %_buffer101
+  %224 = load i8, i8* %_buffer101, align 1
   %225 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 47
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer33, i8* align 1 %225, i64 1, i1 false)
-  %226 = load i8, i8* %_buffer33
+  %226 = load i8, i8* %_buffer33, align 1
   %227 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 48
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer35, i8* align 1 %227, i64 1, i1 false)
-  %228 = load i8, i8* %_buffer35
+  %228 = load i8, i8* %_buffer35, align 1
   %229 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 49
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer49, i8* align 1 %229, i64 1, i1 false)
-  %230 = load i8, i8* %_buffer49
+  %230 = load i8, i8* %_buffer49, align 1
   %231 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 50
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer37, i8* align 1 %231, i64 1, i1 false)
-  %232 = load i8, i8* %_buffer37
+  %232 = load i8, i8* %_buffer37, align 1
   %233 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 51
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer109, i8* align 1 %233, i64 1, i1 false)
-  %234 = load i8, i8* %_buffer109
+  %234 = load i8, i8* %_buffer109, align 1
   %235 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 52
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer40, i8* align 1 %235, i64 1, i1 false)
-  %236 = load i8, i8* %_buffer40
+  %236 = load i8, i8* %_buffer40, align 1
   %237 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 53
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer42, i8* align 1 %237, i64 1, i1 false)
-  %238 = load i8, i8* %_buffer42
+  %238 = load i8, i8* %_buffer42, align 1
   %switch.selectcmp4051 = icmp eq i8 %172, 17
   %switch.select4052 = select i1 %switch.selectcmp4051, i32 6, i32 7
   %switch.selectcmp4053 = icmp eq i8 %172, 6
@@ -860,7 +860,7 @@ if.end716:                                        ; preds = %parse_tcp
   %245 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %nanotube_packet_read_buf_off11, i64 %244, i64 20)
   %246 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %123, i8* align 1 %246, i64 2, i1 false)
-  %247 = load i16, i16* %_buffer43
+  %247 = load i16, i16* %_buffer43, align 2
   %rev4029 = tail call i16 @llvm.bswap.i16(i16 %247)
   %hdr.sroa.1604093.sroa.0.0.extract.trunc = trunc i16 %rev4029 to i8
   %hdr.sroa.1604093.sroa.7.0.extract.shift = lshr i16 %rev4029, 8
@@ -872,7 +872,7 @@ if.end716:                                        ; preds = %parse_tcp
   %249 = add i64 %248, 1
   %250 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 2
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %122, i8* align 1 %250, i64 2, i1 false)
-  %251 = load i16, i16* %_buffer45
+  %251 = load i16, i16* %_buffer45, align 2
   %rev4028 = tail call i16 @llvm.bswap.i16(i16 %251)
   %hdr.sroa.165.sroa.0.0.extract.trunc = trunc i16 %rev4028 to i8
   %hdr.sroa.165.sroa.7.0.extract.shift = lshr i16 %rev4028, 8
@@ -884,7 +884,7 @@ if.end716:                                        ; preds = %parse_tcp
   %253 = add i64 %252, 1
   %254 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 4
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %114, i8* align 1 %254, i64 4, i1 false)
-  %255 = load i32, i32* %_buffer78
+  %255 = load i32, i32* %_buffer78, align 4
   %or800 = tail call i32 @llvm.bswap.i32(i32 %255)
   %hdr.sroa.170.sroa.0.0.extract.trunc = trunc i32 %or800 to i8
   %hdr.sroa.170.sroa.7.0.extract.shift = lshr i32 %or800, 8
@@ -900,7 +900,7 @@ if.end716:                                        ; preds = %parse_tcp
   %257 = add i64 %256, 1
   %258 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 8
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %115, i8* align 1 %258, i64 4, i1 false)
-  %259 = load i32, i32* %_buffer73
+  %259 = load i32, i32* %_buffer73, align 4
   %or835 = tail call i32 @llvm.bswap.i32(i32 %259)
   %hdr.sroa.177.sroa.0.0.extract.trunc = trunc i32 %or835 to i8
   %hdr.sroa.177.sroa.7.0.extract.shift = lshr i32 %or835, 8
@@ -916,7 +916,7 @@ if.end716:                                        ; preds = %parse_tcp
   %261 = add i64 %260, 1
   %262 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 12
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer77, i8* align 1 %262, i64 1, i1 false)
-  %263 = load i8, i8* %_buffer77
+  %263 = load i8, i8* %_buffer77, align 1
   %264 = lshr i8 %263, 4
   %add852 = add nuw nsw i32 %add808, 36
   %div853 = lshr i32 %add852, 3
@@ -925,7 +925,7 @@ if.end716:                                        ; preds = %parse_tcp
   %266 = add i64 %265, 1
   %267 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 12
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %120, i8* align 1 %267, i64 2, i1 false)
-  %268 = load i16, i16* %_buffer48
+  %268 = load i16, i16* %_buffer48, align 2
   %rev4025 = tail call i16 @llvm.bswap.i16(i16 %268)
   %269 = lshr i16 %rev4025, 6
   %270 = trunc i16 %269 to i8
@@ -937,7 +937,7 @@ if.end716:                                        ; preds = %parse_tcp
   %272 = add i64 %271, 1
   %273 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 13
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %_buffer152, i8* align 1 %273, i64 1, i1 false)
-  %274 = load i8, i8* %_buffer152
+  %274 = load i8, i8* %_buffer152, align 1
   %275 = and i8 %274, 63
   %add892 = add nuw nsw i32 %add808, 48
   %div893 = lshr exact i32 %add892, 3
@@ -946,7 +946,7 @@ if.end716:                                        ; preds = %parse_tcp
   %277 = add i64 %276, 1
   %278 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 14
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %116, i8* align 1 %278, i64 2, i1 false)
-  %279 = load i16, i16* %_buffer57
+  %279 = load i16, i16* %_buffer57, align 2
   %rev4024 = tail call i16 @llvm.bswap.i16(i16 %279)
   %hdr.sroa.1904102.sroa.0.0.extract.trunc = trunc i16 %rev4024 to i8
   %hdr.sroa.1904102.sroa.7.0.extract.shift = lshr i16 %rev4024, 8
@@ -958,7 +958,7 @@ if.end716:                                        ; preds = %parse_tcp
   %281 = add i64 %280, 1
   %282 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 16
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %107, i8* align 1 %282, i64 2, i1 false)
-  %283 = load i16, i16* %_buffer143
+  %283 = load i16, i16* %_buffer143, align 2
   %rev4023 = tail call i16 @llvm.bswap.i16(i16 %283)
   %hdr.sroa.195.sroa.0.0.extract.trunc4140 = trunc i16 %rev4023 to i8
   %hdr.sroa.195.sroa.7.0.extract.shift4141 = lshr i16 %rev4023, 8
@@ -970,7 +970,7 @@ if.end716:                                        ; preds = %parse_tcp
   %285 = add i64 %284, 1
   %286 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off11, i32 18
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %110, i8* align 1 %286, i64 2, i1 false)
-  %287 = load i16, i16* %_buffer88
+  %287 = load i16, i16* %_buffer88, align 2
   %rev4022 = tail call i16 @llvm.bswap.i16(i16 %287)
   %hdr.sroa.200.sroa.0.0.extract.trunc4137 = trunc i16 %rev4022 to i8
   %hdr.sroa.200.sroa.7.0.extract.shift4138 = lshr i16 %rev4022, 8
@@ -1062,7 +1062,7 @@ if.end989:                                        ; preds = %parse_udp
   %294 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %nanotube_packet_read_buf_off1, i64 %293, i64 8)
   %295 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off1, i32 0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %118, i8* align 1 %295, i64 2, i1 false)
-  %296 = load i16, i16* %_buffer52
+  %296 = load i16, i16* %_buffer52, align 2
   %rev4021 = tail call i16 @llvm.bswap.i16(i16 %296)
   %hdr.sroa.2084110.sroa.0.0.extract.trunc = trunc i16 %rev4021 to i8
   %hdr.sroa.2084110.sroa.7.0.extract.shift = lshr i16 %rev4021, 8
@@ -1074,7 +1074,7 @@ if.end989:                                        ; preds = %parse_udp
   %298 = add i64 %297, 1
   %299 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off1, i32 2
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %112, i8* align 1 %299, i64 2, i1 false)
-  %300 = load i16, i16* %_buffer83
+  %300 = load i16, i16* %_buffer83, align 2
   %rev4020 = tail call i16 @llvm.bswap.i16(i16 %300)
   %hdr.sroa.213.sroa.0.0.extract.trunc4131 = trunc i16 %rev4020 to i8
   %hdr.sroa.213.sroa.7.0.extract.shift4132 = lshr i16 %rev4020, 8
@@ -1086,7 +1086,7 @@ if.end989:                                        ; preds = %parse_udp
   %302 = add i64 %301, 1
   %303 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off1, i32 4
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %108, i8* align 1 %303, i64 2, i1 false)
-  %304 = load i16, i16* %_buffer112
+  %304 = load i16, i16* %_buffer112, align 2
   %rev4019 = tail call i16 @llvm.bswap.i16(i16 %304)
   %hdr.sroa.218.sroa.0.0.extract.trunc4128 = trunc i16 %rev4019 to i8
   %hdr.sroa.218.sroa.7.0.extract.shift4129 = lshr i16 %rev4019, 8
@@ -1098,7 +1098,7 @@ if.end989:                                        ; preds = %parse_udp
   %306 = add i64 %305, 1
   %307 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off1, i32 6
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %117, i8* align 1 %307, i64 2, i1 false)
-  %308 = load i16, i16* %_buffer54
+  %308 = load i16, i16* %_buffer54, align 2
   %rev4018 = tail call i16 @llvm.bswap.i16(i16 %308)
   %hdr.sroa.223.sroa.0.0.extract.trunc4125 = trunc i16 %rev4018 to i8
   %hdr.sroa.223.sroa.7.0.extract.shift4126 = lshr i16 %rev4018, 8
@@ -1110,7 +1110,7 @@ if.end1118:                                       ; preds = %entry
   %309 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %nanotube_packet_read_buf_off12, i64 1, i64 54)
   %310 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %127, i8* align 1 %310, i64 8, i1 false)
-  %311 = load i64, i64* %_buffer19
+  %311 = load i64, i64* %_buffer19, align 8
   %hdr.sroa.0.sroa.0.0.extract.trunc = trunc i64 %311 to i8
   %hdr.sroa.0.sroa.5.0.extract.shift = lshr i64 %311, 8
   %hdr.sroa.0.sroa.5.0.extract.trunc = trunc i64 %hdr.sroa.0.sroa.5.0.extract.shift to i8
@@ -1124,7 +1124,7 @@ if.end1118:                                       ; preds = %entry
   %hdr.sroa.0.sroa.9.0.extract.trunc = trunc i64 %shl1122 to i8
   %312 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 6
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %109, i8* align 1 %312, i64 8, i1 false)
-  %313 = load i64, i64* %_buffer90
+  %313 = load i64, i64* %_buffer90, align 8
   %hdr.sroa.10.sroa.0.0.extract.trunc = trunc i64 %313 to i8
   %hdr.sroa.10.sroa.5.0.extract.shift = lshr i64 %313, 8
   %hdr.sroa.10.sroa.5.0.extract.trunc = trunc i64 %hdr.sroa.10.sroa.5.0.extract.shift to i8
@@ -1138,7 +1138,7 @@ if.end1118:                                       ; preds = %entry
   %hdr.sroa.10.sroa.9.0.extract.trunc = trunc i64 %shl1129 to i8
   %314 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off12, i32 12
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %111, i8* align 1 %314, i64 2, i1 false)
-  %315 = load i16, i16* %_buffer84
+  %315 = load i16, i16* %_buffer84, align 2
   %switch.selectcmp = icmp eq i16 %315, -8826
   %switch.select = select i1 %switch.selectcmp, i32 8, i32 7
   %switch.selectcmp4045 = icmp eq i16 %315, 8
@@ -1476,7 +1476,7 @@ if.then1258:                                      ; preds = %if.else1190.thread.
   br i1 %319, label %cleanup3277, label %if.end1474
 
 if.end1474:                                       ; preds = %if.then1258
-  store i8 %hdr.sroa.0.sroa.0.0.extract.trunc, i8* %_buffer
+  store i8 %hdr.sroa.0.sroa.0.0.extract.trunc, i8* %_buffer, align 1
   %savedstack = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %103), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1489,7 +1489,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer, i8* %103, i64 0, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %103), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack), !dbg !408
-  store i8 %hdr.sroa.0.sroa.5.0.extract.trunc, i8* %_buffer170
+  store i8 %hdr.sroa.0.sroa.5.0.extract.trunc, i8* %_buffer170, align 1
   %savedstack3 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %102), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1502,7 +1502,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer170, i8* %102, i64 1, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %102), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack3), !dbg !408
-  store i8 %hdr.sroa.0.sroa.6.0.extract.trunc, i8* %_buffer10
+  store i8 %hdr.sroa.0.sroa.6.0.extract.trunc, i8* %_buffer10, align 1
   %savedstack5 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %101), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1515,7 +1515,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer10, i8* %101, i64 2, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %101), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack5), !dbg !408
-  store i8 %hdr.sroa.0.sroa.7.0.extract.trunc, i8* %_buffer12
+  store i8 %hdr.sroa.0.sroa.7.0.extract.trunc, i8* %_buffer12, align 1
   %savedstack7 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %100), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1528,7 +1528,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer12, i8* %100, i64 3, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %100), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack7), !dbg !408
-  store i8 %hdr.sroa.0.sroa.8.0.extract.trunc, i8* %_buffer172
+  store i8 %hdr.sroa.0.sroa.8.0.extract.trunc, i8* %_buffer172, align 1
   %savedstack9 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %99), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1541,7 +1541,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer172, i8* %99, i64 4, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %99), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack9), !dbg !408
-  store i8 %hdr.sroa.0.sroa.9.0.extract.trunc, i8* %_buffer102
+  store i8 %hdr.sroa.0.sroa.9.0.extract.trunc, i8* %_buffer102, align 1
   %savedstack11 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %98), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1554,7 +1554,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer102, i8* %98, i64 5, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %98), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack11), !dbg !408
-  store i8 %hdr.sroa.10.sroa.0.0.extract.trunc, i8* %_buffer3
+  store i8 %hdr.sroa.10.sroa.0.0.extract.trunc, i8* %_buffer3, align 1
   %savedstack13 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %97), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1567,7 +1567,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer3, i8* %97, i64 6, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %97), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack13), !dbg !408
-  store i8 %hdr.sroa.10.sroa.5.0.extract.trunc, i8* %_buffer80
+  store i8 %hdr.sroa.10.sroa.5.0.extract.trunc, i8* %_buffer80, align 1
   %savedstack15 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %96), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1580,7 +1580,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer80, i8* %96, i64 7, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %96), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack15), !dbg !408
-  store i8 %hdr.sroa.10.sroa.6.0.extract.trunc, i8* %_buffer4
+  store i8 %hdr.sroa.10.sroa.6.0.extract.trunc, i8* %_buffer4, align 1
   %savedstack17 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %95), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1593,7 +1593,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer4, i8* %95, i64 8, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %95), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack17), !dbg !408
-  store i8 %hdr.sroa.10.sroa.7.0.extract.trunc, i8* %_buffer91
+  store i8 %hdr.sroa.10.sroa.7.0.extract.trunc, i8* %_buffer91, align 1
   %savedstack19 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %94), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1606,7 +1606,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer91, i8* %94, i64 9, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %94), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack19), !dbg !408
-  store i8 %hdr.sroa.10.sroa.8.0.extract.trunc, i8* %_buffer63
+  store i8 %hdr.sroa.10.sroa.8.0.extract.trunc, i8* %_buffer63, align 1
   %savedstack21 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %93), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1619,7 +1619,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer63, i8* %93, i64 10, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %93), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack21), !dbg !408
-  store i8 %hdr.sroa.10.sroa.9.0.extract.trunc, i8* %_buffer103
+  store i8 %hdr.sroa.10.sroa.9.0.extract.trunc, i8* %_buffer103, align 1
   %savedstack23 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %92), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1635,7 +1635,7 @@ if.end1474:                                       ; preds = %if.then1258
   %hdr.sroa.17.sroa.0.0.extract.trunc = trunc i16 %315 to i8
   %hdr.sroa.17.sroa.7.0.extract.shift = lshr i16 %315, 8
   %hdr.sroa.17.sroa.7.0.extract.trunc = trunc i16 %hdr.sroa.17.sroa.7.0.extract.shift to i8
-  store i8 %hdr.sroa.17.sroa.0.0.extract.trunc, i8* %_buffer163
+  store i8 %hdr.sroa.17.sroa.0.0.extract.trunc, i8* %_buffer163, align 1
   %savedstack25 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %91), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1648,7 +1648,7 @@ if.end1474:                                       ; preds = %if.then1258
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off18, i8* %write_mask_off19, i8* %_buffer163, i8* %91, i64 12, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %91), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack25), !dbg !408
-  store i8 %hdr.sroa.17.sroa.7.0.extract.trunc, i8* %_buffer5
+  store i8 %hdr.sroa.17.sroa.7.0.extract.trunc, i8* %_buffer5, align 1
   %savedstack27 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %90), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1672,7 +1672,7 @@ if.end1486:                                       ; preds = %if.then1478
   %shl1492 = shl i8 %hdr.sroa.254063.243954405, 4
   %322 = and i8 %hdr.sroa.27.243934406, 15
   %or15174010 = or i8 %shl1492, %322
-  store i8 %or15174010, i8* %_buffer115
+  store i8 %or15174010, i8* %_buffer115, align 1
   %savedstack29 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %89), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1685,7 +1685,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer115, i8* %89, i64 0, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %89), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack29), !dbg !408
-  store i8 %hdr.sroa.29.243914407, i8* %_buffer95
+  store i8 %hdr.sroa.29.243914407, i8* %_buffer95, align 1
   %savedstack31 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %88), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1706,7 +1706,7 @@ if.end1486:                                       ; preds = %if.then1478
   %hdr.sroa.314064.sroa.0.0.extract.trunc4195 = trunc i16 %rev4016 to i8
   %hdr.sroa.314064.sroa.7.0.extract.shift4196 = lshr i16 %rev4016, 8
   %hdr.sroa.314064.sroa.7.0.extract.trunc4197 = trunc i16 %hdr.sroa.314064.sroa.7.0.extract.shift4196 to i8
-  store i8 %hdr.sroa.314064.sroa.0.0.extract.trunc4195, i8* %_buffer97
+  store i8 %hdr.sroa.314064.sroa.0.0.extract.trunc4195, i8* %_buffer97, align 1
   %savedstack33 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %87), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1719,7 +1719,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer97, i8* %87, i64 2, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %87), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack33), !dbg !408
-  store i8 %hdr.sroa.314064.sroa.7.0.extract.trunc4197, i8* %_buffer8
+  store i8 %hdr.sroa.314064.sroa.7.0.extract.trunc4197, i8* %_buffer8, align 1
   %savedstack35 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %86), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1740,7 +1740,7 @@ if.end1486:                                       ; preds = %if.then1478
   %hdr.sroa.36.sroa.0.0.extract.trunc = trunc i16 %rev4015 to i8
   %hdr.sroa.36.sroa.7.0.extract.shift = lshr i16 %rev4015, 8
   %hdr.sroa.36.sroa.7.0.extract.trunc = trunc i16 %hdr.sroa.36.sroa.7.0.extract.shift to i8
-  store i8 %hdr.sroa.36.sroa.0.0.extract.trunc, i8* %_buffer168
+  store i8 %hdr.sroa.36.sroa.0.0.extract.trunc, i8* %_buffer168, align 1
   %savedstack37 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %85), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1753,7 +1753,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer168, i8* %85, i64 4, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %85), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack37), !dbg !408
-  store i8 %hdr.sroa.36.sroa.7.0.extract.trunc, i8* %_buffer68
+  store i8 %hdr.sroa.36.sroa.7.0.extract.trunc, i8* %_buffer68, align 1
   %savedstack39 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %84), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1770,7 +1770,7 @@ if.end1486:                                       ; preds = %if.then1478
   %323 = lshr i8 %hdr.sroa.434069.sroa.0.242174494, 2
   %324 = and i8 %323, 7
   %or16764011 = or i8 %shl1649, %324
-  store i8 %or16764011, i8* %_buffer121
+  store i8 %or16764011, i8* %_buffer121, align 1
   %savedstack41 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %83), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1783,7 +1783,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer121, i8* %83, i64 6, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %83), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack41), !dbg !408
-  store i8 %hdr.sroa.434069.sroa.5.242154495, i8* %_buffer6
+  store i8 %hdr.sroa.434069.sroa.5.242154495, i8* %_buffer6, align 1
   %savedstack43 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %82), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1796,7 +1796,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer6, i8* %82, i64 7, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %82), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack43), !dbg !408
-  store i8 %hdr.sroa.46.243874409, i8* %_buffer18
+  store i8 %hdr.sroa.46.243874409, i8* %_buffer18, align 1
   %savedstack45 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %81), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1809,7 +1809,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer18, i8* %81, i64 8, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %81), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack45), !dbg !408
-  store i8 %hdr.sroa.48.243854410, i8* %_buffer7
+  store i8 %hdr.sroa.48.243854410, i8* %_buffer7, align 1
   %savedstack47 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %80), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1830,7 +1830,7 @@ if.end1486:                                       ; preds = %if.then1478
   %hdr.sroa.51.sroa.0.0.extract.trunc4189 = trunc i16 %rev4014 to i8
   %hdr.sroa.51.sroa.7.0.extract.shift4190 = lshr i16 %rev4014, 8
   %hdr.sroa.51.sroa.7.0.extract.trunc4191 = trunc i16 %hdr.sroa.51.sroa.7.0.extract.shift4190 to i8
-  store i8 %hdr.sroa.51.sroa.0.0.extract.trunc4189, i8* %_buffer117
+  store i8 %hdr.sroa.51.sroa.0.0.extract.trunc4189, i8* %_buffer117, align 1
   %savedstack49 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %79), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1843,7 +1843,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer117, i8* %79, i64 10, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %79), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack49), !dbg !408
-  store i8 %hdr.sroa.51.sroa.7.0.extract.trunc4191, i8* %_buffer159
+  store i8 %hdr.sroa.51.sroa.7.0.extract.trunc4191, i8* %_buffer159, align 1
   %savedstack51 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %78), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1874,7 +1874,7 @@ if.end1486:                                       ; preds = %if.then1478
   %hdr.sroa.56.sroa.8.0.extract.trunc4186 = trunc i32 %hdr.sroa.56.sroa.8.0.extract.shift4185 to i8
   %hdr.sroa.56.sroa.9.0.extract.shift4187 = lshr i32 %or1799, 24
   %hdr.sroa.56.sroa.9.0.extract.trunc4188 = trunc i32 %hdr.sroa.56.sroa.9.0.extract.shift4187 to i8
-  store i8 %hdr.sroa.56.sroa.0.0.extract.trunc4182, i8* %_buffer67
+  store i8 %hdr.sroa.56.sroa.0.0.extract.trunc4182, i8* %_buffer67, align 1
   %savedstack53 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %77), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1887,7 +1887,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer67, i8* %77, i64 12, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %77), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack53), !dbg !408
-  store i8 %hdr.sroa.56.sroa.7.0.extract.trunc4184, i8* %_buffer133
+  store i8 %hdr.sroa.56.sroa.7.0.extract.trunc4184, i8* %_buffer133, align 1
   %savedstack55 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %76), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1900,7 +1900,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer133, i8* %76, i64 13, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %76), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack55), !dbg !408
-  store i8 %hdr.sroa.56.sroa.8.0.extract.trunc4186, i8* %_buffer98
+  store i8 %hdr.sroa.56.sroa.8.0.extract.trunc4186, i8* %_buffer98, align 1
   %savedstack57 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %75), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1913,7 +1913,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer98, i8* %75, i64 14, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %75), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack57), !dbg !408
-  store i8 %hdr.sroa.56.sroa.9.0.extract.trunc4188, i8* %_buffer9
+  store i8 %hdr.sroa.56.sroa.9.0.extract.trunc4188, i8* %_buffer9, align 1
   %savedstack59 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %74), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1944,7 +1944,7 @@ if.end1486:                                       ; preds = %if.then1478
   %hdr.sroa.63.sroa.8.0.extract.trunc = trunc i32 %hdr.sroa.63.sroa.8.0.extract.shift to i8
   %hdr.sroa.63.sroa.9.0.extract.shift = lshr i32 %or1881, 24
   %hdr.sroa.63.sroa.9.0.extract.trunc = trunc i32 %hdr.sroa.63.sroa.9.0.extract.shift to i8
-  store i8 %hdr.sroa.63.sroa.0.0.extract.trunc, i8* %_buffer11
+  store i8 %hdr.sroa.63.sroa.0.0.extract.trunc, i8* %_buffer11, align 1
   %savedstack61 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %73), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1957,7 +1957,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer11, i8* %73, i64 16, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %73), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack61), !dbg !408
-  store i8 %hdr.sroa.63.sroa.7.0.extract.trunc, i8* %_buffer81
+  store i8 %hdr.sroa.63.sroa.7.0.extract.trunc, i8* %_buffer81, align 1
   %savedstack63 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %72), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1970,7 +1970,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer81, i8* %72, i64 17, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %72), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack63), !dbg !408
-  store i8 %hdr.sroa.63.sroa.8.0.extract.trunc, i8* %_buffer173
+  store i8 %hdr.sroa.63.sroa.8.0.extract.trunc, i8* %_buffer173, align 1
   %savedstack65 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %71), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -1983,7 +1983,7 @@ if.end1486:                                       ; preds = %if.then1478
   call void @nanotube_merge_data_mask(i8* %nanotube_packet_write_masked_buf_off1510, i8* %write_mask_off1511, i8* %_buffer173, i8* %71, i64 18, i64 1), !dbg !407
   call void @llvm.lifetime.end.p0i8(i64 1, i8* %71), !dbg !408
   call void @llvm.stackrestore(i8* %savedstack65), !dbg !408
-  store i8 %hdr.sroa.63.sroa.9.0.extract.trunc, i8* %_buffer111
+  store i8 %hdr.sroa.63.sroa.9.0.extract.trunc, i8* %_buffer111, align 1
   %savedstack67 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %70), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2018,7 +2018,7 @@ if.end1954:                                       ; preds = %if.then1946
   %328 = add i64 0, %idx.ext1964
   %329 = lshr i8 %hdr.sroa.76.243814412, 4
   %or19874007 = or i8 %shl1960, %329
-  store i8 %or19874007, i8* %_buffer76
+  store i8 %or19874007, i8* %_buffer76, align 1
   %savedstack69 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %69), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2037,11 +2037,11 @@ if.end1954:                                       ; preds = %if.then1946
   %331 = add i64 0, %idx.ext2002
   %332 = add i64 %331, 1
   %333 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer135, i64 %332, i64 1)
-  %334 = load i8, i8* %_buffer135
+  %334 = load i8, i8* %_buffer135, align 1
   %335 = and i8 %334, -16
   %336 = and i8 %hdr.sroa.784084.sroa.0.242434481, 15
   %or20144008 = or i8 %335, %336
-  store i8 %or20144008, i8* %_buffer134
+  store i8 %or20144008, i8* %_buffer134, align 1
   %savedstack71 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %68), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2058,7 +2058,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2030 = add nuw nsw i32 %div2001, 1
   %idx.ext2031 = zext i32 %add2030 to i64
   %338 = add i64 0, %idx.ext2031
-  store i8 %hdr.sroa.784084.sroa.5.242414482, i8* %_buffer71
+  store i8 %hdr.sroa.784084.sroa.5.242414482, i8* %_buffer71, align 1
   %savedstack73 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %67), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2075,7 +2075,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2043 = add nuw nsw i32 %div2001, 2
   %idx.ext2044 = zext i32 %add2043 to i64
   %340 = add i64 0, %idx.ext2044
-  store i8 %hdr.sroa.784084.sroa.6.242394483, i8* %_buffer74
+  store i8 %hdr.sroa.784084.sroa.6.242394483, i8* %_buffer74, align 1
   %savedstack75 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %66), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2101,7 +2101,7 @@ if.end1954:                                       ; preds = %if.then1946
   %div2081 = lshr exact i32 %add2048, 3
   %idx.ext2083 = zext i32 %div2081 to i64
   %342 = add i64 0, %idx.ext2083
-  store i8 %hdr.sroa.82.sroa.0.0.extract.trunc, i8* %_buffer13
+  store i8 %hdr.sroa.82.sroa.0.0.extract.trunc, i8* %_buffer13, align 1
   %savedstack77 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %65), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2118,7 +2118,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2095 = or i32 %div2081, 1
   %idx.ext2096 = zext i32 %add2095 to i64
   %344 = add i64 0, %idx.ext2096
-  store i8 %hdr.sroa.82.sroa.7.0.extract.trunc, i8* %_buffer169
+  store i8 %hdr.sroa.82.sroa.7.0.extract.trunc, i8* %_buffer169, align 1
   %savedstack79 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %64), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2136,7 +2136,7 @@ if.end1954:                                       ; preds = %if.then1946
   %div2108 = lshr exact i32 %add2100, 3
   %idx.ext2110 = zext i32 %div2108 to i64
   %346 = add i64 0, %idx.ext2110
-  store i8 %hdr.sroa.87.243794413, i8* %_buffer60
+  store i8 %hdr.sroa.87.243794413, i8* %_buffer60, align 1
   %savedstack81 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %63), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2154,7 +2154,7 @@ if.end1954:                                       ; preds = %if.then1946
   %div2122 = lshr exact i32 %add2114, 3
   %idx.ext2124 = zext i32 %div2122 to i64
   %348 = add i64 0, %idx.ext2124
-  store i8 %hdr.sroa.90.243774414, i8* %_buffer113
+  store i8 %hdr.sroa.90.243774414, i8* %_buffer113, align 1
   %savedstack83 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %62), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2172,7 +2172,7 @@ if.end1954:                                       ; preds = %if.then1946
   %div2136 = lshr exact i32 %add2128, 3
   %idx.ext2138 = zext i32 %div2136 to i64
   %350 = add i64 0, %idx.ext2138
-  store i8 %hdr.sroa.92.243754415, i8* %_buffer166
+  store i8 %hdr.sroa.92.243754415, i8* %_buffer166, align 1
   %savedstack85 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %61), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2189,7 +2189,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2150 = or i32 %div2136, 1
   %idx.ext2151 = zext i32 %add2150 to i64
   %352 = add i64 0, %idx.ext2151
-  store i8 %hdr.sroa.94.243734416, i8* %_buffer69
+  store i8 %hdr.sroa.94.243734416, i8* %_buffer69, align 1
   %savedstack87 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %60), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2206,7 +2206,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2163 = add nuw nsw i32 %div2136, 2
   %idx.ext2164 = zext i32 %add2163 to i64
   %354 = add i64 0, %idx.ext2164
-  store i8 %hdr.sroa.96.243714417, i8* %_buffer72
+  store i8 %hdr.sroa.96.243714417, i8* %_buffer72, align 1
   %savedstack89 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %59), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2223,7 +2223,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2176 = add nuw nsw i32 %div2136, 3
   %idx.ext2177 = zext i32 %add2176 to i64
   %356 = add i64 0, %idx.ext2177
-  store i8 %hdr.sroa.98.243694418, i8* %_buffer160
+  store i8 %hdr.sroa.98.243694418, i8* %_buffer160, align 1
   %savedstack91 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %58), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2240,7 +2240,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2189 = add nuw nsw i32 %div2136, 4
   %idx.ext2190 = zext i32 %add2189 to i64
   %358 = add i64 0, %idx.ext2190
-  store i8 %hdr.sroa.100.243674419, i8* %_buffer155
+  store i8 %hdr.sroa.100.243674419, i8* %_buffer155, align 1
   %savedstack93 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %57), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2257,7 +2257,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2202 = add nuw nsw i32 %div2136, 5
   %idx.ext2203 = zext i32 %add2202 to i64
   %360 = add i64 0, %idx.ext2203
-  store i8 %hdr.sroa.102.243654420, i8* %_buffer167
+  store i8 %hdr.sroa.102.243654420, i8* %_buffer167, align 1
   %savedstack95 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %56), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2274,7 +2274,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2215 = add nuw nsw i32 %div2136, 6
   %idx.ext2216 = zext i32 %add2215 to i64
   %362 = add i64 0, %idx.ext2216
-  store i8 %hdr.sroa.104.243634421, i8* %_buffer150
+  store i8 %hdr.sroa.104.243634421, i8* %_buffer150, align 1
   %savedstack97 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %55), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2291,7 +2291,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2228 = add nuw nsw i32 %div2136, 7
   %idx.ext2229 = zext i32 %add2228 to i64
   %364 = add i64 0, %idx.ext2229
-  store i8 %hdr.sroa.106.243614422, i8* %_buffer62
+  store i8 %hdr.sroa.106.243614422, i8* %_buffer62, align 1
   %savedstack99 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %54), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2308,7 +2308,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2241 = add nuw nsw i32 %div2136, 8
   %idx.ext2242 = zext i32 %add2241 to i64
   %366 = add i64 0, %idx.ext2242
-  store i8 %hdr.sroa.108.243594423, i8* %_buffer85
+  store i8 %hdr.sroa.108.243594423, i8* %_buffer85, align 1
   %savedstack101 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %53), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2325,7 +2325,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2254 = add nuw nsw i32 %div2136, 9
   %idx.ext2255 = zext i32 %add2254 to i64
   %368 = add i64 0, %idx.ext2255
-  store i8 %hdr.sroa.110.243574424, i8* %_buffer146
+  store i8 %hdr.sroa.110.243574424, i8* %_buffer146, align 1
   %savedstack103 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %52), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2342,7 +2342,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2267 = add nuw nsw i32 %div2136, 10
   %idx.ext2268 = zext i32 %add2267 to i64
   %370 = add i64 0, %idx.ext2268
-  store i8 %hdr.sroa.112.243554425, i8* %_buffer141
+  store i8 %hdr.sroa.112.243554425, i8* %_buffer141, align 1
   %savedstack105 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %51), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2359,7 +2359,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2280 = add nuw nsw i32 %div2136, 11
   %idx.ext2281 = zext i32 %add2280 to i64
   %372 = add i64 0, %idx.ext2281
-  store i8 %hdr.sroa.114.243534426, i8* %_buffer139
+  store i8 %hdr.sroa.114.243534426, i8* %_buffer139, align 1
   %savedstack107 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %50), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2376,7 +2376,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2293 = add nuw nsw i32 %div2136, 12
   %idx.ext2294 = zext i32 %add2293 to i64
   %374 = add i64 0, %idx.ext2294
-  store i8 %hdr.sroa.116.243514427, i8* %_buffer131
+  store i8 %hdr.sroa.116.243514427, i8* %_buffer131, align 1
   %savedstack109 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %49), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2393,7 +2393,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2306 = add nuw nsw i32 %div2136, 13
   %idx.ext2307 = zext i32 %add2306 to i64
   %376 = add i64 0, %idx.ext2307
-  store i8 %hdr.sroa.118.243494428, i8* %_buffer127
+  store i8 %hdr.sroa.118.243494428, i8* %_buffer127, align 1
   %savedstack111 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %48), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2410,7 +2410,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2319 = add nuw nsw i32 %div2136, 14
   %idx.ext2320 = zext i32 %add2319 to i64
   %378 = add i64 0, %idx.ext2320
-  store i8 %hdr.sroa.120.243474429, i8* %_buffer125
+  store i8 %hdr.sroa.120.243474429, i8* %_buffer125, align 1
   %savedstack113 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %47), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2427,7 +2427,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2332 = add nuw nsw i32 %div2136, 15
   %idx.ext2333 = zext i32 %add2332 to i64
   %380 = add i64 0, %idx.ext2333
-  store i8 %hdr.sroa.122.243454430, i8* %_buffer123
+  store i8 %hdr.sroa.122.243454430, i8* %_buffer123, align 1
   %savedstack115 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %46), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2445,7 +2445,7 @@ if.end1954:                                       ; preds = %if.then1946
   %div2345 = lshr exact i32 %add2337, 3
   %idx.ext2347 = zext i32 %div2345 to i64
   %382 = add i64 0, %idx.ext2347
-  store i8 %hdr.sroa.124.243434431, i8* %_buffer156
+  store i8 %hdr.sroa.124.243434431, i8* %_buffer156, align 1
   %savedstack117 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %45), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2462,7 +2462,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2359 = or i32 %div2345, 1
   %idx.ext2360 = zext i32 %add2359 to i64
   %384 = add i64 0, %idx.ext2360
-  store i8 %hdr.sroa.126.243414432, i8* %_buffer154
+  store i8 %hdr.sroa.126.243414432, i8* %_buffer154, align 1
   %savedstack119 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %44), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2479,7 +2479,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2372 = add nuw nsw i32 %div2345, 2
   %idx.ext2373 = zext i32 %add2372 to i64
   %386 = add i64 0, %idx.ext2373
-  store i8 %hdr.sroa.128.243394433, i8* %_buffer151
+  store i8 %hdr.sroa.128.243394433, i8* %_buffer151, align 1
   %savedstack121 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %43), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2496,7 +2496,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2385 = add nuw nsw i32 %div2345, 3
   %idx.ext2386 = zext i32 %add2385 to i64
   %388 = add i64 0, %idx.ext2386
-  store i8 %hdr.sroa.130.243374434, i8* %_buffer147
+  store i8 %hdr.sroa.130.243374434, i8* %_buffer147, align 1
   %savedstack123 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %42), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2513,7 +2513,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2398 = add nuw nsw i32 %div2345, 4
   %idx.ext2399 = zext i32 %add2398 to i64
   %390 = add i64 0, %idx.ext2399
-  store i8 %hdr.sroa.132.243354435, i8* %_buffer118
+  store i8 %hdr.sroa.132.243354435, i8* %_buffer118, align 1
   %savedstack125 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %41), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2530,7 +2530,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2411 = add nuw nsw i32 %div2345, 5
   %idx.ext2412 = zext i32 %add2411 to i64
   %392 = add i64 0, %idx.ext2412
-  store i8 %hdr.sroa.134.243334436, i8* %_buffer116
+  store i8 %hdr.sroa.134.243334436, i8* %_buffer116, align 1
   %savedstack127 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %40), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2547,7 +2547,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2424 = add nuw nsw i32 %div2345, 6
   %idx.ext2425 = zext i32 %add2424 to i64
   %394 = add i64 0, %idx.ext2425
-  store i8 %hdr.sroa.136.243314437, i8* %_buffer142
+  store i8 %hdr.sroa.136.243314437, i8* %_buffer142, align 1
   %savedstack129 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %39), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2564,7 +2564,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2437 = add nuw nsw i32 %div2345, 7
   %idx.ext2438 = zext i32 %add2437 to i64
   %396 = add i64 0, %idx.ext2438
-  store i8 %hdr.sroa.138.243294438, i8* %_buffer140
+  store i8 %hdr.sroa.138.243294438, i8* %_buffer140, align 1
   %savedstack131 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %38), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2581,7 +2581,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2450 = add nuw nsw i32 %div2345, 8
   %idx.ext2451 = zext i32 %add2450 to i64
   %398 = add i64 0, %idx.ext2451
-  store i8 %hdr.sroa.140.243274439, i8* %_buffer137
+  store i8 %hdr.sroa.140.243274439, i8* %_buffer137, align 1
   %savedstack133 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %37), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2598,7 +2598,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2463 = add nuw nsw i32 %div2345, 9
   %idx.ext2464 = zext i32 %add2463 to i64
   %400 = add i64 0, %idx.ext2464
-  store i8 %hdr.sroa.142.243254440, i8* %_buffer129
+  store i8 %hdr.sroa.142.243254440, i8* %_buffer129, align 1
   %savedstack135 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %36), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2615,7 +2615,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2476 = add nuw nsw i32 %div2345, 10
   %idx.ext2477 = zext i32 %add2476 to i64
   %402 = add i64 0, %idx.ext2477
-  store i8 %hdr.sroa.144.243234441, i8* %_buffer126
+  store i8 %hdr.sroa.144.243234441, i8* %_buffer126, align 1
   %savedstack137 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %35), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2632,7 +2632,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2489 = add nuw nsw i32 %div2345, 11
   %idx.ext2490 = zext i32 %add2489 to i64
   %404 = add i64 0, %idx.ext2490
-  store i8 %hdr.sroa.146.243214442, i8* %_buffer124
+  store i8 %hdr.sroa.146.243214442, i8* %_buffer124, align 1
   %savedstack139 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %34), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2649,7 +2649,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2502 = add nuw nsw i32 %div2345, 12
   %idx.ext2503 = zext i32 %add2502 to i64
   %406 = add i64 0, %idx.ext2503
-  store i8 %hdr.sroa.148.243194443, i8* %_buffer122
+  store i8 %hdr.sroa.148.243194443, i8* %_buffer122, align 1
   %savedstack141 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %33), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2666,7 +2666,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2515 = add nuw nsw i32 %div2345, 13
   %idx.ext2516 = zext i32 %add2515 to i64
   %408 = add i64 0, %idx.ext2516
-  store i8 %hdr.sroa.150.243174444, i8* %_buffer105
+  store i8 %hdr.sroa.150.243174444, i8* %_buffer105, align 1
   %savedstack143 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %32), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2683,7 +2683,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2528 = add nuw nsw i32 %div2345, 14
   %idx.ext2529 = zext i32 %add2528 to i64
   %410 = add i64 0, %idx.ext2529
-  store i8 %hdr.sroa.152.243154445, i8* %_buffer104
+  store i8 %hdr.sroa.152.243154445, i8* %_buffer104, align 1
   %savedstack145 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %31), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2700,7 +2700,7 @@ if.end1954:                                       ; preds = %if.then1946
   %add2541 = add nuw nsw i32 %div2345, 15
   %idx.ext2542 = zext i32 %add2541 to i64
   %412 = add i64 0, %idx.ext2542
-  store i8 %hdr.sroa.154.243134446, i8* %_buffer82
+  store i8 %hdr.sroa.154.243134446, i8* %_buffer82, align 1
   %savedstack147 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %30), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2744,7 +2744,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2592 = lshr i32 %ebpf_packetOffsetInBits.5, 3
   %idx.ext2594 = zext i32 %div2592 to i64
   %419 = add i64 0, %idx.ext2594
-  store i8 %hdr.sroa.1604093.sroa.0.0.extract.trunc4163, i8* %_buffer92
+  store i8 %hdr.sroa.1604093.sroa.0.0.extract.trunc4163, i8* %_buffer92, align 1
   %savedstack149 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %29), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2761,7 +2761,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2606 = add nuw nsw i32 %div2592, 1
   %idx.ext2607 = zext i32 %add2606 to i64
   %421 = add i64 0, %idx.ext2607
-  store i8 %hdr.sroa.1604093.sroa.7.0.extract.trunc4165, i8* %_buffer120
+  store i8 %hdr.sroa.1604093.sroa.7.0.extract.trunc4165, i8* %_buffer120, align 1
   %savedstack151 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %28), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2787,7 +2787,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2644 = lshr i32 %add2611, 3
   %idx.ext2646 = zext i32 %div2644 to i64
   %423 = add i64 0, %idx.ext2646
-  store i8 %hdr.sroa.165.sroa.0.0.extract.trunc4160, i8* %_buffer108
+  store i8 %hdr.sroa.165.sroa.0.0.extract.trunc4160, i8* %_buffer108, align 1
   %savedstack153 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %27), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2804,7 +2804,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2658 = add nuw nsw i32 %div2644, 1
   %idx.ext2659 = zext i32 %add2658 to i64
   %425 = add i64 0, %idx.ext2659
-  store i8 %hdr.sroa.165.sroa.7.0.extract.trunc4162, i8* %_buffer107
+  store i8 %hdr.sroa.165.sroa.7.0.extract.trunc4162, i8* %_buffer107, align 1
   %savedstack155 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %26), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2840,7 +2840,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2700 = lshr i32 %add2663, 3
   %idx.ext2702 = zext i32 %div2700 to i64
   %427 = add i64 0, %idx.ext2702
-  store i8 %hdr.sroa.170.sroa.0.0.extract.trunc4153, i8* %_buffer162
+  store i8 %hdr.sroa.170.sroa.0.0.extract.trunc4153, i8* %_buffer162, align 1
   %savedstack157 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %25), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2857,7 +2857,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2714 = add nuw nsw i32 %div2700, 1
   %idx.ext2715 = zext i32 %add2714 to i64
   %429 = add i64 0, %idx.ext2715
-  store i8 %hdr.sroa.170.sroa.7.0.extract.trunc4155, i8* %_buffer66
+  store i8 %hdr.sroa.170.sroa.7.0.extract.trunc4155, i8* %_buffer66, align 1
   %savedstack159 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %24), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2874,7 +2874,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2727 = add nuw nsw i32 %div2700, 2
   %idx.ext2728 = zext i32 %add2727 to i64
   %431 = add i64 0, %idx.ext2728
-  store i8 %hdr.sroa.170.sroa.8.0.extract.trunc4157, i8* %_buffer93
+  store i8 %hdr.sroa.170.sroa.8.0.extract.trunc4157, i8* %_buffer93, align 1
   %savedstack161 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %23), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2891,7 +2891,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2740 = add nuw nsw i32 %div2700, 3
   %idx.ext2741 = zext i32 %add2740 to i64
   %433 = add i64 0, %idx.ext2741
-  store i8 %hdr.sroa.170.sroa.9.0.extract.trunc4159, i8* %_buffer158
+  store i8 %hdr.sroa.170.sroa.9.0.extract.trunc4159, i8* %_buffer158, align 1
   %savedstack163 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %22), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2927,7 +2927,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2782 = lshr i32 %add2745, 3
   %idx.ext2784 = zext i32 %div2782 to i64
   %435 = add i64 0, %idx.ext2784
-  store i8 %hdr.sroa.177.sroa.0.0.extract.trunc4146, i8* %_buffer55
+  store i8 %hdr.sroa.177.sroa.0.0.extract.trunc4146, i8* %_buffer55, align 1
   %savedstack165 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %21), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2944,7 +2944,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2796 = add nuw nsw i32 %div2782, 1
   %idx.ext2797 = zext i32 %add2796 to i64
   %437 = add i64 0, %idx.ext2797
-  store i8 %hdr.sroa.177.sroa.7.0.extract.trunc4148, i8* %_buffer14
+  store i8 %hdr.sroa.177.sroa.7.0.extract.trunc4148, i8* %_buffer14, align 1
   %savedstack167 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %20), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2961,7 +2961,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2809 = add nuw nsw i32 %div2782, 2
   %idx.ext2810 = zext i32 %add2809 to i64
   %439 = add i64 0, %idx.ext2810
-  store i8 %hdr.sroa.177.sroa.8.0.extract.trunc4150, i8* %_buffer59
+  store i8 %hdr.sroa.177.sroa.8.0.extract.trunc4150, i8* %_buffer59, align 1
   %savedstack169 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %19), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2978,7 +2978,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2822 = add nuw nsw i32 %div2782, 3
   %idx.ext2823 = zext i32 %add2822 to i64
   %441 = add i64 0, %idx.ext2823
-  store i8 %hdr.sroa.177.sroa.9.0.extract.trunc4152, i8* %_buffer70
+  store i8 %hdr.sroa.177.sroa.9.0.extract.trunc4152, i8* %_buffer70, align 1
   %savedstack171 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %18), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -2997,7 +2997,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2835 = lshr i32 %add2827, 3
   %idx.ext2837 = zext i32 %div2835 to i64
   %443 = add i64 0, %idx.ext2837
-  store i8 %shl2833, i8* %_buffer164
+  store i8 %shl2833, i8* %_buffer164, align 1
   %savedstack173 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %17), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3021,12 +3021,12 @@ if.end2559:                                       ; preds = %if.then2551
   %448 = add i64 0, %idx.ext2848
   %449 = add i64 %448, 1
   %450 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer16, i64 %449, i64 1)
-  %451 = load i8, i8* %_buffer16
+  %451 = load i8, i8* %_buffer16, align 1
   %452 = and i8 %451, -16
   %453 = lshr i8 %hdr.sroa.186.043074449, 2
   %454 = and i8 %453, 15
   %or28603998 = or i8 %452, %454
-  store i8 %or28603998, i8* %_buffer15
+  store i8 %or28603998, i8* %_buffer15, align 1
   %savedstack175 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %16), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3046,12 +3046,12 @@ if.end2559:                                       ; preds = %if.then2551
   %456 = add i64 0, %idx.ext2875
   %457 = add i64 %456, 1
   %458 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %_buffer148, i64 %457, i64 1)
-  %459 = load i8, i8* %_buffer148
+  %459 = load i8, i8* %_buffer148, align 1
   %460 = and i8 %459, -4
   %461 = lshr i8 %hdr.sroa.188.043054450, 4
   %462 = and i8 %461, 3
   %or28873999 = or i8 %460, %462
-  store i8 %or28873999, i8* %_buffer87
+  store i8 %or28873999, i8* %_buffer87, align 1
   %savedstack177 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %15), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3077,7 +3077,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2928 = lshr i32 %add2895, 3
   %idx.ext2930 = zext i32 %div2928 to i64
   %464 = add i64 0, %idx.ext2930
-  store i8 %hdr.sroa.1904102.sroa.0.0.extract.trunc4143, i8* %_buffer17
+  store i8 %hdr.sroa.1904102.sroa.0.0.extract.trunc4143, i8* %_buffer17, align 1
   %savedstack179 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %14), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3094,7 +3094,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2942 = add nuw nsw i32 %div2928, 1
   %idx.ext2943 = zext i32 %add2942 to i64
   %466 = add i64 0, %idx.ext2943
-  store i8 %hdr.sroa.1904102.sroa.7.0.extract.trunc4145, i8* %_buffer56
+  store i8 %hdr.sroa.1904102.sroa.7.0.extract.trunc4145, i8* %_buffer56, align 1
   %savedstack181 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %13), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3120,7 +3120,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div2980 = lshr i32 %add2947, 3
   %idx.ext2982 = zext i32 %div2980 to i64
   %468 = add i64 0, %idx.ext2982
-  store i8 %hdr.sroa.195.sroa.0.0.extract.trunc, i8* %_buffer65
+  store i8 %hdr.sroa.195.sroa.0.0.extract.trunc, i8* %_buffer65, align 1
   %savedstack183 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %12), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3137,7 +3137,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add2994 = add nuw nsw i32 %div2980, 1
   %idx.ext2995 = zext i32 %add2994 to i64
   %470 = add i64 0, %idx.ext2995
-  store i8 %hdr.sroa.195.sroa.7.0.extract.trunc, i8* %_buffer165
+  store i8 %hdr.sroa.195.sroa.7.0.extract.trunc, i8* %_buffer165, align 1
   %savedstack185 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %11), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3163,7 +3163,7 @@ if.end2559:                                       ; preds = %if.then2551
   %div3032 = lshr i32 %add2999, 3
   %idx.ext3034 = zext i32 %div3032 to i64
   %472 = add i64 0, %idx.ext3034
-  store i8 %hdr.sroa.200.sroa.0.0.extract.trunc, i8* %_buffer86
+  store i8 %hdr.sroa.200.sroa.0.0.extract.trunc, i8* %_buffer86, align 1
   %savedstack187 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %10), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3180,7 +3180,7 @@ if.end2559:                                       ; preds = %if.then2551
   %add3046 = add nuw nsw i32 %div3032, 1
   %idx.ext3047 = zext i32 %add3046 to i64
   %474 = add i64 0, %idx.ext3047
-  store i8 %hdr.sroa.200.sroa.7.0.extract.trunc, i8* %_buffer145
+  store i8 %hdr.sroa.200.sroa.7.0.extract.trunc, i8* %_buffer145, align 1
   %savedstack189 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %9), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3224,7 +3224,7 @@ if.end3064:                                       ; preds = %if.then3056
   %div3097 = lshr i32 %ebpf_packetOffsetInBits.6, 3
   %idx.ext3099 = zext i32 %div3097 to i64
   %481 = add i64 0, %idx.ext3099
-  store i8 %hdr.sroa.2084110.sroa.0.0.extract.trunc4134, i8* %_buffer99
+  store i8 %hdr.sroa.2084110.sroa.0.0.extract.trunc4134, i8* %_buffer99, align 1
   %savedstack191 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %8), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3241,7 +3241,7 @@ if.end3064:                                       ; preds = %if.then3056
   %add3111 = add nuw nsw i32 %div3097, 1
   %idx.ext3112 = zext i32 %add3111 to i64
   %483 = add i64 0, %idx.ext3112
-  store i8 %hdr.sroa.2084110.sroa.7.0.extract.trunc4136, i8* %_buffer96
+  store i8 %hdr.sroa.2084110.sroa.7.0.extract.trunc4136, i8* %_buffer96, align 1
   %savedstack193 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %7), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3267,7 +3267,7 @@ if.end3064:                                       ; preds = %if.then3056
   %div3149 = lshr i32 %add3116, 3
   %idx.ext3151 = zext i32 %div3149 to i64
   %485 = add i64 0, %idx.ext3151
-  store i8 %hdr.sroa.213.sroa.0.0.extract.trunc, i8* %_buffer94
+  store i8 %hdr.sroa.213.sroa.0.0.extract.trunc, i8* %_buffer94, align 1
   %savedstack195 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %6), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3284,7 +3284,7 @@ if.end3064:                                       ; preds = %if.then3056
   %add3163 = add nuw nsw i32 %div3149, 1
   %idx.ext3164 = zext i32 %add3163 to i64
   %487 = add i64 0, %idx.ext3164
-  store i8 %hdr.sroa.213.sroa.7.0.extract.trunc, i8* %_buffer157
+  store i8 %hdr.sroa.213.sroa.7.0.extract.trunc, i8* %_buffer157, align 1
   %savedstack197 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %5), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3310,7 +3310,7 @@ if.end3064:                                       ; preds = %if.then3056
   %div3201 = lshr i32 %add3168, 3
   %idx.ext3203 = zext i32 %div3201 to i64
   %489 = add i64 0, %idx.ext3203
-  store i8 %hdr.sroa.218.sroa.0.0.extract.trunc, i8* %_buffer138
+  store i8 %hdr.sroa.218.sroa.0.0.extract.trunc, i8* %_buffer138, align 1
   %savedstack199 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %4), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3327,7 +3327,7 @@ if.end3064:                                       ; preds = %if.then3056
   %add3215 = add nuw nsw i32 %div3201, 1
   %idx.ext3216 = zext i32 %add3215 to i64
   %491 = add i64 0, %idx.ext3216
-  store i8 %hdr.sroa.218.sroa.7.0.extract.trunc, i8* %_buffer130
+  store i8 %hdr.sroa.218.sroa.7.0.extract.trunc, i8* %_buffer130, align 1
   %savedstack201 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %3), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3353,7 +3353,7 @@ if.end3064:                                       ; preds = %if.then3056
   %div3253 = lshr i32 %add3220, 3
   %idx.ext3255 = zext i32 %div3253 to i64
   %493 = add i64 0, %idx.ext3255
-  store i8 %hdr.sroa.223.sroa.0.0.extract.trunc, i8* %_buffer61
+  store i8 %hdr.sroa.223.sroa.0.0.extract.trunc, i8* %_buffer61, align 1
   %savedstack203 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %2), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3370,7 +3370,7 @@ if.end3064:                                       ; preds = %if.then3056
   %add3267 = add nuw nsw i32 %div3253, 1
   %idx.ext3268 = zext i32 %add3267 to i64
   %495 = add i64 0, %idx.ext3268
-  store i8 %hdr.sroa.223.sroa.7.0.extract.trunc, i8* %_buffer64
+  store i8 %hdr.sroa.223.sroa.7.0.extract.trunc, i8* %_buffer64, align 1
   %savedstack205 = call i8* @llvm.stacksave(), !dbg !397
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %1), !dbg !397
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !397
@@ -3400,8 +3400,8 @@ cleanup3277:                                      ; preds = %if.end3064, %if.the
   %retval.1 = phi i32 [ 0, %entry ], [ 0, %parse_udp ], [ 0, %parse_tcp ], [ 0, %parse_ipv6 ], [ 0, %parse_ipv4 ], [ 0, %if.end1118 ], [ 0, %if.end247 ], [ 0, %if.end ], [ %xout.sroa.0.14500, %if.end3052 ], [ %xout.sroa.0.14500, %if.end3064 ], [ 0, %if.then1258 ], [ 0, %if.then1478 ], [ 0, %if.then1946 ], [ 0, %if.then2551 ], [ 0, %if.then3056 ]
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !376, metadata !DIExpression()), !dbg !378
   call void @llvm.dbg.value(metadata i32 %retval.1, metadata !377, metadata !DIExpression()), !dbg !379
-  %500 = alloca i8, !dbg !384
-  store i8 -1, i8* %500, !dbg !384
+  %500 = alloca i8, align 1, !dbg !384
+  store i8 -1, i8* %500, align 1, !dbg !384
   %savedstack4 = call i8* @llvm.stacksave(), !dbg !519
   call void @llvm.lifetime.start.p0i8(i64 1, i8* %0), !dbg !519
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !391, metadata !DIExpression()), !dbg !519

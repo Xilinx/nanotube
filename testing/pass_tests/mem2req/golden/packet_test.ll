@@ -23,8 +23,8 @@ declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanot
 ; Function Attrs: uwtable
 define internal i32 @_ZL11memset_testP16nanotube_contextP15nanotube_packet(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) #0 {
 entry:
-  %_buffer1 = alloca i8, i64 21
-  %_buffer = alloca i8, i64 21
+  %_buffer1 = alloca i8, i64 21, align 1
+  %_buffer = alloca i8, i64 21, align 1
   %sub.ptr.lhs.cast = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, 0
   %cmp = icmp slt i64 %sub.ptr.sub, 42

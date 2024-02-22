@@ -41,8 +41,8 @@ declare dso_local void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanot
 ; Function Attrs: uwtable
 define private i32 @simple(%struct.nanotube_context* %context, %struct.nanotube_packet* nocapture readnone %packet) #2 {
 entry:
-  %control_capsule_buffer = alloca i8, i64 20
-  %control_offset_buffer = alloca i64, i64 1
+  %control_capsule_buffer = alloca i8, i64 20, align 1
+  %control_offset_buffer = alloca i64, i64 1, align 8
   %capsule_class = call i32 @nanotube_capsule_classify_sb(%struct.nanotube_packet* %packet, i64* %control_offset_buffer)
   switch i32 %capsule_class, label %pass_through_capsule [
     i32 1, label %process_net_packet
@@ -53,13 +53,13 @@ pass_through_capsule:                             ; preds = %entry
   ret i32 0
 
 control_capsule_read:                             ; preds = %entry
-  %capsule_message_offset = load i64, i64* %control_offset_buffer
+  %capsule_message_offset = load i64, i64* %control_offset_buffer, align 8
   %0 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %control_capsule_buffer, i64 %capsule_message_offset, i64 20)
   %cc.res_id0.get = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 2
-  %cc.res_id0.load = load i8, i8* %cc.res_id0.get
+  %cc.res_id0.load = load i8, i8* %cc.res_id0.get, align 1
   %cc.res_id0.zext = zext i8 %cc.res_id0.load to i16
   %cc.res_id1.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 3
-  %cc.res_id1.load = load i8, i8* %cc.res_id1.gep
+  %cc.res_id1.load = load i8, i8* %cc.res_id1.gep, align 1
   %cc.res_id1.zext = zext i8 %cc.res_id1.load to i16
   %cc.res_id1.shl = shl i16 %cc.res_id1.zext, 8
   %cc.res_id = or i16 %cc.res_id0.zext, %cc.res_id1.shl
@@ -73,9 +73,9 @@ control_capsule_map0_bb:                          ; preds = %control_capsule_rea
 
 control_capsule_bad_resource:                     ; preds = %control_capsule_read
   %cc.rc0.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 4
-  store i8 2, i8* %cc.rc0.gep
+  store i8 2, i8* %cc.rc0.gep, align 1
   %cc.rc1.gep = getelementptr inbounds i8, i8* %control_capsule_buffer, i64 5
-  store i8 0, i8* %cc.rc1.gep
+  store i8 0, i8* %cc.rc1.gep, align 1
   br label %control_capsule_write
 
 control_capsule_write:                            ; preds = %control_capsule_map0_bb, %control_capsule_bad_resource

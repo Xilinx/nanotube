@@ -14,13 +14,13 @@ target triple = "x86_64-unknown-linux-gnu"
 ; Function Attrs: uwtable
 define dso_local void @_Z12complex_testP16nanotube_contextP15nanotube_packet(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr #0 {
 entry:
-  %write_mask_off12 = alloca i8, !dbg !313
+  %write_mask_off12 = alloca i8, align 1, !dbg !313
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off12, i8 0, i64 1, i1 false), !dbg !313
-  %nanotube_packet_write_masked_buf_off11 = alloca i8, i32 2, !dbg !313
-  %write_mask_off1 = alloca i8, !dbg !313
+  %nanotube_packet_write_masked_buf_off11 = alloca i8, i32 2, align 1, !dbg !313
+  %write_mask_off1 = alloca i8, align 1, !dbg !313
   call void @llvm.memset.p0i8.i64(i8* %write_mask_off1, i8 0, i64 1, i1 false), !dbg !313
-  %nanotube_packet_write_masked_buf_off1 = alloca i8, i32 3, !dbg !313
-  %nanotube_packet_read_buf_off1 = alloca i8, !dbg !313
+  %nanotube_packet_write_masked_buf_off1 = alloca i8, i32 3, align 1, !dbg !313
+  %nanotube_packet_read_buf_off1 = alloca i8, align 1, !dbg !313
   %0 = alloca i8, i64 1, align 16, !dbg !313
   %1 = alloca i8, i64 1, align 16, !dbg !313
   %2 = alloca i8, i64 1, align 16, !dbg !313

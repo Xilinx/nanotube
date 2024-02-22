@@ -33,16 +33,16 @@ define void @nanotube_setup() {
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
 entry:
-  %ptr_mask = alloca i8, i64 1
-  %_copy = alloca i8, i64 4
+  %ptr_mask = alloca i8, i64 1, align 1
+  %_copy = alloca i8, i64 4, align 1
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_copy, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @key, i32 0, i32 0), i64 4, i1 false)
-  %entry_0_buf = alloca i8, i64 8
+  %entry_0_buf = alloca i8, i64 8, align 1
   %key_check = call i64 @nanotube_map_read(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i64 0, i64 8)
   %succ = icmp ne i64 %key_check, 0
   br i1 %succ, label %lookup_okay, label %done
 
 lookup_okay:                                      ; preds = %entry
-  %byte_0 = load i8, i8* %entry_0_buf
+  %byte_0 = load i8, i8* %entry_0_buf, align 1
   %cond = icmp ne i8 %byte_0, 0
   br i1 %cond, label %ne_0, label %edit
 
@@ -52,7 +52,7 @@ ne_0:                                             ; preds = %lookup_okay
 edit:                                             ; preds = %ne_0, %lookup_okay
   %0 = phi i64 [ 1, %lookup_okay ], [ 2, %ne_0 ]
   %ptr_gep = getelementptr i8, i8* %entry_0_buf, i64 %0
-  store i8 0, i8* %ptr_gep
+  store i8 0, i8* %ptr_gep, align 1
   call void @nanotube_init_mask(i8* %ptr_mask, i64 1, i64 %0, i64 1)
   %ptr_wr = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 0, i8* %_copy, i64 4, i8* %entry_0_buf, i8* %ptr_mask, i64 0, i64 8)
   br label %done

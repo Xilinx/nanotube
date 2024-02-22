@@ -35,10 +35,10 @@ define void @nanotube_setup() {
 }
 
 define private i32 @prog(%struct.nanotube_context* nocapture readnone %nt_ctx, %struct.nanotube_packet* %packet) local_unnamed_addr {
-  %entry_0__mask = alloca i8, i64 1
-  %entry_0_buffer_copy = alloca i8, i64 4
-  %entry_0_buf = alloca i8, i64 8
-  %entry_0_buffer = alloca i8, i64 4
+  %entry_0__mask = alloca i8, i64 1, align 1
+  %entry_0_buffer_copy = alloca i8, i64 4, align 1
+  %entry_0_buf = alloca i8, i64 8, align 1
+  %entry_0_buffer = alloca i8, i64 4, align 1
   %1 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32767, i32 1)
   %icmp = icmp ugt i64 8, %1
   br i1 %icmp, label %done, label %lookup
@@ -51,9 +51,9 @@ lookup:                                           ; preds = %0
   br i1 %succ, label %edit, label %done
 
 edit:                                             ; preds = %lookup
-  %old_val = load i8, i8* %entry_0_buf
+  %old_val = load i8, i8* %entry_0_buf, align 1
   %new_val = add i8 %old_val, 1
-  store i8 %new_val, i8* %entry_0_buf
+  store i8 %new_val, i8* %entry_0_buf, align 1
   call void @nanotube_init_mask(i8* %entry_0__mask, i64 1, i64 0, i64 1)
   %entry_0__wr = call i64 @nanotube_map_update_masked(%struct.nanotube_context* %nt_ctx, i16 0, i8* %entry_0_buffer_copy, i64 4, i8* %entry_0_buf, i8* %entry_0__mask, i64 0, i64 8)
   br label %done

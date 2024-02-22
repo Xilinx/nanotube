@@ -92,7 +92,7 @@ declare void @nanotube_packet_drop(%struct.nanotube_packet*, i32) #3
 
 define void @simple_stage_0(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
-  %packet_word = alloca i8, i64 65
+  %packet_word = alloca i8, i64 65, align 1
   %read_channel = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
   %try_fail = icmp eq i32 %read_channel, 0
   br i1 %try_fail, label %thread_wait_exit, label %entry_post
@@ -115,13 +115,13 @@ entry:                                            ; preds = %entry_post
   br label %stage_0_app_send_guard, !nanotube.pipeline !6
 
 stage_0_app_send_guard:                           ; preds = %entry
-  %stage_0sent_app_state = load i1, i1* @sent_app_state_stage_0
+  %stage_0sent_app_state = load i1, i1* @sent_app_state_stage_0, align 1
   %not_eop = xor i1 %eop, true
-  store i1 %not_eop, i1* @sent_app_state_stage_0
+  store i1 %not_eop, i1* @sent_app_state_stage_0, align 1
   br i1 %stage_0sent_app_state, label %stage_0_epilogue, label %stage_0_app_epilogue
 
 stage_0_app_epilogue:                             ; preds = %stage_0_app_send_guard
-  %live_out_state = alloca <{ [1 x i8] }>
+  %live_out_state = alloca <{ [1 x i8] }>, align 8
   %mask_stage_0_ptr = getelementptr <{ [1 x i8] }>, <{ [1 x i8] }>* %live_out_state, i32 0, i32 0
   %3 = bitcast [1 x i8]* %mask_stage_0_ptr to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %3, i8* %mask_stage_0, i64 1, i1 false)
@@ -139,8 +139,8 @@ exit:                                             ; preds = %stage_0_epilogue
 
 define void @simple_stage_1(%struct.nanotube_context* %0, i8* %1) {
 entry:
-  %2 = load i1, i1* @have_app_state_stage_1
-  %mask_stack_stage_1 = alloca i8
+  %2 = load i1, i1* @have_app_state_stage_1, align 1
+  %mask_stack_stage_1 = alloca i8, align 1
   %buffer_stage_1 = alloca [4 x i8], align 1
   %_stage_1 = getelementptr inbounds [4 x i8], [4 x i8]* %buffer_stage_1, i64 0, i64 0
   br i1 %2, label %read_packet_word, label %read_app_state
@@ -155,11 +155,11 @@ thread_wait_exit:                                 ; preds = %read_packet_word, %
   ret void
 
 read_app_state_post:                              ; preds = %read_app_state
-  store i1 true, i1* @have_app_state_stage_1
+  store i1 true, i1* @have_app_state_stage_1, align 1
   br label %read_packet_word
 
 read_packet_word:                                 ; preds = %read_app_state_post, %entry
-  %packet_word = alloca i8, i64 65
+  %packet_word = alloca i8, i64 65, align 1
   %read_channel1 = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
   %try_fail2 = icmp eq i32 %read_channel1, 0
   br i1 %try_fail2, label %thread_wait_exit, label %entry_post_post
@@ -167,7 +167,7 @@ read_packet_word:                                 ; preds = %read_app_state_post
 entry_post_post:                                  ; preds = %read_packet_word
   %eop = call i1 @nanotube_tap_packet_is_eop_sb(i8* %packet_word, %struct.nanotube_tap_packet_eop_state* @packet_eop_tap_state_stage_1)
   %in_packet = xor i1 %eop, true
-  store i1 %in_packet, i1* @have_app_state_stage_1
+  store i1 %in_packet, i1* @have_app_state_stage_1, align 1
   br label %unmarshal_stage_1
 
 unmarshal_stage_1:                                ; preds = %entry_post_post
@@ -175,17 +175,17 @@ unmarshal_stage_1:                                ; preds = %entry_post_post
   br label %entry3.post.pre
 
 entry3.post.pre:                                  ; preds = %unmarshal_stage_1
-  %resp = alloca %struct.nanotube_tap_packet_read_resp, !nanotube.pipeline !2
-  %req = alloca %struct.nanotube_tap_packet_read_req
+  %resp = alloca %struct.nanotube_tap_packet_read_resp, align 8, !nanotube.pipeline !2
+  %req = alloca %struct.nanotube_tap_packet_read_req, align 8
   %req.valid.p = getelementptr inbounds %struct.nanotube_tap_packet_read_req, %struct.nanotube_tap_packet_read_req* %req, i32 0, i32 0
   %req.read_offset.p = getelementptr inbounds %struct.nanotube_tap_packet_read_req, %struct.nanotube_tap_packet_read_req* %req, i32 0, i32 1
   %req.read_length.p = getelementptr inbounds %struct.nanotube_tap_packet_read_req, %struct.nanotube_tap_packet_read_req* %req, i32 0, i32 2
-  store i8 1, i8* %req.valid.p
-  store i16 0, i16* %req.read_offset.p
-  store i16 4, i16* %req.read_length.p
+  store i8 1, i8* %req.valid.p, align 1
+  store i16 0, i16* %req.read_offset.p, align 2
+  store i16 4, i16* %req.read_length.p, align 2
   call void @nanotube_tap_packet_read_sb(i16 4, i8 2, %struct.nanotube_tap_packet_read_resp* %resp, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @packet_read_data_stage_1, i32 0, i32 0), %struct.nanotube_tap_packet_read_state* @packet_read_tap_state_stage_1, i8* %packet_word, %struct.nanotube_tap_packet_read_req* %req)
   %resp.valid.p = getelementptr inbounds %struct.nanotube_tap_packet_read_resp, %struct.nanotube_tap_packet_read_resp* %resp, i32 0, i32 0
-  %resp.valid.i8 = load i8, i8* %resp.valid.p
+  %resp.valid.i8 = load i8, i8* %resp.valid.p, align 1
   %resp.valid = trunc i8 %resp.valid.i8 to i1
   br i1 %resp.valid, label %entry3.post, label %stage_1_epilogue
 
@@ -194,7 +194,7 @@ entry3.post:                                      ; preds = %entry3.post.pre
   br label %stage_1_app_epilogue, !nanotube.pipeline !6
 
 stage_1_app_epilogue:                             ; preds = %entry3.post
-  %live_out_state = alloca <{ [4 x i8], [1 x i8] }>
+  %live_out_state = alloca <{ [4 x i8], [1 x i8] }>, align 8
   %buffer_stage_1_ptr = getelementptr <{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* %live_out_state, i32 0, i32 0
   %3 = bitcast [4 x i8]* %buffer_stage_1_ptr to i8*
   %4 = bitcast [4 x i8]* %buffer_stage_1 to i8*
@@ -216,10 +216,10 @@ exit:                                             ; preds = %stage_1_epilogue
 
 define void @simple_stage_2(%struct.nanotube_context* %0, i8* %1) {
 entry:
-  %2 = load i1, i1* @have_app_state_stage_2
-  %buffer_stack_stage_2 = alloca i8, i32 4
+  %2 = load i1, i1* @have_app_state_stage_2, align 1
+  %buffer_stack_stage_2 = alloca i8, i32 4, align 1
   %buffer_stage_2 = bitcast i8* %buffer_stack_stage_2 to [4 x i8]*
-  %mask_stack_stage_2 = alloca i8
+  %mask_stack_stage_2 = alloca i8, align 1
   %_stage_2 = getelementptr inbounds [4 x i8], [4 x i8]* %buffer_stage_2, i64 0, i64 0
   br i1 %2, label %read_packet_word, label %read_app_state
 
@@ -233,11 +233,11 @@ thread_wait_exit:                                 ; preds = %read_packet_word, %
   ret void
 
 read_app_state_post:                              ; preds = %read_app_state
-  store i1 true, i1* @have_app_state_stage_2
+  store i1 true, i1* @have_app_state_stage_2, align 1
   br label %read_packet_word
 
 read_packet_word:                                 ; preds = %read_app_state_post, %entry
-  %packet_word = alloca i8, i64 65
+  %packet_word = alloca i8, i64 65, align 1
   %read_channel1 = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
   %try_fail2 = icmp eq i32 %read_channel1, 0
   br i1 %try_fail2, label %thread_wait_exit, label %entry_post_post
@@ -245,7 +245,7 @@ read_packet_word:                                 ; preds = %read_app_state_post
 entry_post_post:                                  ; preds = %read_packet_word
   %eop = call i1 @nanotube_tap_packet_is_eop_sb(i8* %packet_word, %struct.nanotube_tap_packet_eop_state* @packet_eop_tap_state_stage_2)
   %in_packet = xor i1 %eop, true
-  store i1 %in_packet, i1* @have_app_state_stage_2
+  store i1 %in_packet, i1* @have_app_state_stage_2, align 1
   br label %unmarshal_stage_2
 
 unmarshal_stage_2:                                ; preds = %entry_post_post
@@ -254,14 +254,14 @@ unmarshal_stage_2:                                ; preds = %entry_post_post
   br label %entry3
 
 entry3:                                           ; preds = %unmarshal_stage_2
-  %packet_word.out = alloca i8, i64 65, !nanotube.pipeline !2
-  %req = alloca %struct.nanotube_tap_packet_write_req
+  %packet_word.out = alloca i8, i64 65, align 1, !nanotube.pipeline !2
+  %req = alloca %struct.nanotube_tap_packet_write_req, align 8
   %req.valid.p = getelementptr inbounds %struct.nanotube_tap_packet_write_req, %struct.nanotube_tap_packet_write_req* %req, i32 0, i32 0
   %req.write_offset.p = getelementptr inbounds %struct.nanotube_tap_packet_write_req, %struct.nanotube_tap_packet_write_req* %req, i32 0, i32 1
   %req.write_length.p = getelementptr inbounds %struct.nanotube_tap_packet_write_req, %struct.nanotube_tap_packet_write_req* %req, i32 0, i32 2
-  store i8 1, i8* %req.valid.p
-  store i16 0, i16* %req.write_offset.p
-  store i16 4, i16* %req.write_length.p
+  store i8 1, i8* %req.valid.p, align 1
+  store i16 0, i16* %req.write_offset.p, align 2
+  store i16 4, i16* %req.write_length.p, align 2
   call void @nanotube_tap_packet_write_sb(i16 4, i8 2, i8* %packet_word.out, %struct.nanotube_tap_packet_write_state* @packet_write_tap_state_stage_2, i8* %packet_word, %struct.nanotube_tap_packet_write_req* %req, i8* %_stage_2, i8* %mask_stack_stage_2)
   call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %mask_stack_stage_2) #4
   call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %_stage_2) #4
@@ -277,7 +277,7 @@ exit:                                             ; preds = %stage_2_epilogue
 
 define void @simple_stage_3(%struct.nanotube_context* %0, i8* %1) {
 read_packet_word:
-  %packet_word = alloca i8, i64 65
+  %packet_word = alloca i8, i64 65, align 1
   %read_channel = call i32 @nanotube_channel_try_read(%struct.nanotube_context* %0, i32 0, i8* %packet_word, i64 65)
   %try_fail = icmp eq i32 %read_channel, 0
   br i1 %try_fail, label %thread_wait_exit, label %entry_post
