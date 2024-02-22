@@ -54,11 +54,11 @@ struct RenameParams : public FunctionPass {
                 break;
             if (m[2].equals(":")) {
                 // Functions look as follows "func:"
-                cur_func = m[1];
+                cur_func = m[1].str();
             } else {
                 // Arguments look like "arg1,arg2,arg3;" or "arg4,arg5"
                 assert(!cur_func.empty());
-                names[cur_func].push_back(m[1]);
+                names[cur_func].push_back(m[1].str());
             }
             pos += m[0].size();
         }
@@ -72,7 +72,7 @@ struct RenameParams : public FunctionPass {
 
 
         // Check if we have a matching entry for this function
-        auto res = names.find(F.getName());
+        auto res = names.find(F.getName().str());
         if (res == names.end())
             return false;
         if (res->second.size() != F.arg_size())

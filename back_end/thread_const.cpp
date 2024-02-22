@@ -1365,7 +1365,7 @@ void thread_const::update_thread(const thread_info *thread,
   // Delete the old function if possible.
   if (old_func->user_begin() == old_func->user_end()) {
     LLVM_DEBUG(dbgv("Removing unused function '{0}'.\n", as_operand(old_func)););
-    std::string old_name = old_func->getName();
+    std::string old_name = old_func->getName().str();
     old_func->eraseFromParent();
     new_func->setName(old_name);
   }

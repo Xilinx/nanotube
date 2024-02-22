@@ -200,7 +200,7 @@ cc_code_builder::cc_code_builder(const kernel_info *kernel,
   assert(call->getArgOperand(ADD_PLAIN_PACKET_KERNEL_FUNC_ARG) == m_func);
   call->setArgOperand(ADD_PLAIN_PACKET_KERNEL_FUNC_ARG, new_func);
 
-  std::string func_name = m_func->getName();
+  std::string func_name = m_func->getName().str();
   if (m_func->user_empty()) {
     LLVM_DEBUG(dbgv("Removing unused function {0}.\n", as_operand(m_func)););
     m_func->eraseFromParent();

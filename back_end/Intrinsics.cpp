@@ -43,7 +43,7 @@ Intrinsics::ID nanotube::get_intrinsic(const Function* func)
 {
   assert(func != NULL);
 
-  std::string name = func->getName();
+  std::string name = func->getName().str();
   auto it = intrinsic_name_to_id.find(name);
   if (it != intrinsic_name_to_id.end())
     return it->second;
@@ -188,7 +188,7 @@ channel_create_args::channel_create_args(const Instruction *insn)
   const CallBase &call = cast<CallBase>(*insn);
   check_intrinsic_call(call, 3);
 
-  name = get_string_arg(call, 0);
+  name = get_string_arg(call, 0).str();
   elem_size = call.getArgOperand(1);
   num_elem = call.getArgOperand(2);
 }
@@ -208,7 +208,7 @@ channel_set_attr_str_args::channel_set_attr_str_args(const Instruction *insn)
   check_intrinsic_call(call, 3);
   channel = call.getArgOperand(0);
   attr_id = (nanotube_channel_attr_id_t)get_uint_arg(call, 1, 32);
-  attr_val = get_string_arg(call, 2);
+  attr_val = get_string_arg(call, 2).str();
 }
 
 channel_export_args::channel_export_args(const Instruction *insn)
@@ -237,7 +237,7 @@ thread_create_args::thread_create_args(const Instruction *insn)
   check_intrinsic_call(call, 5);
 
   context = call.getArgOperand(0);
-  name = get_string_arg(call, 1);
+  name = get_string_arg(call, 1).str();
   func = get_func_arg(call, 2);
   info_area = call.getArgOperand(3);
   info_area_size = get_uint_arg(call, 4, 32);
@@ -252,7 +252,7 @@ add_plain_packet_kernel_args::add_plain_packet_kernel_args(const Instruction *in
   const CallBase &call = cast<CallBase>(*insn);
   check_intrinsic_call(call, 4);
 
-  name = get_string_arg(call, 0);
+  name = get_string_arg(call, 0).str();
   func = get_func_arg(call, 1);
   bus_type = get_uint_arg(call, 2, 32);
   is_capsule = get_uint_arg(call, 3, 32);
@@ -390,7 +390,7 @@ add_plain_kernel_args::add_plain_kernel_args(Instruction* inst) {
   check_intrinsic_call(*call, 4);
   assert(get_intrinsic(call) == Intrinsics::add_plain_packet_kernel);
 
-  name   = get_string_arg(*call, 0);
+  name   = get_string_arg(*call, 0).str();
   kernel = get_func_arg(*call, 1);
   bus_type = get_uint_arg(*call, 2, 32);
   is_capsule = get_uint_arg(*call, 3, 32);

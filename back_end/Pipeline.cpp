@@ -1511,9 +1511,9 @@ bool stage_function_t::is_defined_here(const Value* v) {
 }
 std::string stage_function_t::get_parent_name(const Value* v) {
   if( isa<Instruction>(v) )
-    return cast<Instruction>(v)->getFunction()->getName();
+    return cast<Instruction>(v)->getFunction()->getName().str();
   if( isa<Argument>(v) )
-    return cast<Argument>(v)->getParent()->getName();
+    return cast<Argument>(v)->getParent()->getName().str();
   if( isa<Constant>(v) )
     return "<constant>";
   return "<unclear>";
@@ -1590,7 +1590,8 @@ stage_function_t::read_from_channel(Constant* channel_id, Value* data,
 
 GlobalVariable*
 stage_function_t::get_static(StringRef var_name, Type* type) {
-  auto it = static_vars.find(var_name);
+  std::string var_name_str = var_name.str();
+  auto it = static_vars.find(var_name_str);
   if( it != static_vars.end() )
     return it->second;
 
@@ -1599,7 +1600,7 @@ stage_function_t::get_static(StringRef var_name, Type* type) {
                                 GlobalValue::PrivateLinkage,
                                 Constant::getNullValue(type),
                                 var_name + "_" + stage_name);
-  static_vars[var_name] = gv;
+  static_vars[var_name_str] = gv;
   return gv;
 }
 

@@ -569,7 +569,7 @@ Value* gep_to_arithmetic_base(GetElementPtrInst *gep, Value *base_int) {
 std::string
 get_proper_name(const Value* v, unsigned max_depth = 5) {
   if( v->hasName() )
-    return v->getName();
+    return v->getName().str();
   if( max_depth == 0 )
     return "";
 
