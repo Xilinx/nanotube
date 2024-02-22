@@ -21,6 +21,7 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/PluginLoader.h"
@@ -105,11 +106,27 @@ llvm::Error add_passes(llvm::legacy::PassManager &pm)
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// The fatal error handler.
+
+static void
+handle_fatal_error(void *user_data, const std::string &reason,
+                   bool gen_crash_diag)
+{
+  std::cout.flush();
+  std::cerr << "LLVM ERROR: " << reason << "\n";
+  exit(1);
+}
+
+
+///////////////////////////////////////////////////////////////////////////
 // The main program.
 
 int main(int argc, char *argv[])
 {
   llvm::InitLLVM init_llvm(argc, argv);
+
+  // Install the fatal error handler.
+  llvm::install_fatal_error_handler(handle_fatal_error);
 
   // Initialize passes.  See llvm/tools/opt/opt.cpp
   llvm::PassRegistry &registry = *llvm::PassRegistry::getPassRegistry();
