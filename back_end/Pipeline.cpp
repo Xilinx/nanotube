@@ -144,7 +144,6 @@
 #include "nanotube_packet_taps_bus.h"
 
 #include "llvm/Analysis/AliasSetTracker.h"
-#include "llvm/Analysis/OrderedInstructions.h"
 #include "llvm/Analysis/ValueTracking.h"
 
 #define DEBUG_TYPE "pipeline"
@@ -4196,13 +4195,12 @@ collect_pointer_phis_and_splits(Function& f,
  * @param start   Starting instruction, will be part of the results.
  * @param cut     Split point instruction, tracing will stop at any derived
  *                instruction that is dominated by cut.
- * @param oi      OrderedInstruction (wrapper around DominatorTree) to help
- *                answer ordering queries.
+ * @param dt      DominatorTree to help answer ordering queries.
  * @return        Vector of instructions that are derived from start and
  *                not dominated by cut.
  */
 static std::vector<Instruction*>
-get_derived_ptrs_before(Instruction* start, Instruction* cut, OrderedInstructions* oi) {
+get_derived_ptrs_before(Instruction* start, Instruction* cut, DominatorTree* dt) {
   std::vector<Instruction*> todo(1, start);
   std::vector<Instruction*> derived;
   while( !todo.empty() ) {
@@ -4222,7 +4220,7 @@ get_derived_ptrs_before(Instruction* start, Instruction* cut, OrderedInstruction
         continue;
       }
       /* Ignore users after the cut */
-      if( oi->dominates(cut, inst) )
+      if( dt->dominates(cut, inst) )
         continue;
       todo.emplace_back(inst);
     }
@@ -4249,7 +4247,6 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
                           AliasAnalysis* aa,
                           DominatorTree* dt) {
   bool changes = false;
-  OrderedInstructions oi(dt);
 
   std::unordered_map<Instruction*, std::vector<PHINode*>> split2phis;
   collect_pointer_phis_and_splits(f, &split2phis);
@@ -4274,7 +4271,7 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
 
       /* Check whether the PHI node itself, or a derived value is live in
        * the next stage */
-      auto phi_derived = get_derived_ptrs_before(phi, split, &oi);
+      auto phi_derived = get_derived_ptrs_before(phi, split, dt);
       bool used_in_next_stage = false;
       for( auto* phi_d : phi_derived ) {
         if( liv_set.count(phi_d) != 0 ) {
