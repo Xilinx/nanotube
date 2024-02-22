@@ -217,16 +217,14 @@ entry_post_post_post:                             ; preds = %read_packet_word
   br label %unmarshal_stage_1
 
 unmarshal_stage_1:                                ; preds = %entry_post_post_post
-  %6 = bitcast [4 x i8]* getelementptr inbounds (<{ [4 x i8] }>, <{ [4 x i8] }>* @app_state_stage_1, i32 0, i32 0) to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %key_stack_stage_1, i8* %6, i64 4, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %key_stack_stage_1, i8* getelementptr inbounds (<{ [4 x i8] }>, <{ [4 x i8] }>* @app_state_stage_1, i32 0, i32 0, i32 0), i64 4, i1 false)
   br label %entry4
 
 entry4:                                           ; preds = %unmarshal_stage_1
-  %7 = bitcast [1 x i8]* @map_resp_data_stage_1 to i8*, !nanotube.pipeline !2
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_stage_15, i8* %7, i64 1, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %_stage_15, i8* getelementptr inbounds ([1 x i8], [1 x i8]* @map_resp_data_stage_1, i32 0, i32 0), i64 1, i1 false), !nanotube.pipeline !2
   %.promoted_stage_1 = load i8, i8* %_stage_15, align 1, !tbaa !4
-  %8 = add i8 %.promoted_stage_1, 4
-  store i8 %8, i8* %_stage_15, align 1, !tbaa !4
+  %6 = add i8 %.promoted_stage_1, 4
+  store i8 %6, i8* %_stage_15, align 1, !tbaa !4
   store i8 -1, i8* %_stage_16, align 1
   br label %stage_1_app_send_guard, !nanotube.pipeline !3
 

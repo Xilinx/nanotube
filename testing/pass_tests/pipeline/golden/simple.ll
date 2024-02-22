@@ -171,8 +171,7 @@ entry_post_post:                                  ; preds = %read_packet_word
   br label %unmarshal_stage_1
 
 unmarshal_stage_1:                                ; preds = %entry_post_post
-  %3 = bitcast [1 x i8]* getelementptr inbounds (<{ [1 x i8] }>, <{ [1 x i8] }>* @app_state_stage_1, i32 0, i32 0) to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %mask_stack_stage_1, i8* %3, i64 1, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %mask_stack_stage_1, i8* getelementptr inbounds (<{ [1 x i8] }>, <{ [1 x i8] }>* @app_state_stage_1, i32 0, i32 0, i32 0), i64 1, i1 false)
   br label %entry3.post.pre
 
 entry3.post.pre:                                  ; preds = %unmarshal_stage_1
@@ -197,14 +196,14 @@ entry3.post:                                      ; preds = %entry3.post.pre
 stage_1_app_epilogue:                             ; preds = %entry3.post
   %live_out_state = alloca <{ [4 x i8], [1 x i8] }>
   %buffer_stage_1_ptr = getelementptr <{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* %live_out_state, i32 0, i32 0
-  %4 = bitcast [4 x i8]* %buffer_stage_1_ptr to i8*
-  %5 = bitcast [4 x i8]* %buffer_stage_1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %4, i8* %5, i64 4, i1 false)
+  %3 = bitcast [4 x i8]* %buffer_stage_1_ptr to i8*
+  %4 = bitcast [4 x i8]* %buffer_stage_1 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %3, i8* %4, i64 4, i1 false)
   %mask_stack_stage_1_ptr = getelementptr <{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* %live_out_state, i32 0, i32 1
-  %6 = bitcast [1 x i8]* %mask_stack_stage_1_ptr to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %6, i8* %mask_stack_stage_1, i64 1, i1 false)
-  %7 = bitcast <{ [4 x i8], [1 x i8] }>* %live_out_state to i8*
-  call void @nanotube_channel_write(%struct.nanotube_context* %0, i32 3, i8* %7, i64 5)
+  %5 = bitcast [1 x i8]* %mask_stack_stage_1_ptr to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %5, i8* %mask_stack_stage_1, i64 1, i1 false)
+  %6 = bitcast <{ [4 x i8], [1 x i8] }>* %live_out_state to i8*
+  call void @nanotube_channel_write(%struct.nanotube_context* %0, i32 3, i8* %6, i64 5)
   br label %stage_1_epilogue
 
 stage_1_epilogue:                                 ; preds = %entry3.post.pre, %stage_1_app_epilogue
@@ -250,10 +249,8 @@ entry_post_post:                                  ; preds = %read_packet_word
   br label %unmarshal_stage_2
 
 unmarshal_stage_2:                                ; preds = %entry_post_post
-  %3 = bitcast [4 x i8]* getelementptr inbounds (<{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* @app_state_stage_2, i32 0, i32 0) to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %buffer_stack_stage_2, i8* %3, i64 4, i1 false)
-  %4 = bitcast [1 x i8]* getelementptr inbounds (<{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* @app_state_stage_2, i32 0, i32 1) to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %mask_stack_stage_2, i8* %4, i64 1, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %buffer_stack_stage_2, i8* getelementptr inbounds (<{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* @app_state_stage_2, i32 0, i32 0, i32 0), i64 4, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %mask_stack_stage_2, i8* getelementptr inbounds (<{ [4 x i8], [1 x i8] }>, <{ [4 x i8], [1 x i8] }>* @app_state_stage_2, i32 0, i32 1, i32 0), i64 1, i1 false)
   br label %entry3
 
 entry3:                                           ; preds = %unmarshal_stage_2
