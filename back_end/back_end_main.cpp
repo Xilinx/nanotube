@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<llvm::Module> module;
-  module = parseIRFile(opt_input_filename, sm_diag, context, false);
+  module = parseIRFile(opt_input_filename, sm_diag, context);
   if (!module) {
     sm_diag.print(argv[0], llvm::WithColor::error(llvm::errs(), argv[0]));
     return 1;
