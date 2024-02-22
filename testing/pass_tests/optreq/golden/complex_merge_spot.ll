@@ -39,7 +39,7 @@ entry:
   br i1 %cmp, label %return, label %if.end
 
 if.end:                                           ; preds = %entry
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %pos) #7
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %pos) #8
   %call1 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* nonnull %pos, i64 0, i64 1)
   %10 = load i8, i8* %pos, align 1, !tbaa !329
   %conv = zext i8 %10 to i32
@@ -53,7 +53,7 @@ if.end:                                           ; preds = %entry
   %tobool12 = icmp eq i32 %and11, 0
   %and15 = and i8 %10, 15
   %11 = getelementptr inbounds [11 x i8], [11 x i8]* %d, i64 0, i64 0
-  call void @llvm.lifetime.start.p0i8(i64 11, i8* nonnull %11) #7
+  call void @llvm.lifetime.start.p0i8(i64 11, i8* nonnull %11) #8
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* nonnull align 1 %11, i8* align 1 getelementptr inbounds ([11 x i8], [11 x i8]* @__const._Z12complex_testP16nanotube_contextP15nanotube_packet.d, i64 0, i64 0), i64 11, i1 false)
   br i1 %tobool, label %if.else31, label %if.then18
 
@@ -223,7 +223,7 @@ if.end61:                                         ; preds = %if.then56, %if.end5
   br i1 %tobool12, label %if.end70, label %if.then63
 
 if.then63:                                        ; preds = %if.end61
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %tmp) #7
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %tmp) #8
   %18 = getelementptr inbounds i8, i8* %nanotube_packet_read_buf_off1, i32 0
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %tmp, i8* align 1 %18, i64 1, i1 false)
   %19 = load i8, i8* %tmp, align 1, !tbaa !329
@@ -231,7 +231,7 @@ if.then63:                                        ; preds = %if.end61
   %20 = load i8, i8* %arrayidx66, align 1, !tbaa !329
   %add68 = add i8 %20, %19
   store i8 %add68, i8* %arrayidx66, align 1, !tbaa !329
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %tmp) #7
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %tmp) #8
   %21 = call i64 @nanotube_packet_read(%struct.nanotube_packet* %packet, i8* %nanotube_packet_read_buf_off1, i64 1, i64 1)
   br label %if.end70
 
@@ -255,8 +255,8 @@ if.end70:                                         ; preds = %if.then63, %if.end6
   br label %if.end76
 
 if.end76:                                         ; preds = %if.end70, %if.end28
-  call void @llvm.lifetime.end.p0i8(i64 11, i8* nonnull %11) #7
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %pos) #7
+  call void @llvm.lifetime.end.p0i8(i64 11, i8* nonnull %11) #8
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %pos) #8
   br label %return
 
 return:                                           ; preds = %if.end76, %entry
@@ -355,14 +355,14 @@ entry:
   ret i64 %call, !dbg !340
 }
 
-; Function Attrs: argmemonly nounwind willreturn
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
+; Function Attrs: argmemonly nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #6
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare dso_local i64 @nanotube_packet_write_masked(%struct.nanotube_packet*, i8*, i8*, i64, i64) local_unnamed_addr #3
 
 ; Function Attrs: alwaysinline norecurse nounwind uwtable
-define dso_local void @nanotube_merge_data_mask(i8* nocapture %inout_data, i8* nocapture %inout_mask, i8* nocapture readonly %in_data, i8* nocapture readonly %in_mask, i64 %offset, i64 %data_length) local_unnamed_addr #6 !dbg !412 {
+define dso_local void @nanotube_merge_data_mask(i8* nocapture %inout_data, i8* nocapture %inout_mask, i8* nocapture readonly %in_data, i8* nocapture readonly %in_mask, i64 %offset, i64 %data_length) local_unnamed_addr #7 !dbg !412 {
 entry:
   call void @llvm.dbg.value(metadata i8* %inout_data, metadata !416, metadata !DIExpression()), !dbg !435
   call void @llvm.dbg.value(metadata i8* %inout_mask, metadata !417, metadata !DIExpression()), !dbg !436
@@ -454,10 +454,10 @@ entry:
 }
 
 ; Function Attrs: nounwind
-declare i8* @llvm.stacksave() #7
+declare i8* @llvm.stacksave() #8
 
 ; Function Attrs: nounwind
-declare void @llvm.stackrestore(i8*) #7
+declare void @llvm.stackrestore(i8*) #8
 
 attributes #0 = { uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
@@ -465,8 +465,9 @@ attributes #2 = { argmemonly nounwind willreturn }
 attributes #3 = { inaccessiblemem_or_argmemonly "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #4 = { alwaysinline uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #5 = { nounwind readnone speculatable willreturn }
-attributes #6 = { alwaysinline norecurse nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #7 = { nounwind }
+attributes #6 = { argmemonly nounwind willreturn writeonly }
+attributes #7 = { alwaysinline norecurse nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #8 = { nounwind }
 
 !llvm.ident = !{!0, !0, !0, !0}
 !llvm.module.flags = !{!1, !2, !3}

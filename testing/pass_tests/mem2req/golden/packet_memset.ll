@@ -17,7 +17,7 @@ declare dso_local i8* @nanotube_packet_data(%struct.nanotube_packet*) local_unna
 
 declare dso_local i8* @nanotube_packet_end(%struct.nanotube_packet*) local_unnamed_addr
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 define void @nanotube_setup() {
@@ -48,6 +48,6 @@ declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #2
 
-attributes #0 = { argmemonly nounwind willreturn }
+attributes #0 = { argmemonly nounwind willreturn writeonly }
 attributes #1 = { inaccessiblememonly }
 attributes #2 = { inaccessiblemem_or_argmemonly }
