@@ -96,6 +96,6 @@ class command_test(FileBasedTest):
     # names, one per line.
     proc = subprocess.Popen([test_list_exe], stdout=subprocess.PIPE)
     for line in proc.stdout.readlines():
-      test_name = line.rstrip()
+      test_name = line.decode('utf-8').rstrip()
       yield Test.Test(test_suite, path_in_suite + (test_name,),
                       local_config)
