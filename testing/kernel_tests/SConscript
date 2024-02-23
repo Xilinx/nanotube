@@ -32,23 +32,23 @@ pass_opts = {
     ),
     'byteify' : '-byteify',
     'destruct': '-destruct',
-    'ebpf2nt': '-codegenprepare -constprop -dce -ebpf2nanotube',
-    'mem2req' : '-constprop -mem2req',
-    'platform' : '-platform -always-inline -constprop',
+    'ebpf2nt': '-codegenprepare -instsimplify -dce -ebpf2nanotube',
+    'mem2req' : '-instsimplify -mem2req',
+    'platform' : '-platform -always-inline -instsimplify',
     'control' : '-control-capsule -always-inline',
     'ntattr' : ( '-nt-attributes -O2' ),
     'optreq' :  (
         '-mergereturn '
         '-optreq -enable-loop-unroll -always-inline '
-        '-constprop -loop-unroll -simplifycfg' ),
-    'inline'  : ( '-always-inline -constprop' ),
+        '-instsimplify -loop-unroll -simplifycfg' ),
+    'inline'  : ( '-always-inline -instsimplify' ),
     'inline_opt': ( '-always-inline'
                     ' -rewrite-setup -replace-malloc'
-                    ' -thread-const -constprop'
-                    ' -codegenprepare -constprop -dce '
+                    ' -thread-const -instsimplify'
+                    ' -codegenprepare -instsimplify -dce '
                     ' -enable-loop-unroll -loop-unroll'
                     ' -move-alloca -simplifycfg -instcombine'
-                    ' -thread-const -constprop -simplifycfg' ),
+                    ' -thread-const -instsimplify -simplifycfg' ),
     'pipeline' : ( '-compact-geps -basic-aa -tbaa '
                    '-nanotube-aa -pipeline' ),
     'flatten' : ( '-flatten-cfg' ),

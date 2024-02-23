@@ -32,26 +32,26 @@ step_specs = {
     'clang-nanotube': ('clang',),
 
     # Steps which use opt.
-    'ebpf2nt': ('opt', '-codegenprepare -constprop -dce -ebpf2nanotube'),
-    'mem2req' : ('opt', '-constprop -mem2req'),
-    'inline'  : ('opt', '-always-inline -constprop'),
-    'platform' : ('opt', '-platform -always-inline -constprop'),
+    'ebpf2nt': ('opt', '-codegenprepare -instsimplify -dce -ebpf2nanotube'),
+    'mem2req' : ('opt', '-instsimplify -mem2req'),
+    'inline'  : ('opt', '-always-inline -instsimplify'),
+    'platform' : ('opt', '-platform -always-inline -instsimplify'),
     'control' : ('opt', '-control-capsule -always-inline'),
     'ntattr' : ( 'opt', '-nt-attributes -O2' ),
     'optreq' :  ( 'opt',
                   '-mergereturn '
                   '-optreq -enable-loop-unroll -always-inline '
-                  '-constprop -loop-unroll -simplifycfg' ),
+                  '-instsimplify -loop-unroll -simplifycfg' ),
     'converge': ('opt',
                  '-move-alloca -compact-geps '
                  '-converge_mapa'),
     'inline_opt': ( 'opt',
                     '-always-inline'
                     ' -rewrite-setup -replace-malloc'
-                    ' -thread-const -constprop'
+                    ' -thread-const -instsimplify'
                     ' -enable-loop-unroll -loop-unroll'
                     ' -move-alloca -simplifycfg -instcombine'
-                    ' -thread-const -constprop -simplifycfg' ),
+                    ' -thread-const -instsimplify -simplifycfg' ),
     'pipeline' : ( 'opt',
                    '-compact-geps -basic-aa -tbaa '
                    '-nanotube-aa -pipeline' ),
