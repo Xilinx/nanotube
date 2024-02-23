@@ -15,7 +15,7 @@ target triple = "x86_64-unknown-linux-gnu"
 @buf_0 = internal unnamed_addr global [4 x i8] zeroinitializer
 @buf_1 = internal unnamed_addr global [4 x i8] zeroinitializer
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) local_unnamed_addr #0
 
 declare dso_local %struct.nanotube_context* @nanotube_context_create() local_unnamed_addr
@@ -142,6 +142,6 @@ declare i64 @nanotube_map_update_masked(%struct.nanotube_context*, i16, i8*, i64
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_write(%struct.nanotube_packet*, i8*, i64, i64) #2
 
-attributes #0 = { argmemonly nounwind willreturn }
+attributes #0 = { argmemonly nofree nosync nounwind willreturn }
 attributes #1 = { inaccessiblememonly }
 attributes #2 = { inaccessiblemem_or_argmemonly }

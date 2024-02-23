@@ -46,14 +46,14 @@ while.end.critedge:                               ; preds = %L1
   ret void
 }
 
-; Function Attrs: nounwind
+; Function Attrs: nofree nosync nounwind willreturn
 declare void @llvm.stackrestore(i8*) #0
 
-; Function Attrs: nounwind
+; Function Attrs: nofree nosync nounwind willreturn
 declare i8* @llvm.stacksave() #0
 
 declare i32 @baz()
 
 declare i32 @bar(i8*)
 
-attributes #0 = { nounwind }
+attributes #0 = { nofree nosync nounwind willreturn }

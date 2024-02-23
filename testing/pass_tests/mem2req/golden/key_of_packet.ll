@@ -68,7 +68,7 @@ declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32) 
 ; Function Attrs: inaccessiblemem_or_argmemonly
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64) #1
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #2
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
@@ -80,4 +80,4 @@ declare i64 @nanotube_map_update_masked(%struct.nanotube_context*, i16, i8*, i64
 
 attributes #0 = { inaccessiblememonly }
 attributes #1 = { inaccessiblemem_or_argmemonly }
-attributes #2 = { argmemonly nounwind willreturn }
+attributes #2 = { argmemonly nofree nosync nounwind willreturn }

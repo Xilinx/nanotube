@@ -67,7 +67,7 @@ done:                                             ; preds = %edit, %entry
   ret i32 0
 }
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 ; Function Attrs: inaccessiblemem_or_argmemonly
@@ -77,5 +77,5 @@ declare void @nanotube_init_mask(i8*, i64, i64, i64)
 
 declare i64 @nanotube_map_update_masked(%struct.nanotube_context*, i16, i8*, i64, i8*, i8*, i64, i64)
 
-attributes #0 = { argmemonly nounwind willreturn }
+attributes #0 = { argmemonly nofree nosync nounwind willreturn }
 attributes #1 = { inaccessiblemem_or_argmemonly }

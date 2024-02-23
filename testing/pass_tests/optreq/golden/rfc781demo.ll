@@ -59,21 +59,21 @@ declare void @nanotube_add_plain_packet_kernel(i8*, i32 (%struct.nanotube_contex
 
 declare i64 @nanotube_packet_bounded_length(%struct.nanotube_packet*, i64, i32)
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #0
 
 declare i64 @nanotube_packet_read(%struct.nanotube_packet*, i8*, i64, i64)
 
-; Function Attrs: nounwind readnone speculatable willreturn
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare i16 @llvm.bswap.i16(i16) #1
 
-; Function Attrs: nounwind readnone speculatable willreturn
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare i32 @llvm.bswap.i32(i32) #1
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nounwind willreturn
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
 declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #0
 
 ; Function Attrs: alwaysinline uwtable
@@ -96,7 +96,7 @@ entry:
   ret i32 %., !dbg !355
 }
 
-; Function Attrs: nounwind readnone speculatable willreturn
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.value(metadata, metadata, metadata) #1
 
 declare dso_local i64 @nanotube_map_op(%struct.nanotube_context*, i16 zeroext, i32, i8*, i64, i8*, i8*, i8*, i64, i64) local_unnamed_addr #3
@@ -154,7 +154,7 @@ entry:
   ret i64 %call, !dbg !408
 }
 
-; Function Attrs: argmemonly nounwind willreturn writeonly
+; Function Attrs: argmemonly nofree nosync nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #4
 
 declare dso_local i64 @nanotube_packet_write_masked(%struct.nanotube_packet*, i8*, i8*, i64, i64) local_unnamed_addr #3
@@ -251,10 +251,10 @@ entry:
   ret i64 %call, !dbg !515
 }
 
-; Function Attrs: nounwind
+; Function Attrs: nofree nosync nounwind willreturn
 declare i8* @llvm.stacksave() #6
 
-; Function Attrs: nounwind
+; Function Attrs: nofree nosync nounwind willreturn
 declare void @llvm.stackrestore(i8*) #6
 
 ; Function Attrs: nounwind uwtable
@@ -670,10 +670,10 @@ entry:
   %141 = call i64 @nanotube_packet_bounded_length(%struct.nanotube_packet* %packet, i64 32768, i32 0)
   %142 = add i64 %141, -1
   %143 = bitcast i32* %ebpf_zero to i8*
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %143) #6
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %143) #8
   store i32 0, i32* %ebpf_zero, align 4, !tbaa !520
   %144 = bitcast %struct.xdp_output* %xout to i8*
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %144) #6
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %144) #8
   %145 = icmp ugt i64 28, %142
   br i1 %145, label %cleanup3166, label %if.end820
 
@@ -1262,7 +1262,7 @@ accept:                                           ; preds = %if.end1025, %if.end
 
 if.then1362:                                      ; preds = %accept
   %375 = getelementptr inbounds %struct.MyProcessing_IPV4_CNT_key, %struct.MyProcessing_IPV4_CNT_key* %key, i64 0, i32 0
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %375) #6
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %375) #8
   store i8 0, i8* %375, align 1, !tbaa !578
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %key.gep_copy, i8* %375, i64 1, i1 false)
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %nt_ctx, metadata !472, metadata !DIExpression()), !dbg !479
@@ -1305,11 +1305,11 @@ if.then1371:                                      ; preds = %if.end1368, %if.the
   br i1 %cond3184, label %cleanup1374, label %cleanup1374.thread
 
 cleanup1374.thread:                               ; preds = %if.then1371, %if.end1368
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %375) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %375) #8
   br label %cleanup3166
 
 cleanup1374:                                      ; preds = %if.then1371
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %375) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %375) #8
   br label %if.end1377
 
 if.end1377:                                       ; preds = %cleanup1374, %accept
@@ -1325,7 +1325,7 @@ if.then1379:                                      ; preds = %if.end1377
 
 if.then1384:                                      ; preds = %if.then1379
   %384 = bitcast %struct.MyProcessing_MATCH_RFC781_key* %key1385 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %384) #6
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %384) #8
   %385 = getelementptr inbounds %struct.MyProcessing_MATCH_RFC781_key, %struct.MyProcessing_MATCH_RFC781_key* %key1385, i64 0, i32 0
   %386 = load i32, i32* getelementptr inbounds (%struct.headers, %struct.headers* @hdr, i64 0, i32 8, i32 0), align 8, !tbaa !560
   store i32 %386, i32* %385, align 4, !tbaa !580
@@ -1380,14 +1380,14 @@ sw.bb1399:                                        ; preds = %if.then1397
   br label %cleanup.cont1411
 
 cleanup1408.thread:                               ; preds = %if.then1397, %if.end1394
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %384) #6
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %384) #8
   br label %cleanup3166
 
 cleanup.cont1411:                                 ; preds = %sw.bb1399, %if.then1397
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %384) #6
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %384) #8
   %tobool1412 = icmp eq i8 %hit.04056, 0
   %393 = bitcast %struct.MyProcessing_MATCH_RFC781_key* %key1416 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %393) #6
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %393) #8
   %394 = getelementptr inbounds %struct.MyProcessing_MATCH_RFC781_key, %struct.MyProcessing_MATCH_RFC781_key* %key1416, i64 0, i32 0
   %395 = load i32, i32* getelementptr inbounds (%struct.headers, %struct.headers* @hdr, i64 0, i32 8, i32 0), align 8, !tbaa !560
   store i32 %395, i32* %394, align 4, !tbaa !582
@@ -1439,18 +1439,18 @@ sw.bb1430:                                        ; preds = %if.then1428
   br label %cleanup.cont1440
 
 cleanup1437.thread:                               ; preds = %if.then1428, %if.end1425
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %393) #6
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %393) #8
   br label %cleanup3166
 
 cleanup.cont1440:                                 ; preds = %sw.bb1430, %if.then1428
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %393) #6
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %393) #8
   %tobool1441 = icmp ne i8 %hit.14061, 0
   %or.cond = or i1 %tobool1412, %tobool1441
   br i1 %or.cond, label %if.end1472, label %if.then1448
 
 if.then1448:                                      ; preds = %cleanup.cont1440
   %401 = getelementptr inbounds %struct.MyProcessing_IPV4_CNT_key, %struct.MyProcessing_IPV4_CNT_key* %key1449, i64 0, i32 0
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %401) #6
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %401) #8
   store i8 0, i8* %401, align 1, !tbaa !584
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %key1449.gep_copy, i8* %401, i64 1, i1 false)
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %nt_ctx, metadata !472, metadata !DIExpression()), !dbg !479
@@ -1493,11 +1493,11 @@ if.then1461:                                      ; preds = %if.end1458, %if.the
   br i1 %cond3182, label %cleanup1468, label %cleanup1468.thread
 
 cleanup1468.thread:                               ; preds = %if.then1461, %if.end1458
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %401) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %401) #8
   br label %cleanup3166
 
 cleanup1468:                                      ; preds = %if.then1461
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %401) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %401) #8
   br label %if.end1472
 
 if.end1472:                                       ; preds = %cleanup1468, %cleanup.cont1440
@@ -1505,7 +1505,7 @@ if.end1472:                                       ; preds = %cleanup1468, %clean
 
 if.then1474:                                      ; preds = %if.end1472
   %407 = getelementptr inbounds %struct.MyProcessing_IPV4_CNT_key, %struct.MyProcessing_IPV4_CNT_key* %key1475, i64 0, i32 0
-  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %407) #6
+  call void @llvm.lifetime.start.p0i8(i64 1, i8* nonnull %407) #8
   store i8 0, i8* %407, align 1, !tbaa !586
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %key1475.gep_copy, i8* %407, i64 1, i1 false)
   call void @llvm.dbg.value(metadata %struct.nanotube_context* %nt_ctx, metadata !472, metadata !DIExpression()), !dbg !479
@@ -1548,11 +1548,11 @@ if.then1487:                                      ; preds = %if.end1484, %if.the
   br i1 %cond3180, label %cleanup1494, label %cleanup1494.thread
 
 cleanup1494.thread:                               ; preds = %if.then1487, %if.end1484
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %407) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %407) #8
   br label %cleanup3166
 
 cleanup1494:                                      ; preds = %if.then1487
-  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %407) #6
+  call void @llvm.lifetime.end.p0i8(i64 1, i8* nonnull %407) #8
   br label %cleanup.cont1507
 
 cleanup.cont1507:                                 ; preds = %cleanup1494, %if.end1472, %if.then1379, %if.end1377
@@ -3891,8 +3891,8 @@ ebpf_end:                                         ; preds = %if.end3046, %if.end
 
 cleanup3166:                                      ; preds = %ebpf_end, %if.then3038, %if.then2915, %if.then2792, %if.then2669, %if.then2590, %if.then2246, %if.then2130, %if.then2015, %if.then1846, %if.then1557, %cleanup1494.thread, %cleanup1468.thread, %cleanup1437.thread, %cleanup1408.thread, %cleanup1374.thread, %if.end820, %if.end701, %if.end701, %if.end701, %if.end701, %if.end701, %parse_vlan1, %parse_vlan, %parse_ipv4_rfc781_3, %parse_ipv4_rfc781_2, %parse_ipv4_rfc781_1, %parse_ipv4_rfc781_0, %if.end, %parse_ipv4, %entry
   %retval.10 = phi i32 [ %828, %ebpf_end ], [ 0, %if.end820 ], [ 0, %entry ], [ 0, %parse_vlan1 ], [ 0, %parse_vlan ], [ 0, %parse_ipv4_rfc781_3 ], [ 0, %parse_ipv4_rfc781_2 ], [ 0, %parse_ipv4_rfc781_1 ], [ 0, %parse_ipv4_rfc781_0 ], [ 0, %if.end ], [ 0, %parse_ipv4 ], [ 0, %if.then1557 ], [ 0, %if.then1846 ], [ 0, %if.then2015 ], [ 0, %if.then2130 ], [ 0, %if.then2246 ], [ 0, %if.then2590 ], [ 0, %if.then2669 ], [ 0, %if.then2792 ], [ 0, %if.then2915 ], [ 0, %if.then3038 ], [ 0, %if.end701 ], [ 0, %if.end701 ], [ 0, %if.end701 ], [ 0, %if.end701 ], [ 0, %if.end701 ], [ 0, %cleanup1374.thread ], [ 0, %cleanup1408.thread ], [ 0, %cleanup1437.thread ], [ 0, %cleanup1468.thread ], [ 0, %cleanup1494.thread ]
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %144) #6
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %143) #6
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %144) #8
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %143) #8
   call void @llvm.dbg.value(metadata %struct.nanotube_packet* %packet, metadata !376, metadata !DIExpression()), !dbg !378
   call void @llvm.dbg.value(metadata i32 %retval.10, metadata !377, metadata !DIExpression()), !dbg !379
   %cond.i242 = icmp eq i32 %retval.10, 2, !dbg !380
@@ -3937,14 +3937,15 @@ packet_handle_xdp_result.exit:                    ; preds = %sw.default.i, %sw.b
   ret i32 0
 }
 
-attributes #0 = { argmemonly nounwind willreturn }
-attributes #1 = { nounwind readnone speculatable willreturn }
+attributes #0 = { argmemonly nofree nosync nounwind willreturn }
+attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 attributes #2 = { alwaysinline uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #3 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #4 = { argmemonly nounwind willreturn writeonly }
+attributes #4 = { argmemonly nofree nosync nounwind willreturn writeonly }
 attributes #5 = { alwaysinline norecurse nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #6 = { nounwind }
+attributes #6 = { nofree nosync nounwind willreturn }
 attributes #7 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #8 = { nounwind }
 
 !llvm.ident = !{!0, !0, !0, !0}
 !llvm.module.flags = !{!1, !2, !3}
