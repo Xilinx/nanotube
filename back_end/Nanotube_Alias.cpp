@@ -56,10 +56,10 @@ AliasResult NanotubeAAResult::alias(const MemoryLocation& loc_a,
   SmallVector<const Value*, 4> vals_b;
 
   // XXX: More caching here!
-  GetUnderlyingObjects(const_cast<Value*>(loc_a.Ptr), vals_a,
-                       data_layout, loop_info, 0);
-  GetUnderlyingObjects(const_cast<Value*>(loc_b.Ptr), vals_b,
-                       data_layout, loop_info, 0);
+  getUnderlyingObjects(const_cast<Value*>(loc_a.Ptr), vals_a,
+                       loop_info, 0);
+  getUnderlyingObjects(const_cast<Value*>(loc_b.Ptr), vals_b,
+                       loop_info, 0);
 
   LLVM_DEBUG(
     dbgs() << "  A underlying objects " << vals_a.size() << '\n';

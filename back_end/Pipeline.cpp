@@ -4364,7 +4364,7 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
         } else {
           /* If we didn't find anything in the live memory objects, simply
            * inspect the entries themselves. */
-          auto* ul = GetUnderlyingObject(v, dl, 0);
+          auto* ul = getUnderlyingObject(v, 0);
           LLVM_DEBUG(dbgs() << "Pointer PHI " << *phi << " value " << *v
                             << " is a dead allocation. Underlying object:"
                             << *ul << '\n');
