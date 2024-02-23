@@ -1172,7 +1172,8 @@ Type* get_nt_channel_attr_val_ty(Module& m) {
 StructType* get_nt_channel_ty(Module& m) {
   /* struct nanotube_channel is opaque! */
   const char name[] = "struct.nanotube_channel";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if( ty != nullptr )
     return ty;
 
@@ -1380,11 +1381,11 @@ FunctionCallee create_packet_handle_xdp_result(Module& m) {
 namespace nanotube {
 StructType* get_nt_tap_packet_read_req_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_read_req";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,3> elements = {
     IntegerType::getInt8Ty(c),    /* valid */
     IntegerType::getInt16Ty(c),   /* read_offset */
@@ -1396,11 +1397,11 @@ StructType* get_nt_tap_packet_read_req_ty(Module& m) {
 
 StructType* get_nt_tap_packet_read_resp_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_read_resp";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,2> elements = {
     IntegerType::getInt8Ty(c),    /* valid */
     IntegerType::getInt16Ty(c),   /* result_length */
@@ -1410,11 +1411,11 @@ StructType* get_nt_tap_packet_read_resp_ty(Module& m) {
 
 StructType* get_nt_tap_packet_read_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_read_state";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 6>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt16Ty(c),   /* packet_offset */
@@ -1459,11 +1460,11 @@ FunctionCallee create_tap_packet_read(Module& m, nanotube_bus_id_t bus_type) {
 
 StructType* get_nt_tap_packet_write_req_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_write_req";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,3> elements = {
     IntegerType::getInt8Ty(c),    /* valid */
     IntegerType::getInt16Ty(c),   /* write_offset */
@@ -1475,11 +1476,11 @@ StructType* get_nt_tap_packet_write_req_ty(Module& m) {
 
 StructType* get_nt_tap_packet_write_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_write_state";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 6>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_length */
     IntegerType::getInt16Ty(c),   /* packet_offset */
@@ -1526,11 +1527,11 @@ FunctionCallee create_tap_packet_write(Module& m, nanotube_bus_id_t bus_type) {
 
 StructType* get_nt_tap_packet_length_req_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_length_req";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,2> elements = {
     IntegerType::getInt8Ty(c),    /* valid */
     IntegerType::getInt16Ty(c),   /* max_length */
@@ -1541,11 +1542,11 @@ StructType* get_nt_tap_packet_length_req_ty(Module& m) {
 
 StructType* get_nt_tap_packet_length_resp_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_length_resp";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,2> elements = {
     IntegerType::getInt8Ty(c),    /* valid */
     IntegerType::getInt16Ty(c),   /* result_length */
@@ -1555,11 +1556,11 @@ StructType* get_nt_tap_packet_length_resp_ty(Module& m) {
 
 StructType* get_nt_tap_packet_length_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_length_state";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 4>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_offset */
     IntegerType::getInt16Ty(c),   /* packet_length */
@@ -1599,7 +1600,7 @@ StructType* get_nt_tap_packet_resize_cword_ty(Module& m) {
   LLVMContext& c = m.getContext();
   std::string  name = "struct.nanotube_tap_packet_resize_cword_t";
 
-  auto* ty = m.getTypeByName(name);
+  auto* ty = StructType::getTypeByName(c, name);
   if( ty != nullptr )
     return ty;
 
@@ -1615,11 +1616,11 @@ StructType* get_nt_tap_packet_resize_cword_ty(Module& m) {
 
 StructType* get_nt_tap_packet_resize_req_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_resize_req_t";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*,3> elements = {
     get_nt_tap_offset_ty(m),      /* write_offset */
     get_nt_tap_offset_ty(m),      /* delete_length */
@@ -1631,11 +1632,11 @@ StructType* get_nt_tap_packet_resize_req_ty(Module& m) {
 
 StructType* get_nt_tap_packet_resize_ingress_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_resize_ingress_state_t";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 4>  elements = {
     IntegerType::getInt8Ty(c),    /* sop */
     get_nt_tap_offset_ty(m),      /* input_offset */
@@ -1674,11 +1675,11 @@ FunctionCallee create_tap_packet_resize_ingress(Module& m, nanotube_bus_id_t bus
 
 StructType* get_nt_tap_packet_resize_egress_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_resize_egress_state_t";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 12>  elements = {
     IntegerType::getInt8Ty(c),    /* new_word */
     IntegerType::getInt8Ty(c),    /* eop_seen */
@@ -1765,11 +1766,11 @@ FunctionCallee create_tap_packet_resize_ingress_state_init(Module& m) {
 
 StructType* get_nt_tap_packet_eop_state_ty(Module& m) {
   static const std::string name = "struct.nanotube_tap_packet_eop_state";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  LLVMContext& c = m.getContext();
   std::array<Type*, 2>  elements = {
     IntegerType::getInt16Ty(c),   /* packet_offset */
     IntegerType::getInt16Ty(c),   /* packet_length */
@@ -1803,7 +1804,8 @@ namespace nanotube {
 StructType* get_nt_context_type(Module& m) {
   /* nanotube_context is now opaque! */
   const char nt_ctx_name[] = "struct.nanotube_context";
-  Type* nt_ctx_ty = m.getTypeByName(nt_ctx_name);
+  LLVMContext& c = m.getContext();
+  Type* nt_ctx_ty = StructType::getTypeByName(c, nt_ctx_name);
   if( nt_ctx_ty != nullptr )
     return cast<StructType>(nt_ctx_ty);
 
@@ -2050,7 +2052,7 @@ StructType* get_nt_map_type(Module& m) {
 
   const char ty_name[] ="struct.nanotube_map";
 
-  StructType* ty = m.getTypeByName(ty_name);
+  StructType* ty = StructType::getTypeByName(c, ty_name);
   if( ty == nullptr ) {
     ty = StructType::create(ty_name, Type::getInt64Ty(c),
                                      Type::getInt64Ty(c),
@@ -2072,7 +2074,7 @@ StructType* get_nt_packet_type(Module& m) {
   //XXX: Check this as there is a typedef to nanotube_packet_t
   const char ty_name[] ="struct.nanotube_packet";
 
-  StructType* ty = m.getTypeByName(ty_name);
+  StructType* ty = StructType::getTypeByName(c, ty_name);
   if( ty == nullptr ) {
     ty = StructType::create(c, ty_name);
   }
@@ -2082,11 +2084,11 @@ StructType* get_nt_packet_type(Module& m) {
 
 Type* get_simple_bus_word_ty(Module& m) {
   static const std::string name = "struct.simple_bus::word";
-  auto* ty = m.getTypeByName(name);
+  LLVMContext& c = m.getContext();
+  auto* ty = StructType::getTypeByName(c, name);
   if (ty != nullptr)
     return ty;
 
-  auto& c = m.getContext();
   auto *ar_ty = ArrayType::get(Type::getInt8Ty(c), 65);
   return StructType::create(name, ar_ty);
 }
@@ -2105,7 +2107,7 @@ Type* get_nt_tap_map_ty(Module& m) {
   LLVMContext& c = m.getContext();
   const char ty_name[] ="struct.nanotube_tap_map";
 
-  StructType* ty = m.getTypeByName(ty_name);
+  StructType* ty = StructType::getTypeByName(c, ty_name);
   if( ty == nullptr ) {
     ty = StructType::create(c, ty_name);
   }

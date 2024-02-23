@@ -1137,7 +1137,7 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
   auto* nt_packet   = pkt_arg;
 
   /* and FOR THE MOMENT!11!!!!!1!! cheat and cast to an XDP Context */
-  auto* xdp_ctx_ty = m.getTypeByName("struct.xdp_md")->getPointerTo();
+  auto* xdp_ctx_ty = StructType::getTypeByName(C, "struct.xdp_md")->getPointerTo();
   auto* xdp_ctx    = ir.CreateBitCast(nt_packet, xdp_ctx_ty, "xdp_ctx");
 
   for( unsigned i = 0; i < nt_maps.size(); ++i ) {
