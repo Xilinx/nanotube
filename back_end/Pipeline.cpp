@@ -4305,7 +4305,8 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
         /* Non-pointer values cannot overlap */
         if( !v->getType()->isPointerTy() )
           continue;
-        ast.getAliasSetFor(MemoryLocation(v));
+        auto tysize = LocationSize::beforeOrAfterPointer();
+        ast.getAliasSetFor(MemoryLocation(v, tysize));
       }
 
       LLVM_DEBUG(dbgs() << "Live-Out AliasSets:\n" << ast << '\n');
@@ -4317,7 +4318,8 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
        * Alias Sets (aliases with any of the live-out values minus the PHI
        * itself).*/
       for( auto* u : phivs ) {
-        MemoryLocation uloc(u);
+        auto tysize = LocationSize::beforeOrAfterPointer();
+        MemoryLocation uloc(u, tysize);
         auto& as = ast.getAliasSetFor(uloc);
         LLVM_DEBUG(dbgs() << "AS: " << as << " Size: " << as.size() << '\n');
         if( as.size() > 1 ) {
@@ -4337,7 +4339,8 @@ bool convert_pointer_phis(Function& f, liveness_info_t* livi,
       for( auto* v : phivs ) {
         MemoryLocation* alloc = nullptr;
         for( auto& m :lom ) {
-          MemoryLocation vloc(v);
+          auto tysize = LocationSize::beforeOrAfterPointer();
+          MemoryLocation vloc(v, tysize);
           auto res = aa->alias(vloc, m);
           if( res == NoAlias )
             continue;

@@ -303,7 +303,7 @@ void liveness_info_t::memory_liveness_analysis_forward(Function& f) {
       auto* alloca = dyn_cast<AllocaInst>(&inst);
       if( alloca != nullptr ) {
         auto size   = alloca->getAllocationSizeInBits(dl);
-        auto tysize = LocationSize::unknown();
+        auto tysize = LocationSize::beforeOrAfterPointer();
         if( size.hasValue() ) {
           tysize = LocationSize::precise(size.getValue() / 8);
         } else {

@@ -752,7 +752,7 @@ static
 MemoryLocation get_mloc(AllocaInst* alloca) {
   const auto& dl = alloca->getModule()->getDataLayout();
   auto size   = alloca->getAllocationSizeInBits(dl);
-  auto tysize = LocationSize::unknown();
+  auto tysize = LocationSize::beforeOrAfterPointer();
   if( size.hasValue() ) {
     tysize = LocationSize::precise(size.getValue() / 8);
   } else {
