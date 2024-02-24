@@ -1121,7 +1121,8 @@ stage_function_t::marshal_live_state(std::vector<Value*> live_out_val,
     }
 
     idxv[1] = ir.getInt32(idx++);
-    auto* gep = ir.CreateGEP(buffer, idxv, v->getName() + "_ptr");
+    auto* gep = ir.CreateGEP(live_out_ty, buffer, idxv,
+                             v->getName() + "_ptr");
     auto* st  = ir.CreateStore(v, gep);
     LLVM_DEBUG(dbgs() << *gep << '\n' << *st << '\n');
   }
@@ -1137,7 +1138,8 @@ stage_function_t::marshal_live_state(std::vector<Value*> live_out_val,
     }
 
     idxv[1] = ir.getInt32(idx++);
-    auto* gep = ir.CreateGEP(buffer, idxv, m.Ptr->getName() + "_ptr");
+    auto* gep = ir.CreateGEP(live_out_ty, buffer, idxv,
+                             m.Ptr->getName() + "_ptr");
     auto* cpy = ir.CreateMemCpy(gep, MaybeAlign(0),
                                 const_cast<Value*>(m.Ptr), MaybeAlign(0),
                                 m.Size.getValue());
@@ -1178,8 +1180,8 @@ stage_function_t::unmarshal_live_state(ArrayRef<Value*> live_val,
   /* Simply load live values from the copy in memory */
   for( auto* v : live_val ) {
     idxv[1] = ir.getInt32(idx++);
-    auto* gep = ir.CreateGEP(buffer, idxv, v->getName() +
-                                            "_ptr_" + stage_name);
+    auto* gep = ir.CreateGEP(live_state_ty, buffer, idxv,
+                             v->getName() + "_ptr_" + stage_name);
     auto* ld  = ir.CreateLoad(v->getType(), gep, v->getName() + "_" + stage_name);
     (*vmap)[v] = ld;
     LLVM_DEBUG(dbgs() << *gep << '\n' << *ld << '\n');
@@ -1209,7 +1211,8 @@ stage_function_t::unmarshal_live_state(ArrayRef<Value*> live_val,
     auto* bc = entry.CreateBitCast(buf_stack, ty, name + "_" + stage_name);
 
     /* Now copy from the static live-in state to the local stack copy */
-    auto* gep = ir.CreateGEP(buffer, idxv, name + "_state_" + stage_name);
+    auto* gep = ir.CreateGEP(live_state_ty, buffer, idxv,
+                             name + "_state_" + stage_name);
     auto* memcpy = ir.CreateMemCpy(buf_stack, MaybeAlign(0),
                                    gep, MaybeAlign(0),
                                    sz);
@@ -2049,7 +2052,7 @@ stage_function_t::read_packet_word(Value* dest_state,
     word_is_eop = eop;
   } else {
     auto* static_word_is_eop = get_static_word_is_eop();
-    word_is_eop = ir.CreateLoad(static_word_is_eop);
+    word_is_eop = ir.CreateLoad(ir.getInt1Ty(), static_word_is_eop);
   }
 
   if( unset_app_state_eop() || unset_map_resp_eop() ) {
@@ -2762,7 +2765,7 @@ stage_function_t::convert_packet_resize_egress(Value* packet_word, BasicBlock* b
   ir.CreateCall(resize_egress_f, args);
 
   /* Update state for whether it's the eop or not after resizing */
-  auto* eop = ir.CreateLoad(packet_done, "eop");
+  auto* eop = ir.CreateLoad(ir.getInt8Ty(), packet_done, "eop");
   word_is_eop = ir.CreateTrunc(eop, ir.getInt1Ty());
   //? ir.CreateStore(word_is_eop, get_static_word_is_eop());
 
@@ -2776,7 +2779,8 @@ stage_function_t::convert_packet_resize_egress(Value* packet_word, BasicBlock* b
 
   /* If the tap is done with the input word, reset the guards for packet
    * and cword */
-  auto* id_i8 = ir.CreateLoad(input_done, "input_done.v.i8");
+  auto* id_i8 = ir.CreateLoad(ir.getInt8Ty(), input_done,
+                              "input_done.v.i8");
   auto* id    = ir.CreateTrunc(id_i8, ir.getInt1Ty(), "input_done.v");
 
   /* Split and conjure up new basic blocks */
@@ -2804,7 +2808,8 @@ stage_function_t::convert_packet_resize_egress(Value* packet_word, BasicBlock* b
 
   /* Check that the packet word produced by the tap is actually valid */
   ir.SetInsertPoint(nt_call);
-  auto* pvo_i8 = ir.CreateLoad(packet_valid, "packet_valid.v.i8");
+  auto* pvo_i8 = ir.CreateLoad(ir.getInt8Ty(), packet_valid,
+                               "packet_valid.v.i8");
   auto* pvo    = ir.CreateTrunc(pvo_i8, ir.getInt1Ty(), "packet_valid.v");
   auto* bb_app_logic = split_app_bb(bb_packet_valid_check, nt_call);
   bb_app_logic->setName("app_logic_" + stage_name);

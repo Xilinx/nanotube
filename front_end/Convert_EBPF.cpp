@@ -568,7 +568,7 @@ struct ebpf_to_NT : public ModulePass {
     FunctionCallee map_add  = create_nt_context_add_map(m);
 
     for( auto& nt_map : nt_maps ) {
-      auto* id = ir.CreateLoad(nt_map.global_id,
+      auto* id = ir.CreateLoad(ir.getInt16Ty(), nt_map.global_id,
                                nt_map.global_id->getName() + "_");
       std::array<Value*,4> args = {
         id,
@@ -1142,7 +1142,7 @@ Function* ebpf_to_NT::convert_kernel_params(Function& f) {
 
   for( unsigned i = 0; i < nt_maps.size(); ++i ) {
     /* Create code to read each map pointer */
-    auto* map_id  = ir.CreateLoad(nt_maps[i].global_id,
+    auto* map_id  = ir.CreateLoad(ir.getInt16Ty(), nt_maps[i].global_id,
                                   nt_maps[i].global_id->getName() + "_");
     /* Update our internal tracking structure so that later
      * transormation passes can find this */
