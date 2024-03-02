@@ -106,7 +106,7 @@ or (if you are logged into Github):
 
 You will need to build LLVM before building Nanotube.  The build_llvm
 script makes this process easier and selects LLVM build options which
-are known to work.  Nanotube is built against LLVM 8.0.0 built from source,
+are known to work.  Nanotube is built against LLVM 12.0.0 built from source,
 but we are planning to a more recent version of LLVM and explore the use of
 distribution packages.
 
@@ -120,7 +120,7 @@ used if preferred.  Just make sure the correct path is given in
 later commands.
 
       mkdir -p /scratch/$USER
-      git clone -b llvmorg-8.0.0 https://github.com/llvm/llvm-project.git --depth 1  /scratch/$USER/nanotube-llvm
+      git clone -b llvmorg-12.0.0 https://github.com/llvm/llvm-project.git --depth 1  /scratch/$USER/nanotube-llvm
 
 ### Building LLVM
 
