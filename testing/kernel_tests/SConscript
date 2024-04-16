@@ -178,3 +178,15 @@ if extra:
         env.Append(LIBPATH=[Dir(extra).Dir("build")])
         env.Append(LIBS=[extra_lib])
         env.Append(RPATH=[Dir(extra).Dir("build")])
+
+
+llvm_components = env.get('EXTRA_LLVM_COMPONENTS')
+if llvm_components:
+    llvm_config = env.get('LLVM_CONFIG')
+    args = [llvm_config, '--libs']
+    args.extend(llvm_components.split())
+    llvm_libs = subprocess.check_output(args, universal_newlines=True).rstrip('\n')
+
+    env.Append(RPATH=[env['LLVM_LIB_DIR']])
+    env.Append(LIBPATH=[env['LLVM_LIB_DIR']])
+    env.Append(LIBS=llvm_libs.split())

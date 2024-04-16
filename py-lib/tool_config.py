@@ -190,6 +190,9 @@ _infos = [
     {
         'var' : 'EXTRA_LIBS',
     },
+    {
+        'var' : 'EXTRA_LLVM_COMPONENTS',
+    },
 ]
 
 class config(object):
