@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python3
 ###########################################################################
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
@@ -44,7 +44,9 @@ def clean_directories(opts):
             shutil.rmtree(d)
 
 def invoke_cmake(opts):
-    if os.path.exists("/usr/bin/cmake3"):
+    if os.environ["CMAKE"]:
+        cmake = os.environ["CMAKE"]
+    elif os.path.exists("/usr/bin/cmake3"):
         cmake = "/usr/bin/cmake3"
     else:
         cmake = "/usr/bin/cmake"
