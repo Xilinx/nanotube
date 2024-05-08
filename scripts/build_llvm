@@ -44,7 +44,7 @@ def clean_directories(opts):
             shutil.rmtree(d)
 
 def invoke_cmake(opts):
-    if os.environ["CMAKE"]:
+    if "CMAKE" in os.environ:
         cmake = os.environ["CMAKE"]
     elif os.path.exists("/usr/bin/cmake3"):
         cmake = "/usr/bin/cmake3"
