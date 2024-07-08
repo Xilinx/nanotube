@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 # \author  Neil Turton <neilt@amd.com>
 #  \brief  A script for managing Nanotube build configuration.
 #   \date  2020-10-28
