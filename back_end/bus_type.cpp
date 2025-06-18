@@ -16,6 +16,7 @@
 #include "softhub_bus.hpp"
 #include "utils.h"
 #include "x3rx_bus.hpp"
+#include "open_nic_bus.hpp"
 
 #include "llvm/Support/CommandLine.h"
 
@@ -34,6 +35,7 @@ std::unordered_map<std::string, enum nanotube_bus_id_t> bus_types = {
   { "sb", NANOTUBE_BUS_ID_SB },
   { "shb", NANOTUBE_BUS_ID_SHB },
   { "x3rx", NANOTUBE_BUS_ID_X3RX },
+  { "open_nic", NANOTUBE_BUS_ID_OPEN_NIC },
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -56,6 +58,7 @@ const char* nanotube::get_bus_suffix(enum nanotube_bus_id_t type) {
     "_shb",
     "_eth",
     "_x3rx",
+    "_open_nic",
   };
 
   /* Make sure that the array here matches what is defined in the enum in
@@ -79,6 +82,7 @@ nanotube_tap_offset_t nanotube::get_bus_word_size() {
     sizeof(softhub_bus::word),
     0,
     sizeof(x3rx_bus::word),
+    sizeof(open_nic::word),
   };
 
   auto type = get_bus_type();
@@ -100,6 +104,7 @@ nanotube_packet_size_t nanotube::get_bus_md_size()
     sizeof(softhub_bus::header),
     0,
     sizeof(x3rx_bus::header),
+    0, // OpenNIC does not have a header
   };
 
   auto type = get_bus_type();
@@ -121,6 +126,7 @@ nanotube_packet_size_t nanotube::get_bus_sb_size()
     softhub_bus::sideband_bytes,
     0,
     x3rx_bus::sideband_bytes,
+    open_nic::sideband_bytes,
   };
 
   auto type = get_bus_type();
@@ -142,6 +148,7 @@ nanotube_packet_size_t nanotube::get_bus_sb_signals_size()
     softhub_bus::sideband_signals_bytes,
     0,
     x3rx_bus::sideband_signals_bytes,
+    open_nic::sideband_signals_bytes,
   };
 
   auto type = get_bus_type();

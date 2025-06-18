@@ -24,6 +24,7 @@
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
 #include "x3rx_bus.hpp"
+#include "open_nic_bus.hpp"
 
 uint8_t* nanotube_packet_data(nanotube_packet_t* packet) {
   auto sec = ( packet->get_is_capsule()
@@ -197,6 +198,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   case NANOTUBE_BUS_ID_SB:
   case NANOTUBE_BUS_ID_SHB:
   case NANOTUBE_BUS_ID_X3RX:
+  case NANOTUBE_BUS_ID_OPEN_NIC:
     break;
 
   default:
@@ -245,6 +247,10 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     break;
   }
 
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    break;
+  }
+
   default:
     // Format not supported.
     return EPROTONOSUPPORT;
@@ -281,6 +287,10 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     x3rx_header.port = this->m_port;
     insert(NANOTUBE_SECTION_WHOLE, (uint8_t*)&x3rx_header,
            0, sizeof(x3rx_header));
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
     break;
   }
 
@@ -406,6 +416,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
     case NANOTUBE_BUS_ID_X3RX:
+    case NANOTUBE_BUS_ID_OPEN_NIC:
       // None.
       break;
 
@@ -438,6 +449,10 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
       assert(m_contents.size() >= sizeof(x3rx_bus::header));
       offset += sizeof(x3rx_bus::header);
       break;
+      
+    case NANOTUBE_BUS_ID_OPEN_NIC: {
+      break;
+    }
 
     default:
       std::cerr << "ERROR: Unsupported bus type " << m_bus_type
@@ -455,6 +470,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
     case NANOTUBE_BUS_ID_X3RX:
+    case NANOTUBE_BUS_ID_OPEN_NIC:
       // Not supported yet.
     default:
       std::cerr << "ERROR: Unsupported bus type " << m_bus_type
@@ -507,6 +523,10 @@ nanotube_packet_port_t nanotube_packet::get_port() const
     return hdr->port;
   }
 
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    return m_port; // OpenNIC does not have a port in the header.
+  }
+
   default:
     std::cerr << "ERROR: Unsupported bus type " << m_bus_type
               << " for get_port, aborting!\n";
@@ -538,6 +558,11 @@ void nanotube_packet::set_port(nanotube_packet_port_t port)
     assert(m_contents.size() >= sizeof(x3rx_bus::header));
     auto *hdr = (x3rx_bus::header*)&(m_contents.front());
     hdr->port = port;
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    m_port = port;
     break;
   }
 
@@ -644,6 +669,36 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
     memcpy(buffer, data, remaining);
     if (remaining < x3rx_bus::data_bytes)
       memset(buffer+remaining, 0, x3rx_bus::data_bytes-remaining);
+    return false;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    assert(buf_size == open_nic::total_bytes);
+    size_t total_size = m_contents.size();
+
+    assert(offset < total_size);
+    size_t remaining = total_size - offset;
+    uint8_t *data = &(m_contents[offset]);
+
+    // Handle a word which is not the last.
+    if (remaining > open_nic::data_bytes) {
+        memcpy(buffer, data, open_nic::data_bytes);
+        open_nic::set_tuser_raw(buffer + open_nic::sideband_offset(0), (int) total_size, 0, 0);
+        open_nic::set_tkeep(buffer + open_nic::sideband_signals_offset(0), open_nic::data_bytes);
+        open_nic::set_tlast(buffer + open_nic::sideband_signals_offset(0), false);
+        *iter = offset + open_nic::data_bytes;
+        return true;
+    }
+
+    // Handle the last (potentially partial) word.
+    assert(remaining > 0);
+    memcpy(buffer, data, remaining);
+    auto empty = open_nic::data_bytes - remaining;
+    if (remaining < open_nic::data_bytes)
+        memset(buffer + remaining, 0, empty);
+    open_nic::set_tuser_raw(buffer + open_nic::sideband_offset(0), (int) total_size, 0, 0);
+    open_nic::set_tkeep(buffer + open_nic::sideband_signals_offset(0), remaining);
+    open_nic::set_tlast(buffer + open_nic::sideband_signals_offset(0), true);
     return false;
   }
   }
@@ -767,6 +822,30 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
       return true;
     }
   }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    assert(buf_size == open_nic::total_bytes);
+
+    // Get pointers to the data and sideband signals.
+    uint8_t *data = buffer + open_nic::data_offset(0);
+    uint8_t *sideband_signals = buffer + open_nic::sideband_signals_offset(0);
+
+    // Extract TKEEP and calculate the number of valid bytes.
+    unsigned long long tkeep = 0;
+    tkeep = open_nic::get_sideband_signal_tkeep(sideband_signals);
+    size_t valid_bytes = __builtin_popcountll(tkeep);
+
+    assert(valid_bytes <= open_nic::data_bytes);  // Sanity check
+
+    // Append only the valid portion of the data.
+    m_contents.insert(m_contents.end(), data, data + valid_bytes);
+
+    // Check if TLAST is asserted.
+    bool tlast = open_nic::get_sideband_signal_tlast(sideband_signals);
+
+    // Indicate whether more words are expected.
+    return !tlast;
+  }
   }
 }
 
@@ -788,6 +867,9 @@ std::size_t nanotube_packet::get_meta_size() const
   case NANOTUBE_BUS_ID_X3RX:
     assert(m_contents.size() >= sizeof(x3rx_bus::header));
     return sizeof(x3rx_bus::header);
+
+  case NANOTUBE_BUS_ID_OPEN_NIC:
+    return 0; // OpenNIC does not have a metadata section.
 
   default:
     std::cerr << "ERROR: Unsupported bus type " << m_bus_type
