@@ -60,6 +60,7 @@ static std::string to_string(nanotube_channel_type_t t)
   case NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET: return "Simple packet";
   case NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET: return "Softhub packet";
   case NANOTUBE_CHANNEL_TYPE_X3RX_PACKET: return "X3RX packet";
+  case NANOTUBE_CHANNEL_TYPE_OPEN_NIC_PACKET: return "Open NIC packet";
   case NANOTUBE_CHANNEL_TYPE_X3TX_PACKET: return "X3TX packet";
   default: return "*Invalid*";
   }

@@ -3566,6 +3566,7 @@ void Pipeline::extend_nanotube_setup(const Pipeline::stages_t& stages,
   switch( get_bus_type() ) {
     case NANOTUBE_BUS_ID_SHB:  channel_type = NANOTUBE_CHANNEL_TYPE_SOFTHUB_PACKET; break;
     case NANOTUBE_BUS_ID_X3RX: channel_type = NANOTUBE_CHANNEL_TYPE_X3RX_PACKET; break;
+    case NANOTUBE_BUS_ID_OPEN_NIC: channel_type = NANOTUBE_CHANNEL_TYPE_OPEN_NIC_PACKET; break;
     case NANOTUBE_BUS_ID_X3TX: channel_type = NANOTUBE_CHANNEL_TYPE_X3TX_PACKET; break;
     default:                   channel_type = NANOTUBE_CHANNEL_TYPE_SIMPLE_PACKET;
   }

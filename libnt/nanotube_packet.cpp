@@ -28,6 +28,7 @@
 #include "simple_bus.hpp"
 #include "softhub_bus.hpp"
 #include "x3rx_bus.hpp"
+#include "open_nic_bus.hpp"
 #include "x3tx_bus.hpp"
 
 uint8_t* nanotube_packet_data(nanotube_packet_t* packet) {
@@ -90,6 +91,10 @@ nanotube_capsule_classify(nanotube_packet_t* packet,
 
   case NANOTUBE_BUS_ID_X3RX:
     return nanotube_capsule_classify_x3rx(packet, offset_out);
+
+  case NANOTUBE_BUS_ID_OPEN_NIC:
+    *offset_out = 0;
+    return NANOTUBE_CAPSULE_CLASS_NETWORK;
 
   case NANOTUBE_BUS_ID_X3TX:
     return nanotube_capsule_classify_x3tx(packet, offset_out);
@@ -225,6 +230,7 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
   case NANOTUBE_BUS_ID_SB:
   case NANOTUBE_BUS_ID_SHB:
   case NANOTUBE_BUS_ID_X3RX:
+  case NANOTUBE_BUS_ID_OPEN_NIC:
   case NANOTUBE_BUS_ID_X3TX:
     break;
 
@@ -269,6 +275,10 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
     break;
   }
 
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    break;
+  }
+
   case NANOTUBE_BUS_ID_X3TX: {
     // No conversion necessary.  No metadata on X3TX to store the port in
     this->m_port = 0;
@@ -307,6 +317,10 @@ int nanotube_packet::convert_bus_type(enum nanotube_bus_id_t bus_type)
 
   case NANOTUBE_BUS_ID_X3RX: {
     // No conversion necessary.  No metadata on X3RX to store the port in
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
     break;
   }
 
@@ -437,6 +451,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
     case NANOTUBE_BUS_ID_X3RX:
+    case NANOTUBE_BUS_ID_OPEN_NIC:
     case NANOTUBE_BUS_ID_X3TX:
       // None.
       break;
@@ -469,6 +484,10 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
     case NANOTUBE_BUS_ID_X3RX:
       // No metadata on X3RX
       break;
+      
+    case NANOTUBE_BUS_ID_OPEN_NIC: {
+      break;
+    }
 
     case NANOTUBE_BUS_ID_X3TX:
       // No metadata on X3TX
@@ -490,6 +509,7 @@ void nanotube_packet::resize(nanotube_packet_section_t sec,
     case NANOTUBE_BUS_ID_SB:
     case NANOTUBE_BUS_ID_SHB:
     case NANOTUBE_BUS_ID_X3RX:
+    case NANOTUBE_BUS_ID_OPEN_NIC:
       // Not supported yet.
     default:
       std::cerr << "ERROR: Unsupported bus type " << m_bus_type
@@ -541,6 +561,10 @@ nanotube_packet_port_t nanotube_packet::get_port() const
     return 0;
   }
 
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    return m_port; // OpenNIC does not have a port in the header.
+  }
+
   case NANOTUBE_BUS_ID_X3TX: {
     // Not yet supported.  No metadata to store port on X3TX
     return 0;
@@ -575,6 +599,11 @@ void nanotube_packet::set_port(nanotube_packet_port_t port)
 
   case NANOTUBE_BUS_ID_X3RX: {
     // Not yet supported.  No metadata on X3RX to store the port
+    break;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    m_port = port;
     break;
   }
 
@@ -686,6 +715,36 @@ nanotube_packet::get_bus_word(uint8_t *buffer, std::size_t buf_size,
     memcpy(buffer, data, remaining);
     if (remaining < x3rx_bus::data_bytes)
       memset(buffer+remaining, 0, x3rx_bus::data_bytes-remaining);
+    return false;
+  }
+
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    assert(buf_size == open_nic::total_bytes);
+    size_t total_size = m_contents.size();
+
+    assert(offset < total_size);
+    size_t remaining = total_size - offset;
+    uint8_t *data = &(m_contents[offset]);
+
+    // Handle a word which is not the last.
+    if (remaining > open_nic::data_bytes) {
+        memcpy(buffer, data, open_nic::data_bytes);
+        open_nic::set_tuser_raw(buffer + open_nic::sideband_offset(0), (int) total_size, 0, 0);
+        open_nic::set_tkeep(buffer + open_nic::sideband_signals_offset(0), open_nic::data_bytes);
+        open_nic::set_tlast(buffer + open_nic::sideband_signals_offset(0), false);
+        *iter = offset + open_nic::data_bytes;
+        return true;
+    }
+
+    // Handle the last (potentially partial) word.
+    assert(remaining > 0);
+    memcpy(buffer, data, remaining);
+    auto empty = open_nic::data_bytes - remaining;
+    if (remaining < open_nic::data_bytes)
+        memset(buffer + remaining, 0, empty);
+    open_nic::set_tuser_raw(buffer + open_nic::sideband_offset(0), (int) total_size, 0, 0);
+    open_nic::set_tkeep(buffer + open_nic::sideband_signals_offset(0), remaining);
+    open_nic::set_tlast(buffer + open_nic::sideband_signals_offset(0), true);
     return false;
   }
 
@@ -831,6 +890,30 @@ nanotube_packet::add_bus_word(uint8_t *buffer, std::size_t buf_size)
     }
   }
 
+  case NANOTUBE_BUS_ID_OPEN_NIC: {
+    assert(buf_size == open_nic::total_bytes);
+
+    // Get pointers to the data and sideband signals.
+    uint8_t *data = buffer + open_nic::data_offset(0);
+    uint8_t *sideband_signals = buffer + open_nic::sideband_signals_offset(0);
+
+    // Extract TKEEP and calculate the number of valid bytes.
+    unsigned long long tkeep = 0;
+    tkeep = open_nic::get_sideband_signal_tkeep(sideband_signals);
+    size_t valid_bytes = __builtin_popcountll(tkeep);
+
+    assert(valid_bytes <= open_nic::data_bytes);  // Sanity check
+
+    // Append only the valid portion of the data.
+    m_contents.insert(m_contents.end(), data, data + valid_bytes);
+
+    // Check if TLAST is asserted.
+    bool tlast = open_nic::get_sideband_signal_tlast(sideband_signals);
+
+    // Indicate whether more words are expected.
+    return !tlast;
+  }
+
   case NANOTUBE_BUS_ID_X3TX: {
     assert(buf_size == x3tx_bus::total_bytes);
 
@@ -890,6 +973,9 @@ std::size_t nanotube_packet::get_meta_size() const
   case NANOTUBE_BUS_ID_X3RX:
     // No metadata on X3RX
     return 0;
+
+  case NANOTUBE_BUS_ID_OPEN_NIC:
+    return 0; // OpenNIC does not have a metadata section.
 
   case NANOTUBE_BUS_ID_X3TX:
     // No metadata on X3TX
