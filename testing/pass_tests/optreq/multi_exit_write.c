@@ -7,18 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-enum nanotube_bus_id_t {
-  NANOTUBE_BUS_ID_SB = 0,
-  NANOTUBE_BUS_ID_SHB = 1,
-  NANOTUBE_BUS_ID_ETH = 2,
-  NANOTUBE_BUS_ID_X3RX = 3,
-  NANOTUBE_BUS_ID_X3TX = 4,
-  NANOTUBE_BUS_ID_TOTAL
-};
-typedef enum {
-  NANOTUBE_PACKET_PASS = 0x0,
-  NANOTUBE_PACKET_DROP = 0x1,
-} nanotube_kernel_rc_t;
+#include "nanotube_api.h"
 
 typedef struct nanotube_context nanotube_context_t;
 typedef struct nanotube_packet  nanotube_packet_t;
